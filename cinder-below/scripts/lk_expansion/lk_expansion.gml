@@ -1,6 +1,6 @@
 function lk_field(_x, _y, _kind, _wait, _power, _radius, _color, _hostile = false, _angle = 0) {
     var _duration = [142, 22, 185, 6][_kind];
-    if (_hostile && _kind == 1) _wait += 18;
+    if (_hostile && _kind == 1) _wait += 6;
     array_push(fields, {px: clamp(_x, KEEP_LEFT + 8, KEEP_RIGHT - 8), py: clamp(_y, KEEP_TOP + 8, KEEP_BOTTOM - 8),
         kind: _kind, life: _duration + _wait, duration: _duration, radius: _radius,
         power: _power, color: _color, hostile: _hostile, shot_angle: _angle, windup: _wait});

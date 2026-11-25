@@ -21,7 +21,7 @@ enum LK_ENEMY { Skulk, Spitter, Charger, Wisp, Boss, Sentry, Leech, Bruiser, Har
 #macro KEEP_BOTTOM 227
 #macro KEEP_MID_Y 143
 #macro LK_BOSS_INTRO 90
-#macro LK_VERSION "1.2.0+dev"
+#macro LK_VERSION "1.2.1+dev"
 
 function lk_input() {
     pad = -1;
@@ -377,7 +377,7 @@ function lk_enter_room(_index, _entry) {
     wave_count = cell.kind == LK_ROOM.Boss || cell.kind == LK_ROOM.Duel ? 1 : (cell.kind == LK_ROOM.Gauntlet ? 3
         : ((depth_no > 0 || _index mod 3 != 1) ? 2 : 1));
     if (cell.kind == LK_ROOM.Fight && (cell.encounter == 2 || cell.encounter == 4)) wave_count = 1;
-    hazard_wait = 145 + cell.seed mod 68;
+    hazard_wait = lk_rupture_room() ? 108 + cell.seed mod 36 : 145 + cell.seed mod 68;
     hazard_side = cell.seed mod 2;
     wave_wait = -1;
     shaking = 0;

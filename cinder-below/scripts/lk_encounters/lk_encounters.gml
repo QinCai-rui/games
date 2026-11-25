@@ -89,7 +89,7 @@ function lk_room_hazard_step() {
         var _vent = lk_rupture_vent(hazard_side);
         lk_field(_vent.px, _vent.py, 1, 36, 1, 17, lk_theme_tint(floor_no), true);
         hazard_side = 1 - hazard_side;
-        hazard_wait = 185;
+        hazard_wait = 160;
     } else {
         lk_gauntlet_hazards();
         hazard_wait = 190 - min(floor_no, 3) * 11 - min(run_cycle, 4) * 6;
@@ -134,7 +134,7 @@ function lk_gauntlet_hazards() {
     }
 }
 
-function lk_bomb_trail(_angle, _count, _radius, _color) {
+function lk_bomb_trail(_angle, _count, _radius, _color, _windup = 32) {
     var _spacing = _radius * 2 + 12;
     var _dx = lengthdir_x(_spacing, _angle);
     var _dy = lengthdir_y(_spacing, _angle);
@@ -146,7 +146,7 @@ function lk_bomb_trail(_angle, _count, _radius, _color) {
     var _y = clamp(player.py, KEEP_TOP + _margin_y, KEEP_BOTTOM - _margin_y);
     for (var _i = 0; _i < _count; _i++) {
         lk_field(_x + (_i - _half) * _dx, _y + (_i - _half) * _dy,
-            1, 32 + _i * 12, 2, _radius, _color, true);
+            1, _windup + _i * 12, 2, _radius, _color, true);
     }
 }
 
@@ -162,7 +162,7 @@ function lk_sanctum_pattern(_e, _phase_two) {
                 lk_enemy_burst(_e, 7, _e.angle, 12, 2.71, C_PINK);
                 lk_enemy_burst(_e, 3, _e.angle + 37, 15, 2.28, C_MINT, LK_SHOT.Blast);
             } else {
-                lk_bomb_trail(_e.angle + 90, 3, 18, C_MINT);
+                lk_bomb_trail(_e.angle + 90, 3, 18, C_MINT, lk_rootbound_standard() ? 28 : 32);
             }
             if (_phase_two && !lk_rootbound_standard()) lk_enemy_burst(_e, 4, _e.angle + 45, 90, 2.80, C_MINT, LK_SHOT.Blast);
             break;

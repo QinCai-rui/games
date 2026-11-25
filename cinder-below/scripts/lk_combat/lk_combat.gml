@@ -93,8 +93,11 @@ function lk_spawn(_kind, _x = -1, _y = -1, _elite = false) {
     var _scale = 1 + min(run_cycle, 7) * .12 + (run_contract == LK_CONTRACT.Iron ? .13 : 0);
     _health = ceil(_health * _scale * (_elite ? 2.25 : 1));
     var _tint = _elite ? C_GOLD : _colors[_kind];
+    var _cool = irandom_range(30, 77);
+    if (cell.kind == LK_ROOM.Duel) _cool = ceil(_cool / 4);
+    else if (cell.kind == LK_ROOM.Fight && (depth_no > 0 || cell_index > 1)) _cool -= 12;
     array_push(enemies, {px: _x, py: _y, kind: _kind, hp: _health, max_hp: _health,
-        radius: _r[_kind] + (_elite ? 2 : 0), color: _tint, emerge: 24, cool: irandom_range(30, 77),
+        radius: _r[_kind] + (_elite ? 2 : 0), color: _tint, emerge: 24, cool: _cool,
         tell: 0, angle: 0, facing: -1, hit: 0, dash: 0, alive: true, dash_hit: false,
         slow: 0, attack: 0, echo: 0, enraged: false, phase: irandom(160), elite: _elite, final_phase: 0, tided: false});
     lk_ring(_x, _y, _tint, _elite ? 27 : 18, 24);
@@ -555,7 +558,7 @@ function lk_player_hurt(_power) {
 function lk_enemy_walk(_e, _distance, _angle) {
     if (_e.slow > 0) _distance *= .53;
     if (run_contract == LK_CONTRACT.Iron) _distance *= 1.13;
-    if (_e.elite) _distance *= 1.09;
+    if (_e.elite) _distance *= (cell.kind == LK_ROOM.Duel && _e.dash == 0) ? 1.22 : 1.09;
     // Try a short diagonal when the direct line runs into a pillar.
     var _x = _e.px;
     var _y = _e.py;
@@ -634,7 +637,7 @@ function lk_boss_step(_e, _toward, _range) {
         _e.attack += 1;
         if (_phase_two && (!lk_standard_contract() || (_e.attack - 1) mod 3 == 0)) _e.echo = 21;
         _e.cool = (_phase_two ? 36 : 53) - floor_no * 4;
-        if (_rootbound_standard && _phase_two) _e.cool = 48;
+        if (_rootbound_standard) _e.cool = _phase_two ? 42 : 47;
         shaking = max(shaking, 3);
         lk_sound(snd_heavy, .72 + floor_no * .1);
         return;
@@ -658,6 +661,8 @@ function lk_enemy_step(_e) {
     _e.facing = player.px >= _e.px ? 1 : -1;
     // Standard contracts leave more time to counterattack between boss moves.
     var _cool_rate = _e.kind == LK_ENEMY.Boss && !lk_standard_contract() ? 1.25 : 1;
+    // A solo rival takes less downtime without shortening the tell or dash.
+    if (cell.kind == LK_ROOM.Duel) _cool_rate = 1.55;
     _e.cool -= _cool_rate * (run_contract == LK_CONTRACT.Iron ? 1.17 : 1);
     if (_e.kind == LK_ENEMY.Sentry && _e.echo > 0) {
         _e.echo -= 1;
