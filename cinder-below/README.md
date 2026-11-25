@@ -19,7 +19,8 @@ Cinder Below is a single-player pixel-art dungeon shooter for Linux. Clear each 
 | Journal from the title | J | |
 | Contracts from the title | R | B |
 | Save and exit from a cleared room | Esc, then S | Start, then Y |
-| Continue a saved run from the title | C | Y |
+| Continue a saved run from the title | Enter or C | A or Y |
+| Start a new run instead | N | X |
 
 Drag a window edge or use the desktop maximize button to change the window size. Fit mode keeps the game at 16:9 and fills the available space. Whole-pixel scaling uses the largest integer zoom that fits and falls back to fit in smaller windows. The game remembers your scaling mode.
 
@@ -35,7 +36,9 @@ Guardian intros end on their own. Press E or A to skip once the guardian appears
 
 The main delve has eight stages across five biomes. Choose Iron Trial for faster enemies, less armor, and lasting wounds. Arsenal Run deals a fresh weapon pair after combat. Daily Contract uses a new dungeon seed each day. Beat the main delve or another finite contract to unlock Endless Keep, where each cycle adds pressure and elite enemies.
 
-To suspend a run, pause in a cleared room and choose **Save and exit**. Continue from the title to pick up where you left off.
+The game saves the run when you start a stage, clear a room, or collect rewards in a cleared room. After reloading, choose **Continue run**. If you reload during a fight, you return to the last safe room. Web saves stay in the browser and on the site where you started the run.
+
+To leave from a cleared room, pause and choose **Save and exit**. Starting a new run replaces the previous save. Death and victory end the saved run.
 
 ## Edit and compile
 

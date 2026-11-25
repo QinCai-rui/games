@@ -197,6 +197,7 @@ function lk_finish_wave() {
     lk_contract_loot();
     lk_gate_release();
     lk_sound(snd_clear);
+    lk_save_checkpoint();
 }
 
 function lk_line_clear(_x, _y, _to_x, _to_y, _clearance = 1.25) {
@@ -513,6 +514,7 @@ function lk_player_hurt(_power) {
             mode = LK_MODE.Dead;
             total_kills += kills;
             lk_save();
+            lk_discard_checkpoint();
         }
     }
     return true;
@@ -894,6 +896,7 @@ function lk_shot_step(_b) {
 }
 
 function lk_update_loot() {
+    var _picked_up = false;
     for (var _i = array_length(cell.loot) - 1; _i >= 0; _i--) {
         var _p = cell.loot[_i];
         if (_p.wait > 0) { _p.wait -= 1; continue; }
@@ -914,7 +917,9 @@ function lk_update_loot() {
         }
         lk_sound(snd_pick, _p.kind == LK_LOOT.Coin ? 1.32 : .96);
         array_delete(cell.loot, _i, 1);
+        _picked_up = true;
     }
+    if (_picked_up && cell.clear) lk_save_checkpoint();
 }
 
 function lk_play_step() {

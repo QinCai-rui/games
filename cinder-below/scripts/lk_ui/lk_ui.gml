@@ -61,9 +61,13 @@ function lk_draw_menu() {
         lk_ornament(32, 43, 63, C_GOLD);
         draw_sprite(spr_wordmark, 0, 25, 47);
         lk_text("RELIGHT THE KEEP.", 32, 156, C_MUTED);
-        lk_button("ENTER THE KEEP", 32, 181, 177, true);
-        if (checkpoint_available) lk_button(pad >= 0 ? "Y  CONTINUE" : "C  CONTINUE", 32, 209, 177, true);
-        else lk_text("ENTER OR CLICK TO BEGIN", 32, 213, C_MUTED);
+        if (checkpoint_available) {
+            lk_button("CONTINUE RUN", 32, 181, 177, true);
+            lk_button(pad >= 0 ? "X  NEW RUN" : "N  NEW RUN", 32, 209, 177, false);
+        } else {
+            lk_button("ENTER THE KEEP", 32, 181, 177, true);
+            lk_text("ENTER OR CLICK TO BEGIN", 32, 213, C_MUTED);
+        }
         gpu_set_blendmode(bm_add);
         lk_light(358, 168, 66, C_GOLD, .36 + dsin(tick * 5) * .07, 1.13);
         lk_light(267, 171, 26, C_GOLD, .25 + dsin(tick * 15) * .10);
@@ -105,6 +109,7 @@ function lk_draw_menu() {
     lk_text_center(_keeper.note, 240, 199, C_PAPER);
     lk_text_center(weapons[_keeper.arms[0]].name + "  /  " + weapons[_keeper.arms[1]].name, 240, 211, C_MUTED);
     lk_button("DESCEND", 167, 232, 313, true);
+    if (checkpoint_available) lk_text_center("STARTING OVER REPLACES YOUR SAVE", 240, 257, C_GOLD);
     lk_text("ESC BACK", 36, 239, C_MUTED);
     lk_text("R CONTRACT", 36, 251, C_MUTED);
     lk_text_right(contracts[chosen_contract].name, 445, 240, contracts[chosen_contract].tint);
@@ -310,7 +315,7 @@ function lk_draw_pause() {
     lk_ornament(55, 58, 425, C_EDGE);
     lk_line(188, 68, 188, 229, C_EDGE);
     lk_text("ENTER / ESC RESUME", 55, 68, C_GOLD);
-    var _save_hint = cell.clear ? (pad >= 0 ? "Y SAVE AND EXIT" : "S SAVE AND EXIT") : "CLEAR ROOM TO SAVE";
+    var _save_hint = cell.clear ? (pad >= 0 ? "Y SAVE AND EXIT" : "S SAVE AND EXIT") : "CONTINUE FROM LAST CLEAR";
     lk_text(_save_hint, 55, 82, cell.clear ? C_GOLD : C_MUTED);
     lk_text("Q RETURN TO TITLE", 55, 96, C_MUTED);
     lk_text("M " + (muted ? "UNMUTE" : "MUTE"), 55, 110, C_MUTED);

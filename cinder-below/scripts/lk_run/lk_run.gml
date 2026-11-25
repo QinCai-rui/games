@@ -21,7 +21,7 @@ enum LK_ENEMY { Skulk, Spitter, Charger, Wisp, Boss, Sentry, Leech, Bruiser, Har
 #macro KEEP_BOTTOM 227
 #macro KEEP_MID_Y 143
 #macro LK_BOSS_INTRO 90
-#macro LK_VERSION "1.1.0+dev"
+#macro LK_VERSION "1.1.1+dev"
 
 function lk_input() {
     pad = -1;
@@ -250,6 +250,7 @@ function lk_start_floor() {
     lk_contract_record();
     lk_save();
     lk_enter_room(0, -1);
+    lk_save_checkpoint();
 }
 
 function lk_add_prop(_cell, _x, _y, _kind) {
@@ -451,7 +452,10 @@ function lk_check_door() {
     if (player.px <= KEEP_LEFT - 6) _dir = 2;
     if (player.py <= KEEP_TOP - 8) _dir = 3;
     if (_dir == -1 || !lk_door_open(_dir)) return false;
-    lk_enter_room(cell.exits[_dir], (_dir + 2) mod 4);
+    var _next = cell.exits[_dir];
+    if (!dungeon[_next].clear) lk_save_checkpoint();
+    lk_enter_room(_next, (_dir + 2) mod 4);
+    if (cell.clear) lk_save_checkpoint();
     return true;
 }
 
@@ -599,6 +603,7 @@ function lk_interact(_action) {
                 wins += 1;
                 total_kills += kills;
                 lk_save();
+                lk_discard_checkpoint();
             } else {
                 depth_no += 1;
                 if (depth_no >= array_length(stage_names)) {
@@ -613,6 +618,7 @@ function lk_interact(_action) {
             break;
     }
     lk_sound(_sound);
+    if (mode == LK_MODE.Play && _action.kind != "portal") lk_save_checkpoint();
 }
 
 function lk_take_boon(_boon) {
@@ -632,4 +638,5 @@ function lk_take_boon(_boon) {
     mode = LK_MODE.Play;
     lk_sparks(240, 127, boons[_boon].tint, 24, 2);
     lk_sound(snd_clear);
+    lk_save_checkpoint();
 }

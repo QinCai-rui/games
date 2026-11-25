@@ -12,15 +12,18 @@ switch (mode) {
         if (keyboard_check_pressed(ord("R")) || (pad >= 0 && gamepad_button_check_pressed(pad, gp_face2)) || (pointer_click
             && pointer_y >= 181 && pointer_y <= 205 && pointer_x >= 337 && pointer_x <= 449)) {
             lk_contract_open(LK_MODE.Title);
-        } else if (checkpoint_available && (keyboard_check_pressed(ord("C"))
-            || (pad >= 0 && gamepad_button_check_pressed(pad, gp_face4)) || (pointer_click && pointer_y >= 209 && pointer_y <= 233 && pointer_x >= 32 && pointer_x <= 181))) {
+        } else if (checkpoint_available && (accept_pressed || keyboard_check_pressed(ord("C"))
+            || (pad >= 0 && gamepad_button_check_pressed(pad, gp_face4))
+            || (pointer_click && pointer_y >= 181 && pointer_y <= 205 && pointer_x >= 32 && pointer_x <= 177))) {
             if (!lk_load_checkpoint()) lk_sound(snd_click, .64);
         } else if (keyboard_check_pressed(ord("J")) || (pointer_click
             && pointer_y >= 209 && pointer_y <= 232 && pointer_x >= 337 && pointer_x <= 449)) {
             mode = LK_MODE.Journal;
             lk_sound(snd_click);
-        } else if (accept_pressed || (pointer_click
-            && pointer_x >= 32 && pointer_x <= 177 && pointer_y >= 181 && pointer_y <= 205)) {
+        } else if ((!checkpoint_available && accept_pressed) || keyboard_check_pressed(ord("N"))
+            || (checkpoint_available && pad >= 0 && gamepad_button_check_pressed(pad, gp_face3)) || (pointer_click
+            && pointer_x >= 32 && pointer_x <= 177
+            && (checkpoint_available ? pointer_y >= 209 && pointer_y <= 233 : pointer_y >= 181 && pointer_y <= 205))) {
             mode = LK_MODE.Select;
             lk_sound(snd_click);
         }
@@ -66,8 +69,7 @@ switch (mode) {
         }
         if (back_pressed || accept_pressed) mode = LK_MODE.Play;
         if (keyboard_check_pressed(ord("Q"))) {
-            total_kills += kills;
-            lk_save();
+            if (cell.clear) lk_save_checkpoint();
             mode = LK_MODE.Title;
         }
         break;

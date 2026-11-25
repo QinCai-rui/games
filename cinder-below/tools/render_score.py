@@ -68,9 +68,9 @@ def envelope(t, attack, release):
 
 
 class Score:
-    def __init__(self, bars, bpm, piano):
+    def __init__(self, bars, bpm, piano, beats_per_bar=4):
         self.beat = 60 / bpm
-        self.dry = np.zeros((round(bars * 4 * self.beat * RATE), 2), dtype="f4")
+        self.dry = np.zeros((round(bars * beats_per_bar * self.beat * RATE), 2), dtype="f4")
         self.send = np.zeros_like(self.dry)
         self.piano = piano
 
@@ -153,7 +153,7 @@ class Score:
         self.voice.cache_clear()
 
 
-# Emberlight: a falling third, a small climb and a long landing.
+# The dungeon motif falls a third, climbs, and lands on a held note.
 # Tuple order is beat, MIDI pitch, held beats, and emphasis.
 HOOK = ((.04, 76, .64, 1), (.79, 72, .58, .77), (1.53, 74, 1, .88), (2.79, 69, 1.55, .92))
 ANSWER = ((.42, 72, .70, .79), (1.25, 74, .67, .83), (2.06, 76, 1.65, 1))
@@ -169,42 +169,47 @@ def phrase(score, bar, line, level, voice="piano", shift=0, stretch=1):
 
 
 def title(piano, output):
-    score = Score(20, 78, piano)
-    # Preserve the old title's A minor / F / C / G home progression.
-    am = (45, 52, 57, 60, 64)
-    f = (41, 53, 57, 60, 64)
-    c = (48, 55, 60, 64, 67)
-    g = (43, 50, 55, 59, 62)
-    dm = (50, 57, 60, 65, 69)
-    e = (40, 52, 56, 59, 62)
-    chords = (am, f, c, g, am, f, dm, e, f, c, dm, e, am, f, c, g, am, f, dm, e)
-    lines = (
-        HOOK, ANSWER, ((.08, 79, 1.55, .88), (2.14, 76, 1.26, .76)), ((.12, 74, 1.65, .76),),
-        HOOK, ANSWER, ((.04, 77, .92, .88), (1.29, 76, .64, .79), (2.18, 74, 1.44, .83)),
-        ((.17, 71, 1.34, .77), (2.72, 68, .61, .67)),
-        ((.06, 81, 1.72, .86), (2.08, 79, 1.25, .80)), LIFT,
-        ((.07, 77, 1.46, .83), (1.82, 76, .60, .72), (2.62, 72, 1.04, .73)),
-        ((.12, 71, 1.50, .74), (2.60, 68, .67, .66)),
-        HOOK, ANSWER, LIFT, ((.10, 71, .84, .77), (1.22, 74, 1.58, .87)),
-        FALL, ((.52, 72, 1.08, .71), (2.02, 69, 1.28, .70)),
-        ((.31, 65, 1.18, .64), (2.06, 69, 1.13, .65)), ((.17, 68, 1.18, .58),),
+    # Lantern Waltz recasts the old first-floor riff as D–A–F, E–D.
+    # Each bar gives the left-hand voicing and melody events (beat, pitch, length).
+    dm = (50, 57, 65)
+    gm = (43, 50, 58)
+    a = (45, 52, 61)
+    c = (48, 55, 64)
+    f = (41, 53, 57)
+    opening = (
+        (dm, ((0, 74, .90), (1, 69, .90), (2, 77, .90))),
+        (c, ((0, 76, .90), (1, 74, 1.75))),
     )
-    for bar, ((root, low, inner, high, color), line) in enumerate(zip(chords, lines, strict=True)):
-        beat = bar * 4
-        weight = 1.16 if 8 <= bar < 16 else .81 if bar >= 17 else 1
-        score.note(beat, root, 3.42, .083 * weight, pan=-.19, send=.24)
-        score.note(beat + .31, low, 2.44, .056 * weight, pan=-.20)
-        score.note(beat + 1.16, inner, 2.05, .041 * weight, pan=-.11)
-        if bar % 4 != 3 or 8 <= bar <= 15:
-            score.note(beat + 2.29, high, 1.62, .035 * weight, pan=-.03)
-        if 4 <= bar <= 17:
-            score.note(beat - .31, inner, 4.19, .070 * weight, "bow", -.28, .55)
-            score.note(beat - .13, color, 4.01, .052 * weight, "bow", .31, .53)
-        phrase(score, bar, line, .128 * weight)
-        if 12 <= bar <= 15:
-            first = line[0]
-            score.note(beat + first[0] + .035, first[1] + 12, 1.3, .052, "glass", .28, .52)
-    score.write(output, "title", True, -24)
+    verse = (
+        *opening,
+        (gm, ((0, 70, .90), (1, 74, .90), (2, 79, .90))),
+        (a, ((0, 76, 1.75), (2, 73, .84))),
+        *opening,
+        (a, ((0, 76, .90), (1, 73, .90), (2, 69, .90))),
+        (dm, ((0, 74, 2.65),)),
+    )
+    bridge = (
+        (f, ((0, 77, .90), (1, 81, 1.74))),
+        (c, ((0, 79, 1.72), (2, 76, .85))),
+        (gm, ((0, 74, .90), (1, 70, .90), (2, 79, .85))),
+        (dm, ((0, 77, 2.65),)),
+        (f, ((0, 77, .90), (1, 81, 1.74))),
+        (c, ((0, 79, .90), (1, 76, .90), (2, 72, .85))),
+        (gm, ((0, 70, .90), (1, 74, 1.73))),
+        (a, ((0, 73, 1.70),)),
+    )
+    chart = verse + bridge + verse
+    score = Score(len(chart), 84, piano, beats_per_bar=3)
+    for bar, ((low, middle, high), line) in enumerate(chart):
+        start = bar * 3
+        weight = 1.08 if 8 <= bar < 16 else .91 if bar >= 22 else 1
+        score.note(start, low, 2.70, .069 * weight, pan=-.16, send=.06)
+        score.note(start + 1, middle, 1.85, .037 * weight, pan=-.13, send=.06)
+        score.note(start + 1, high, 1.85, .028 * weight, pan=-.13, send=.06)
+        for beat, pitch, length in line:
+            level = .118 if beat == 0 else .102
+            score.note(start + beat, pitch, length, level * weight, send=.08)
+    score.write(output, "title", True, -23.5)
 
 
 # Six arrangements of the same theme, with different registers and grooves.

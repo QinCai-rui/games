@@ -158,6 +158,12 @@ function lk_save_checkpoint() {
     return true;
 }
 
+function lk_discard_checkpoint() {
+    if (file_exists(LK_CHECKPOINT)) file_delete(LK_CHECKPOINT);
+    if (file_exists(LK_CHECKPOINT + ".previous")) file_delete(LK_CHECKPOINT + ".previous");
+    checkpoint_available = false;
+}
+
 function lk_load_checkpoint() {
     var _source = LK_CHECKPOINT;
     if (!file_exists(_source)) _source += ".previous";
@@ -195,8 +201,9 @@ function lk_load_checkpoint() {
     // Rank values and the three new relic slots share the existing checkpoint format.
     while (array_length(player.relics) < array_length(relic_catalog)) array_push(player.relics, 0);
     player.target = undefined;
-    var _x = player.px;
-    var _y = player.py;
+    // A checkpoint taken at a door should load just inside the cleared room.
+    var _x = clamp(player.px, KEEP_LEFT + 8, KEEP_RIGHT - 8);
+    var _y = clamp(player.py, KEEP_TOP + 8, KEEP_BOTTOM - 8);
     world_tick = _saved.timer;
     rooms_cleared = _saved.clears;
     kills = _saved.defeated;
@@ -205,8 +212,6 @@ function lk_load_checkpoint() {
     player.px = _x;
     player.py = _y;
     mode = LK_MODE.Play;
-    file_delete(_source);
-    checkpoint_available = false;
     lk_sound(snd_gate);
     return true;
 }

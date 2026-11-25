@@ -79,6 +79,7 @@ function lk_take_relic(_choice) {
     lk_ring(240, 137, relic_catalog[_choice].tint, 42, 24);
     lk_sound(snd_relic);
     lk_save();
+    lk_save_checkpoint();
 }
 
 function lk_relic_on_kill(_x, _y) {
