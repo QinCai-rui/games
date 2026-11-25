@@ -58,6 +58,27 @@ function lk_reward_choices(_relic) {
         if (_rank == 0) array_push(_new, _i);
         else if (_rank < _catalog[_i].max_rank) array_push(_upgrades, _i);
     }
+    if (!_relic && depth_no < 2 && lk_combat_armor_enabled()) {
+        var _armor = lk_boon_rank(LK_BOON.Armor);
+        var _health = lk_boon_rank(LK_BOON.Health);
+        // Offer the less-upgraded defense first. Prefer health if the keeper is already wounded.
+        var _defense = _armor < _health || (_armor == _health && player.hp == player.max_hp)
+            ? LK_BOON.Armor : LK_BOON.Health;
+        var _rank = lk_boon_rank(_defense);
+        if (_rank < boons[_defense].max_rank) {
+            var _alternatives = _rank == 0 ? _upgrades : _new;
+            if (array_length(_alternatives) == 0) {
+                _alternatives = _rank == 0 ? _new : _upgrades;
+                for (var _i = 0; _i < array_length(_alternatives); _i++) {
+                    if (_alternatives[_i] != _defense) continue;
+                    array_delete(_alternatives, _i, 1);
+                    break;
+                }
+            }
+            return array_length(_alternatives) > 0
+                ? [_defense, _alternatives[irandom(array_length(_alternatives) - 1)]] : [_defense];
+        }
+    }
     if (array_length(_new) > 0 && array_length(_upgrades) > 0) {
         return [_new[irandom(array_length(_new) - 1)], _upgrades[irandom(array_length(_upgrades) - 1)]];
     }

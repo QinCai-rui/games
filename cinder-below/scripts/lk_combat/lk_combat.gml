@@ -71,7 +71,8 @@ function lk_update_effects() {
 function lk_spawn(_kind, _x = -1, _y = -1, _elite = false) {
     var _boss_hp = depth_no mod 2 == 0 ? 148 + depth_no * 35 : 184 + depth_no * 61;
     if (floor_no >= 3) _boss_hp = 380 + (floor_no - 3) * 109;
-    var _hp = [9, 11, 17, 10, ceil(_boss_hp * 1.6), 13, 10, 23, 15, 13, 21];
+    var _boss_scale = lk_rootbound_standard() ? 1.2 : 1.6;
+    var _hp = [9, 11, 17, 10, ceil(_boss_hp * _boss_scale), 13, 10, 23, 15, 13, 21];
     var _r = [7, 8, 9, 7, 16, 8, 7, 10, 8, 8, 9];
     var _colors = [C_MINT, C_GOLD, C_PINK, C_BLUE, lk_theme_tint(floor_no), C_GOLD,
         C_LILAC, C_PINK, C_TEAL, C_BLUE, C_GOLD];
@@ -468,6 +469,10 @@ function lk_combat_armor_enabled() {
     return run_contract != LK_CONTRACT.Iron && run_contract != LK_CONTRACT.Endless;
 }
 
+function lk_rootbound_standard() {
+    return depth_no == 1 && lk_combat_armor_enabled();
+}
+
 function lk_armor_step() {
     if (player.armor >= player.max_armor || (!cell.clear && !lk_combat_armor_enabled())) return;
     player.regen = max(0, player.regen - 1);
@@ -564,6 +569,7 @@ function lk_boss_step(_e, _toward, _range) {
         return;
     }
     var _phase_two = _e.hp < _e.max_hp * .53;
+    var _rootbound_standard = lk_rootbound_standard();
     if (_phase_two && !_e.enraged) {
         _e.enraged = true;
         lk_ring(_e.px, _e.py, C_PINK, 80, 38);
@@ -572,7 +578,7 @@ function lk_boss_step(_e, _toward, _range) {
         shaking = max(shaking, 10);
         var _guard = [LK_ENEMY.Skulk, LK_ENEMY.Sentry, LK_ENEMY.Leech][floor_no];
         lk_spawn(_guard, 88, 192);
-        lk_spawn(_guard, 392, 191);
+        if (!_rootbound_standard) lk_spawn(_guard, 392, 191);
         banner = "GUARDIAN ENRAGED";
         banner_time = 72;
     }
@@ -589,12 +595,13 @@ function lk_boss_step(_e, _toward, _range) {
         _e.attack += 1;
         if (_phase_two) _e.echo = 17;
         _e.cool = (_phase_two ? 36 : 53) - floor_no * 4;
+        if (_rootbound_standard && _phase_two) _e.cool = 48;
         shaking = max(shaking, 3);
         lk_sound(snd_heavy, .72 + floor_no * .1);
         return;
     }
     if (_e.cool <= 0) {
-        _e.tell = _phase_two ? 25 : 36;
+        _e.tell = _phase_two ? (_rootbound_standard ? 32 : 25) : 36;
         lk_charge_sound(_e);
         _e.angle = lk_lead(_e, 3.0);
         lk_ring(_e.px, _e.py, _e.color, 26, _e.tell);
@@ -611,7 +618,7 @@ function lk_enemy_step(_e) {
     var _toward = point_direction(_e.px, _e.py, player.px, player.py);
     _e.facing = player.px >= _e.px ? 1 : -1;
     // Reduce boss downtime without changing the windup players see.
-    var _cool_rate = _e.kind == LK_ENEMY.Boss ? 1.25 : 1;
+    var _cool_rate = _e.kind == LK_ENEMY.Boss && !lk_rootbound_standard() ? 1.25 : 1;
     _e.cool -= _cool_rate * (run_contract == LK_CONTRACT.Iron ? 1.17 : 1);
     if (_e.kind == LK_ENEMY.Sentry && _e.echo > 0) {
         _e.echo -= 1;

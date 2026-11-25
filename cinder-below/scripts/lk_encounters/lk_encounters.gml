@@ -54,7 +54,7 @@ function lk_sanctum_pattern(_e, _phase_two) {
                         1, 33 + abs(_i) * 10, 2, 22, C_MINT, true);
                 }
             }
-            if (_phase_two) lk_enemy_burst(_e, 4, _e.angle + 45, 90, 2.80, C_MINT, LK_SHOT.Blast);
+            if (_phase_two && !lk_rootbound_standard()) lk_enemy_burst(_e, 4, _e.angle + 45, 90, 2.80, C_MINT, LK_SHOT.Blast);
             break;
         case 1:
             if (_attack == 0) {

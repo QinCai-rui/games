@@ -26,6 +26,8 @@ Drag a window edge or use the desktop maximize button to change the window size.
 
 Armor recovers faster after you clear a room. During combat in Main Delve, Arsenal Run, and Daily Contract, armor recovers one point every five seconds without taking damage. A thin line inside the armor bar shows progress toward the next point.
 
+In those contracts, shrines on the first two stages offer Bloodroot or Iron Bark unless you have both at max rank. Each rank of Bloodroot adds two max HP. Each rank of Iron Bark adds two max armor.
+
 The keeper uses a backup pistol when the selected weapon runs out of energy. Visit gauntlets, shops, and shrines to equip a stronger build for the late stages.
 
 Shrines and reliquaries can offer a new reward or upgrade one you already own. Forges temper weapons for gold, up to three times per weapon. Pause and hover over a weapon, relic, or boon to see what it does and its current rank.
