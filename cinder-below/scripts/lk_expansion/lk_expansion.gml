@@ -1,8 +1,9 @@
 function lk_field(_x, _y, _kind, _wait, _power, _radius, _color, _hostile = false, _angle = 0) {
     var _duration = [142, 22, 185, 6][_kind];
+    if (_hostile && _kind == 1) _wait += 18;
     array_push(fields, {px: clamp(_x, KEEP_LEFT + 8, KEEP_RIGHT - 8), py: clamp(_y, KEEP_TOP + 8, KEEP_BOTTOM - 8),
         kind: _kind, life: _duration + _wait, duration: _duration, radius: _radius,
-        power: _power, color: _color, hostile: _hostile, shot_angle: _angle});
+        power: _power, color: _color, hostile: _hostile, shot_angle: _angle, windup: _wait});
 }
 
 function lk_field_step(_field) {
@@ -60,6 +61,21 @@ function lk_field_draw(_field, _xx, _yy) {
     }
     if (_field.kind == 3) {
         lk_diamond(_x, _y - 6, _warning ? 2 : 4, C_LILAC);
+        return;
+    }
+    if (_warning && _field.hostile && _field.kind == 1) {
+        var _progress = 1 + _age / _field.windup;
+        var _fill = _edge * _progress;
+        draw_set_color(_color);
+        draw_set_alpha(.10 + _progress * .19);
+        draw_circle(_x, _y, _edge, false);
+        draw_set_alpha(.45 + _progress * .40);
+        if (_fill > 1) draw_circle(_x, _y, _fill, true);
+        draw_set_color(merge_color(_color, C_PAPER, .38));
+        draw_circle(_x, _y, _edge, true);
+        lk_line(_x - 4, _y, _x + 4, _y, C_PAPER);
+        lk_line(_x, _y - 4, _x, _y + 4, C_PAPER);
+        draw_set_alpha(1);
         return;
     }
     if (_warning) {
@@ -174,7 +190,7 @@ function lk_lead(_enemy, _speed) {
 }
 
 function lk_champion_step(_e, _toward, _range) {
-    var _enraged = _e.hp <= _e.max_hp * .51;
+    var _enraged = _e.enraged;
     if (_e.dash > 0) {
         lk_enemy_walk(_e, 3.25 + floor_no * .26, _e.angle);
         _e.dash -= 1;
@@ -186,6 +202,13 @@ function lk_champion_step(_e, _toward, _range) {
             lk_sound(snd_blast, .84);
         }
         return;
+    }
+    if (_e.echo > 0) {
+        _e.echo -= 1;
+        if (_e.echo == 0) {
+            lk_enemy_burst(_e, 3, _e.angle + 24, 11, 2.95, C_PINK);
+            lk_sound(snd_heavy, .92);
+        }
     }
     if (_e.tell > 0) {
         if (_e.tell != 1) return;
@@ -199,9 +222,7 @@ function lk_champion_step(_e, _toward, _range) {
                     lk_enemy_burst(_e, 7, _e.angle, 15, 2.61, C_PINK);
                     if (_enraged) lk_enemy_burst(_e, 7, _e.angle + 180, 13, 2.26, C_MINT);
                 } else if (_move == 2) {
-                    for (var _i = -1; _i <= 1; _i++) {
-                        lk_field(player.px + _i * 36, player.py - abs(_i) * 17, 1, 34 + abs(_i) * 11, 2, 21, C_TEAL, true);
-                    }
+                    lk_bomb_trail(_e.angle, 3, 18, C_TEAL);
                 } else {
                     // Leave gaps between the marked eruptions so players can step through.
                     for (var _i = 0; _i < 6; _i++) {
@@ -213,16 +234,13 @@ function lk_champion_step(_e, _toward, _range) {
                 break;
             case 1:
                 if (_move == 0) {
-                    for (var _i = 0; _i < 4; _i++) {
-                        lk_field(player.px + (_i - 1.5) * 22, player.py + (_i - 1.5) * 22,
-                            1, 24 + _i * 11, 2, 22, C_GOLD, true);
-                    }
+                    lk_bomb_trail(_e.angle + 90, 4, 17, C_GOLD);
                 } else if (_move == 1) {
-                    lk_enemy_burst(_e, 14, _e.angle + _e.attack * 8, 360 / 14, 2.38, C_PINK, LK_SHOT.Blast);
+                    lk_enemy_open_ring(_e, 12, _e.angle, 2.28, C_PINK, LK_SHOT.Blast);
                     lk_sound(snd_mortar);
                 } else {
-                    lk_enemy_burst(_e, 5, _e.angle, 6, 4.1, C_GOLD);
-                    if (_enraged) lk_enemy_burst(_e, 4, _e.angle + 20, 8, 3.35, C_PINK);
+                    lk_enemy_burst(_e, 3, _e.angle - 24, 11, 2.95, C_GOLD);
+                    _e.echo = _enraged ? 13 : 18;
                 }
                 break;
             case 2:
@@ -256,8 +274,10 @@ function lk_champion_step(_e, _toward, _range) {
         return;
     }
     if (_e.cool <= 0) {
+        // Lock the phase before the tell so the move can't change during its windup.
+        _e.enraged = _e.hp <= _e.max_hp * .51;
         _e.angle = lk_lead(_e, 3.1);
-        _e.tell = _enraged ? 22 : 29;
+        _e.tell = _e.enraged ? 22 : 29;
         lk_charge_sound(_e);
         lk_ring(_e.px, _e.py, _e.color, 25, _e.tell);
     } else if (_range > 45) {

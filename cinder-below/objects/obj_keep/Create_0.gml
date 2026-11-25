@@ -48,7 +48,11 @@ boons = [
     {name: "MEDIC'S VOW", short: "MEDIC", note: "HEAL 1 HP EVERY FOUR COMBAT CLEARS.",
         upgrade: "HEAL 1 HP EVERY THREE COMBAT CLEARS.", max_rank: 2, tint: C_MINT},
     {name: "SMITH'S FAVOR", short: "SMITH", note: "WEAPON TEMPERING COSTS 3 LESS GOLD.",
-        upgrade: "WEAPON TEMPERING COSTS 6 LESS GOLD.", max_rank: 2, tint: C_GOLD}
+        upgrade: "WEAPON TEMPERING COSTS 6 LESS GOLD.", max_rank: 2, tint: C_GOLD},
+    {name: "STILL WICK", short: "WICK", note: "KEEPER SKILL COOLDOWN IS 12% SHORTER.",
+        upgrade: "KEEPER SKILL COOLDOWN IS 24% SHORTER.", max_rank: 2, tint: C_TEAL},
+    {name: "SALVAGER", short: "SALV", note: "GAIN 2 GOLD PER COMBAT CLEAR.",
+        upgrade: "GAIN 4 GOLD PER COMBAT CLEAR.", max_rank: 2, tint: C_GOLD}
 ];
 selected = 0;
 relic_catalog = lk_relic_catalog();

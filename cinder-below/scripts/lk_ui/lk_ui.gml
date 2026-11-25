@@ -167,7 +167,10 @@ function lk_minimap() {
             var _tx = round(_bx + _n.gx * _step);
             var _ty = round(_by + _n.gy * _step);
             lk_line(_x, _y, _tx, _ty, C_EDGE);
-            if (!_n.visited) lk_rect(_tx - 1, _ty - 1, _tx + 1, _ty + 1, C_EDGE);
+            if (!_n.visited) {
+                var _hint = lk_is_waystation(_n.kind) || _n.kind == LK_ROOM.Duel ? lk_room_color(_n.kind) : C_EDGE;
+                lk_rect(_tx - 1, _ty - 1, _tx + 1, _ty + 1, _hint);
+            }
         }
     }
     for (var _i = 0; _i < array_length(dungeon); _i++) {
@@ -188,7 +191,7 @@ function lk_draw_hud() {
     lk_line(0, 30, 479, 30, C_EDGE);
     lk_meter("HP", 12, 5, 53, player.hp, player.max_hp, C_PINK, true);
     var _armor_refill = !cell.clear && lk_combat_armor_enabled()
-        ? clamp(1 - player.regen / LK_COMBAT_ARMOR_WAIT, 0, 1) : 0;
+        ? clamp(1 - player.regen / armor_repair_span, 0, 1) : 0;
     lk_meter("ARM", 12, 15, 53, player.armor, player.max_armor, C_TEAL, true, _armor_refill);
     lk_meter("EN", 102, 5, 41, player.energy, player.max_energy, C_BLUE, false);
     lk_loot_icon(LK_LOOT.Coin, 106, 18, 0);
@@ -217,7 +220,7 @@ function lk_draw_hud() {
     var _skill_tint = heroes[hero_id].tint;
     if (player.skill_wait > 0) _skill_info += " " + string(ceil(player.skill_wait / 60)) + "S";
     lk_text(_skill_info, 228, 251, player.skill_wait > 0 ? C_MUTED : _skill_tint);
-    var _ready = 1 - player.skill_wait / max(1, round(heroes[hero_id].recharge / player.haste));
+    var _ready = clamp(1 - player.skill_wait / lk_skill_cooldown(), 0, 1);
     lk_rect(228, 263, 333, 264, C_PANEL);
     if (_ready > 0) lk_rect(228, 263, 228 + floor(_ready * 105), 264, _skill_tint);
     lk_text_right(pad >= 0 ? "START  PAUSE" : "ESC  PAUSE", 468, 253, C_MUTED);
@@ -290,7 +293,7 @@ function lk_pause_inventory(_relic, _top) {
         if (_rank == 0) continue;
         var _item = _catalog[_i];
         var _x = 199 + (_count mod 4) * 56;
-        var _y = _top + floor(_count / 4) * 16;
+        var _y = _top + floor(_count / 4) * 14;
         var _active = pointer_inside && pointer_x >= _x && pointer_x <= _x + 53
             && pointer_y >= _y && pointer_y <= _y + 13;
         lk_panel(_x, _y, _x + 53, _y + 13, _active, _item.tint);
@@ -322,7 +325,7 @@ function lk_draw_pause() {
     lk_text(contracts[run_contract].name, 55, 127, contracts[run_contract].tint);
     lk_text("WEAPON UPGRADES", 55, 146, C_GOLD);
     var _hover = lk_pause_inventory(true, 84);
-    var _boon_hover = lk_pause_inventory(false, 150);
+    var _boon_hover = lk_pause_inventory(false, 141);
     if (!is_undefined(_boon_hover)) _hover = _boon_hover;
     for (var _i = 0; _i < 2; _i++) {
         var _id = player.arms[_i];
@@ -361,7 +364,8 @@ function lk_draw_overlay() {
     }
     if (mode == LK_MODE.Boon) {
         lk_panel(49, 61, 431, 210, true, C_LILAC);
-        lk_text_center(choose_relic ? "CLAIM A RELIC" : "CHOOSE A BOON", 240, 77, C_PAPER, true);
+        var _heading = choose_relic ? "CLAIM A RELIC" : (cell.kind == LK_ROOM.SparkShrine ? "CHOOSE A SPARK BOON" : "CHOOSE A BOON");
+        lk_text_center(_heading, 240, 77, C_PAPER, true);
         for (var _i = 0; _i < array_length(boon_options); _i++) {
             var _option = boon_options[_i];
             var _boon = choose_relic ? relic_catalog[_option] : boons[_option];

@@ -1,4 +1,102 @@
-function lk_hazard_pressure() {
+function lk_is_waystation(_kind) {
+    return _kind == LK_ROOM.Armory || _kind == LK_ROOM.SupplyPost || _kind == LK_ROOM.TemperRelay;
+}
+
+function lk_stage_waystation() {
+    if (depth_no < 2 || !lk_standard_contract()) return -1;
+    // Each run sees all three stops before any repeats, in a seed-based order.
+    var _step = run_seed mod 2 == 0 ? 1 : 2;
+    var _index = (run_seed + (depth_no - 2) * _step) mod 3;
+    return [LK_ROOM.Armory, LK_ROOM.SupplyPost, LK_ROOM.TemperRelay][_index];
+}
+
+function lk_waystation_offer(_index) {
+    var _offer = {kind: "waystation", index: _index, px: 181 + _index * 118, py: 137,
+        label: "", detail: "", caption: "", tint: C_GOLD, icon: LK_LOOT.Coin, value: 10};
+    if (cell.kind == LK_ROOM.Armory) {
+        var _pool = array_length(weapons) - 2;
+        var _offset = _index == 0 ? 0 : 1 + cell.seed mod (_pool - 1);
+        var _weapon = 2 + (cell.stock - 2 + _offset) mod _pool;
+        var _rank = cell.stock_temper;
+        _offer.icon = LK_LOOT.Weapon;
+        _offer.value = _weapon;
+        _offer.tint = weapons[_weapon].color;
+        _offer.caption = weapons[_weapon].name + (_rank > 0 ? " +" + string(_rank) : "");
+        _offer.label = "TAKE " + _offer.caption;
+        _offer.detail = lk_weapon_details(_weapon, _rank, true);
+    } else if (cell.kind == LK_ROOM.SupplyPost && _index == 0) {
+        _offer.icon = LK_LOOT.Energy;
+        _offer.value = 35;
+        _offer.tint = C_BLUE;
+        _offer.caption = "+35 ENERGY";
+        _offer.label = "TAKE ENERGY";
+        _offer.detail = player.energy >= player.max_energy ? "ENERGY ALREADY FULL" : "RESTORE UP TO 35 ENERGY";
+    } else if (cell.kind == LK_ROOM.TemperRelay && _index == 0) {
+        _offer.icon = LK_LOOT.Weapon;
+        _offer.value = player.arms[player.slot];
+        _offer.caption = "MOVE 1 TEMPER";
+        _offer.label = "MOVE 1 TEMPER";
+        _offer.detail = player.temper[player.slot] >= 3 ? "ACTIVE WEAPON AT MAX TEMPER"
+            : (player.temper[1 - player.slot] == 0 ? "OTHER WEAPON HAS NO TEMPER"
+            : "SLOT " + string(2 - player.slot) + " TO SLOT " + string(1 + player.slot));
+    } else {
+        _offer.caption = "+" + string(_offer.value) + " GOLD";
+        _offer.label = "TAKE " + string(_offer.value) + " GOLD";
+        _offer.detail = "USE AT A SHOP OR FORGE";
+    }
+    return _offer;
+}
+
+function lk_claim_waystation(_index) {
+    if (!lk_is_waystation(cell.kind) || cell.opened) return false;
+    var _offer = lk_waystation_offer(_index);
+    var _slot = player.slot;
+    if (cell.kind == LK_ROOM.Armory) {
+        lk_drop(LK_LOOT.Weapon, _offer.px, _offer.py + 13, player.arms[_slot], player.temper[_slot]);
+        player.arms[_slot] = _offer.value;
+        player.temper[_slot] = cell.stock_temper;
+        lk_remember_weapon(_offer.value);
+    } else if (cell.kind == LK_ROOM.TemperRelay && _index == 0) {
+        var _source = 1 - _slot;
+        if (player.temper[_source] == 0 || player.temper[_slot] >= 3) return false;
+        player.temper[_source] -= 1;
+        player.temper[_slot] += 1;
+    } else if (_offer.icon == LK_LOOT.Energy) {
+        if (player.energy >= player.max_energy) return false;
+        player.energy = min(player.max_energy, player.energy + _offer.value);
+    } else {
+        player.coins += _offer.value;
+    }
+    cell.opened = true;
+    lk_sparks(_offer.px, _offer.py - 8, _offer.tint, 22, 1.6);
+    return true;
+}
+
+function lk_rupture_room() {
+    return cell.kind == LK_ROOM.Fight && cell.encounter == 3;
+}
+
+function lk_rupture_vent(_side) {
+    return _side == 0 ? {px: 153, py: 174} : {px: 327, py: 112};
+}
+
+function lk_room_hazard_step() {
+    var _rupture = lk_rupture_room();
+    if (cell.clear || (!_rupture && cell.kind != LK_ROOM.Gauntlet)) return;
+    hazard_wait -= 1;
+    if (hazard_wait > 0) return;
+    if (_rupture) {
+        var _vent = lk_rupture_vent(hazard_side);
+        lk_field(_vent.px, _vent.py, 1, 36, 1, 17, lk_theme_tint(floor_no), true);
+        hazard_side = 1 - hazard_side;
+        hazard_wait = 185;
+    } else {
+        lk_gauntlet_hazards();
+        hazard_wait = 190 - min(floor_no, 3) * 11 - min(run_cycle, 4) * 6;
+    }
+}
+
+function lk_gauntlet_hazards() {
     var _px = player.px + move_x * 21;
     var _py = player.py + move_y * 21;
     switch (floor_no) {
@@ -36,6 +134,22 @@ function lk_hazard_pressure() {
     }
 }
 
+function lk_bomb_trail(_angle, _count, _radius, _color) {
+    var _spacing = _radius * 2 + 12;
+    var _dx = lengthdir_x(_spacing, _angle);
+    var _dy = lengthdir_y(_spacing, _angle);
+    var _half = (_count - 1) * .5;
+    var _margin_x = 8 + abs(_dx) * _half;
+    var _margin_y = 8 + abs(_dy) * _half;
+    // Shift the whole trail at walls so the marked blasts don't bunch up.
+    var _x = clamp(player.px, KEEP_LEFT + _margin_x, KEEP_RIGHT - _margin_x);
+    var _y = clamp(player.py, KEEP_TOP + _margin_y, KEEP_BOTTOM - _margin_y);
+    for (var _i = 0; _i < _count; _i++) {
+        lk_field(_x + (_i - _half) * _dx, _y + (_i - _half) * _dy,
+            1, 32 + _i * 12, 2, _radius, _color, true);
+    }
+}
+
 function lk_sanctum_pattern(_e, _phase_two) {
     var _attack = _e.attack mod 3;
     var _px = player.px + move_x * 24;
@@ -43,29 +157,20 @@ function lk_sanctum_pattern(_e, _phase_two) {
     switch (floor_no) {
         case 0:
             if (_attack == 0) {
-                lk_enemy_burst(_e, 13, _e.angle, 360 / 13, 2.27, C_GOLD);
+                lk_enemy_open_ring(_e, 11, _e.angle, 2.13, C_GOLD);
             } else if (_attack == 1) {
                 lk_enemy_burst(_e, 7, _e.angle, 12, 2.71, C_PINK);
                 lk_enemy_burst(_e, 3, _e.angle + 37, 15, 2.28, C_MINT, LK_SHOT.Blast);
             } else {
-                var _a = _e.angle + 90;
-                for (var _i = -1; _i <= 1; _i++) {
-                    lk_field(_px + lengthdir_x(_i * 28, _a), _py + lengthdir_y(_i * 28, _a),
-                        1, 33 + abs(_i) * 10, 2, 22, C_MINT, true);
-                }
+                lk_bomb_trail(_e.angle + 90, 3, 18, C_MINT);
             }
             if (_phase_two && !lk_rootbound_standard()) lk_enemy_burst(_e, 4, _e.angle + 45, 90, 2.80, C_MINT, LK_SHOT.Blast);
             break;
         case 1:
             if (_attack == 0) {
-                lk_enemy_burst(_e, 18, _e.angle + _e.attack * 14, 20, 2.31, C_PINK);
-                lk_enemy_burst(_e, _phase_two ? 7 : 3, _e.angle, 10, 3.0, C_GOLD, LK_SHOT.Blast);
+                lk_enemy_open_ring(_e, 15, _e.angle + 20, 2.12, C_PINK);
             } else if (_attack == 1) {
-                for (var _i = 0; _i < 4; _i++) {
-                    lk_field(_px + (_i - 1.5) * 28, _py + lengthdir_y((_i - 1.5) * 14, _e.angle + 90),
-                        1, 23 + _i * 10, 2, 20, C_GOLD, true);
-                }
-                lk_enemy_burst(_e, 5, _e.angle + 35, 16, 2.94, C_PINK);
+                lk_bomb_trail(_e.angle, 4, 17, C_GOLD);
             } else {
                 lk_enemy_burst(_e, 9, _e.angle, 7, 3.45, C_PINK);
                 lk_enemy_burst(_e, 9, _e.angle + 180, 14, 2.46, C_GOLD, LK_SHOT.Blast);
@@ -73,8 +178,7 @@ function lk_sanctum_pattern(_e, _phase_two) {
             break;
         case 2:
             if (_attack == 0) {
-                lk_enemy_burst(_e, 20, _e.angle, 18, 1.91, C_LILAC);
-                lk_enemy_burst(_e, 12, _e.angle + 9, 30, 2.83, C_BLUE);
+                lk_enemy_open_ring(_e, 15, _e.angle - 20, 1.95, C_LILAC);
             } else if (_attack == 1) {
                 var _old_x = _e.px;
                 var _old_y = _e.py;
@@ -119,7 +223,7 @@ function lk_boss_ability(_e) {
 }
 
 function lk_boss_rotation(_e) {
-    return depth_no == 0 && _e.hp <= _e.max_hp * .51 ? 4 : 3;
+    return depth_no == 0 && _e.enraged ? 4 : 3;
 }
 
 function lk_crown_attack(_e) {
@@ -128,6 +232,8 @@ function lk_crown_attack(_e) {
     if (_phase != _e.final_phase) {
         _e.final_phase = _phase;
         _e.attack = 0;
+        _e.dash = 0;
+        _e.echo = 0;
         _e.tell = 54;
         _e.cool = 41;
         _e.angle = lk_lead(_e, 3.4);
@@ -152,31 +258,34 @@ function lk_crown_attack(_e) {
     }
     if (_e.echo > 0) {
         _e.echo -= 1;
-        if (_e.echo == 0) lk_enemy_burst(_e, 14, _e.angle + 26, 360 / 14, 2.61, C_LILAC);
+        if ((_e.attack - 1) mod (3 + _phase) == 3) {
+            // Sweep across the locked aim in five beats, including the opening pair.
+            if (_e.echo mod 6 == 0) {
+                var _sweep = (_e.echo / 6 - 2) * 32;
+                lk_enemy_burst(_e, 2, _e.angle + _sweep, 14, 2.23, C_LILAC, LK_SHOT.Ricochet);
+            }
+        } else if (_e.echo == 0) {
+            lk_enemy_open_ring(_e, 12, _e.angle + 22, 2.18, C_LILAC);
+        }
     }
     if (_e.tell > 0) {
         if (_e.tell != 1) return;
         var _slot = _e.attack mod (3 + _phase);
         switch (_slot) {
             case 0:
-                var _a = _e.angle + 90;
-                for (var _i = -2; _i <= 2; _i++) {
-                    var _side = _i * 23;
-                    lk_field(player.px + lengthdir_x(_side, _a), player.py + lengthdir_y(_side, _a),
-                        1, 25 + (_i + 2) * 9, 2, 20 + (_phase > 0) * 2, C_GOLD, true);
-                }
+                lk_bomb_trail(_e.angle + 90, _phase == 0 ? 3 : 4, 17, C_GOLD);
                 break;
             case 1:
-                lk_enemy_burst(_e, 17, _e.angle, 360 / 17, 2.26, C_PINK);
-                _e.echo = _phase > 0 ? 13 : 20;
+                lk_enemy_open_ring(_e, 15, _e.angle, 2.26, C_PINK);
+                _e.echo = _phase > 0 ? 18 : 24;
                 break;
             case 2:
                 lk_enemy_burst(_e, 8, _e.angle, 11, 3.45, C_GOLD, LK_SHOT.Blast);
                 lk_enemy_burst(_e, 7, _e.angle + 175, 11, 2.92, C_PINK);
                 break;
             case 3:
-                lk_enemy_burst(_e, 7, _e.angle + 23, 360 / 7, 2.66, C_LILAC, LK_SHOT.Ricochet);
-                lk_enemy_burst(_e, 7, _e.angle, 360 / 7, 2.80, C_PINK);
+                lk_enemy_burst(_e, 2, _e.angle + 64, 14, 2.23, C_LILAC, LK_SHOT.Ricochet);
+                _e.echo = 24;
                 break;
             case 4:
                 _e.dash = 26;

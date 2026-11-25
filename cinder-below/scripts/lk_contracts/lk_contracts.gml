@@ -2,6 +2,10 @@ enum LK_CONTRACT { Delve, Iron, Arsenal, Daily, Endless }
 
 #macro LK_CHECKPOINT "lantern_run_v1.dat"
 
+function lk_standard_contract() {
+    return run_contract != LK_CONTRACT.Iron && run_contract != LK_CONTRACT.Endless;
+}
+
 function lk_contract_list() {
     return [
         {name: "THE MAIN DELVE", note: "EIGHT STAGES. CHOOSE YOUR ARMORY.", tint: C_GOLD},

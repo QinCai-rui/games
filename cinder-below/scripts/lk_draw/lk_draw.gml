@@ -169,7 +169,8 @@ function lk_chest(_x, _y, _open) {
 
 function lk_room_setpiece(_xx, _yy) {
     var _x = 240 + _xx;
-    if (cell.kind == LK_ROOM.Boss || cell.kind == LK_ROOM.Shrine || cell.kind == LK_ROOM.Landing) {
+    var _shrine = lk_is_shrine(cell.kind);
+    if (cell.kind == LK_ROOM.Boss || _shrine || cell.kind == LK_ROOM.Landing) {
         var _cy = (cell.kind == LK_ROOM.Boss ? 113 : 137) + _yy;
         var _tone = lk_theme_tint(floor_no);
         draw_set_color(merge_color(_tone, C_PANEL, .69));
@@ -178,13 +179,13 @@ function lk_room_setpiece(_xx, _yy) {
         lk_diamond(_x - 46, _cy, 3, merge_color(_tone, C_PANEL, .48));
         lk_diamond(_x + 46, _cy, 3, merge_color(_tone, C_PANEL, .48));
         if (cell.kind == LK_ROOM.Boss && cell.clear) lk_draw_portal(_x, _cy, _tone);
-        if (cell.kind == LK_ROOM.Shrine) {
+        if (_shrine) {
             lk_rect(_x - 13, _cy - 2, _x + 13, _cy + 3, C_DEEP);
             lk_rect(_x - 10, _cy - 16, _x + 10, _cy - 2, C_EDGE);
             lk_rect(_x - 12, _cy - 18, _x + 12, _cy - 15, C_MUTED);
-            var _tone = cell.shrine_used ? C_MUTED : C_LILAC;
-            lk_glow(_x, _cy - 22, 17, _tone, .36);
-            lk_diamond(_x, _cy - 25 + dsin(world_tick * 4) * 2, 5, _tone);
+            var _shrine_tint = cell.shrine_used ? C_MUTED : lk_room_color(cell.kind);
+            lk_glow(_x, _cy - 22, 17, _shrine_tint, .36);
+            lk_diamond(_x, _cy - 25 + dsin(world_tick * 4) * 2, 5, _shrine_tint);
         }
         if (cell.kind == LK_ROOM.Landing) {
             lk_rect(_x - 9, _cy - 2, _x + 9, _cy + 3, C_DEEP);
@@ -193,6 +194,13 @@ function lk_room_setpiece(_xx, _yy) {
         }
     }
     if (cell.kind == LK_ROOM.Cache) lk_chest(_x, 137 + _yy, cell.opened);
+    if (lk_is_waystation(cell.kind)) lk_draw_waystation(_xx, _yy);
+    if (cell.kind == LK_ROOM.Duel) {
+        var _cy = 137 + _yy;
+        draw_set_color(merge_color(C_PINK, C_EDGE, .63));
+        draw_ellipse(_x - 68, _cy - 36, _x + 68, _cy + 36, true);
+        draw_ellipse(_x - 63, _cy - 32, _x + 63, _cy + 32, true);
+    }
     if (cell.kind == LK_ROOM.Relic || cell.kind == LK_ROOM.Forge) {
         var _forge = cell.kind == LK_ROOM.Forge;
         var _cy = 137 + _yy;
@@ -223,6 +231,42 @@ function lk_room_setpiece(_xx, _yy) {
                 lk_text_center(string(_item.price) + "G", _ix, _iy + 6, C_GOLD);
             }
         }
+    }
+}
+
+function lk_draw_waystation(_xx, _yy) {
+    var _x = 240 + _xx;
+    var _y = 137 + _yy;
+    var _tint = cell.opened ? C_MUTED : lk_room_color(cell.kind);
+    lk_shadow(_x, _y + 8, 70);
+    lk_rect(_x - 75, _y - 5, _x + 75, _y + 6, C_DEEP);
+    lk_line(_x - 75, _y + 5, _x + 75, _y + 5, C_EDGE);
+    lk_ornament(_x - 55, _y - 38, _x + 55, _tint);
+    lk_text_center(cell.opened ? "CLAIMED" : "CHOOSE ONE", _x, _y - 32, _tint);
+    for (var _i = 0; _i < 2; _i++) {
+        var _offer = lk_waystation_offer(_i);
+        var _px = _offer.px + _xx;
+        lk_rect(_px - 15, _y - 4, _px + 15, _y + 1, C_EDGE);
+        lk_line(_px - 15, _y - 4, _px + 15, _y - 4, _tint);
+        if (cell.opened) continue;
+        lk_glow(_px, _y - 11, 16, _offer.tint, .35);
+        lk_loot_icon(_offer.icon, _px, _y - 11, _offer.value);
+        lk_text_center(_offer.caption, _px, _y + 8, _offer.tint);
+    }
+}
+
+function lk_draw_rupture_vents(_xx, _yy) {
+    if (!lk_rupture_room()) return;
+    var _tint = merge_color(lk_theme_tint(floor_no), C_INK, cell.clear ? .72 : .42);
+    for (var _i = 0; _i < 2; _i++) {
+        var _vent = lk_rupture_vent(_i);
+        var _x = _vent.px + _xx;
+        var _y = _vent.py + _yy;
+        draw_set_color(_tint);
+        draw_ellipse(_x - 11, _y - 6, _x + 11, _y + 6, true);
+        lk_line(_x - 7, _y - 2, _x - 2, _y + 2, _tint);
+        lk_line(_x - 2, _y + 2, _x + 2, _y - 2, _tint);
+        lk_line(_x + 2, _y - 2, _x + 7, _y + 2, _tint);
     }
 }
 
@@ -364,7 +408,7 @@ function lk_draw_shots(_xx, _yy) {
     for (var _i = 0; _i < array_length(shots); _i++) {
         var _b = shots[_i];
         var _x = round(_b.px + _xx);
-        var _y = round(_b.py + _yy - 5);
+        var _y = round(_b.py + _yy - (_b.friendly ? 5 : 0));
         if (_b.kind == LK_SHOT.Orbit) {
             lk_glow(_x, _y, 12, C_GOLD, .45);
             lk_diamond(_x, _y, 5, C_GOLD);
@@ -459,7 +503,7 @@ function lk_draw_game() {
     if (depth_no < 6) {
         draw_sprite_part(spr_arenas, 0, floor_no * 480, (depth_no mod 2) * 270, 480, 270, _xx, _yy);
     } else {
-        var _sanctum = cell.kind == LK_ROOM.Boss || cell.kind == LK_ROOM.Gauntlet;
+        var _sanctum = cell.kind == LK_ROOM.Boss || cell.kind == LK_ROOM.Gauntlet || cell.kind == LK_ROOM.Duel;
         draw_sprite_part(spr_late_arenas, 0, (floor_no - 3) * 480, _sanctum * 270, 480, 270, _xx, _yy);
     }
     lk_draw_room_lighting(_xx, _yy);
@@ -478,6 +522,7 @@ function lk_draw_game() {
     }
     draw_set_alpha(1);
     lk_room_setpiece(_xx, _yy);
+    lk_draw_rupture_vents(_xx, _yy);
     for (var _i = 0; _i < array_length(fields); _i++) lk_field_draw(fields[_i], _xx, _yy);
     lk_draw_loot(_xx, _yy);
     var _depths = [{py: player.py, px: player.px, kind: 0, ref: player}];

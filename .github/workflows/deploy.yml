@@ -1,0 +1,76 @@
+name: Deploy Cinder Below
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cinder-below-production
+
+jobs:
+  deploy:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: '24'
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+        with:
+          bun-version: '1.4.4'
+
+      - name: Sign in to GameMaker
+        env:
+          GAMEMAKER_ACCESS_KEY: ${{ secrets.GAMEMAKER_ACCESS_KEY }}
+        run: |
+          : "${GAMEMAKER_ACCESS_KEY:?Set the GAMEMAKER_ACCESS_KEY Actions secret}"
+          bunx @gamemaker/gm-cli@2.4.1 login --cache-dir "$RUNNER_TEMP/gm-cli" "$GAMEMAKER_ACCESS_KEY"
+
+      - name: Build the HTML5 release
+        run: |
+          gm="$RUNNER_TEMP/gm-cli"
+          version=2026.1.0.28
+          runtime="$gm/runtimes/runtime-$version"
+          mkdir -p "$gm/runtimes" "$gm/prefabs" "$gm/tools"
+          # gm-cli 2.4.1 can sign in but cannot export HTML5. Use Igor for the export.
+          "$gm/igor/linux/x64/Igor" Runtime Install -lf "$gm/license/licence.plist" \
+            -rp "$gm/runtimes" -ru=https://gms.yoyogames.com/Zeus-Runtime-LTS2026.rss -m html5 "$version"
+          bun add --cwd "$gm/tools" --registry https://gmpm.gamemaker.io --exact @gm-tools/project-tool-linux-x64@2026.1.187
+          project_tool="$gm/tools/node_modules/@gm-tools/project-tool-linux-x64/ProjectTool"
+          chmod -R u+x "$runtime/bin"
+          chmod u+x "$project_tool"
+          python3 cinder-below/tools/build_web.py "$RUNNER_TEMP/web" --runtime "$runtime" \
+            --license-dir "$gm/license" --project-tool "$project_tool" --prefabs "$gm/prefabs" \
+            || { tail -60 "$RUNNER_TEMP/web/build.log"; exit 1; }
+
+      - name: Publish and verify the Worker version
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          main=$(git ls-remote --exit-code origin refs/heads/main | cut -f1)
+          if [[ "$GITHUB_SHA" != "$main" ]]; then
+            echo "Skipping deploy: main has moved to $main."
+            exit 0
+          fi
+          : "${CLOUDFLARE_ACCOUNT_ID:?Set the CLOUDFLARE_ACCOUNT_ID Actions variable}"
+          : "${CLOUDFLARE_API_TOKEN:?Set the CLOUDFLARE_API_TOKEN Actions secret}"
+          site="$RUNNER_TEMP/web/site"
+          tag="${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          bunx wrangler@4.168.0 versions upload --name games --assets "$site" \
+            --compatibility-date 2026-11-25 --tag "$tag" --message "Git $GITHUB_SHA"
+          # Deploy only the version. The current custom domains stay attached.
+          bunx wrangler@4.168.0 versions deploy --name games --version-tag "$tag@100" --yes
+          for domain in games.qincai.xyz games.raymont.dev; do
+            curl --fail --silent --show-error --retry 3 --max-time 30 \
+              "https://$domain/cinder-below/?build=$GITHUB_SHA" > "$RUNNER_TEMP/live.html"
+            grep -F "CinderBelow.js?cachebust=${GITHUB_SHA:0:7}" "$RUNNER_TEMP/live.html"
+          done

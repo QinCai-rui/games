@@ -28,7 +28,7 @@ function lk_late_guardian(_e, _toward, _range) {
         _e.echo -= 1;
         if (_e.echo == 0) {
             var _angle = _e.angle + _e.attack * 27;
-            lk_enemy_burst(_e, 18, _angle, 20, 2.62 + .21 * _depth, C_LILAC);
+            lk_enemy_open_ring(_e, 14, _angle, 2.26 + .21 * _depth, C_LILAC);
             lk_sound(snd_heavy, .92);
         }
     }
@@ -40,16 +40,12 @@ function lk_late_guardian(_e, _toward, _range) {
             lk_sound(snd_dash, .79);
         } else if (_attack == 1 || _attack == 0 && _depth == 1) {
             var _direction = point_direction(_e.px, _e.py, player.px, player.py);
-            for (var _i = 0; _i < 4; _i++) {
-                var _spread = (_i - 1.5) * 20;
-                lk_field(player.px + lengthdir_x(_spread, _direction + 90), player.py + lengthdir_y(_spread, _direction + 90),
-                    1, 26 + _i * 9, 2, 21 + _depth * 3, C_PINK, true);
-            }
+            lk_bomb_trail(_direction + 90, 4, 17, C_PINK);
         } else if (_attack == 2) {
             lk_enemy_burst(_e, 11, _e.angle, 12, 3.01 + .20 * _depth, C_PINK);
             lk_enemy_burst(_e, 5, _e.angle + 180, 45, 2.37, _e.color);
         } else {
-            lk_enemy_burst(_e, 21, _e.angle, 360 / 21, 2.12, _e.color);
+            lk_enemy_open_ring(_e, 16, _e.angle, 2.08, _e.color);
             _e.echo = _e.enraged ? 15 : 24;
         }
         _e.attack += 1;

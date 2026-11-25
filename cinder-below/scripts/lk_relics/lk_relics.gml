@@ -1,5 +1,5 @@
 enum LK_RELIC { Breaker, Mirror, Ember, Knot, Siphon, LowLight, Crown, Vigor, Canteen, Gateward, Due }
-enum LK_BOON { Armor, Health, Damage, Haste, Energy, Speed, Warm, Edge, Volley, Focus, Medic, Smith }
+enum LK_BOON { Armor, Health, Damage, Haste, Energy, Speed, Warm, Edge, Volley, Focus, Medic, Smith, StillWick, Salvager }
 
 function lk_relic_catalog() {
     return [
@@ -49,35 +49,49 @@ function lk_reward_note(_item, _rank) {
     return _rank >= 2 && variable_struct_exists(_item, "upgrade") ? _item.upgrade : _item.note;
 }
 
-function lk_reward_choices(_relic) {
+function lk_reward_pair(_primary, _new, _upgrades) {
+    var _is_new = lk_boon_rank(_primary) == 0;
+    var _alternatives = _is_new ? _upgrades : _new;
+    if (array_length(_alternatives) == 0) {
+        _alternatives = _is_new ? _new : _upgrades;
+        for (var _i = 0; _i < array_length(_alternatives); _i++) {
+            if (_alternatives[_i] != _primary) continue;
+            array_delete(_alternatives, _i, 1);
+            break;
+        }
+    }
+    return array_length(_alternatives) > 0
+        ? [_primary, _alternatives[irandom(array_length(_alternatives) - 1)]] : [_primary];
+}
+
+function lk_reward_choices(_relic, _sparks = false) {
     var _catalog = _relic ? relic_catalog : boons;
+    var _spark_pool = [LK_BOON.Haste, LK_BOON.Warm, LK_BOON.Edge, LK_BOON.Volley, LK_BOON.Focus,
+        LK_BOON.Smith, LK_BOON.StillWick, LK_BOON.Salvager];
     var _new = [];
     var _upgrades = [];
     for (var _i = 0; _i < array_length(_catalog); _i++) {
+        if (!_relic) {
+            if (_sparks && !array_contains(_spark_pool, _i)) continue;
+            if (!_sparks && (_i == LK_BOON.StillWick || _i == LK_BOON.Salvager)) continue;
+        }
         var _rank = lk_reward_rank(_relic, _i);
         if (_rank == 0) array_push(_new, _i);
         else if (_rank < _catalog[_i].max_rank) array_push(_upgrades, _i);
     }
-    if (!_relic && depth_no < 2 && lk_combat_armor_enabled()) {
+    if (!_relic && _sparks) {
+        var _wick = lk_boon_rank(LK_BOON.StillWick);
+        var _haste = lk_boon_rank(LK_BOON.Haste);
+        var _cooldown = _wick < boons[LK_BOON.StillWick].max_rank && _wick <= _haste
+            ? LK_BOON.StillWick : LK_BOON.Haste;
+        if (lk_boon_rank(_cooldown) < boons[_cooldown].max_rank) return lk_reward_pair(_cooldown, _new, _upgrades);
+    } else if (!_relic && depth_no < 2 && lk_combat_armor_enabled()) {
         var _armor = lk_boon_rank(LK_BOON.Armor);
         var _health = lk_boon_rank(LK_BOON.Health);
         // Offer the less-upgraded defense first. Prefer health if the keeper is already wounded.
         var _defense = _armor < _health || (_armor == _health && player.hp == player.max_hp)
             ? LK_BOON.Armor : LK_BOON.Health;
-        var _rank = lk_boon_rank(_defense);
-        if (_rank < boons[_defense].max_rank) {
-            var _alternatives = _rank == 0 ? _upgrades : _new;
-            if (array_length(_alternatives) == 0) {
-                _alternatives = _rank == 0 ? _new : _upgrades;
-                for (var _i = 0; _i < array_length(_alternatives); _i++) {
-                    if (_alternatives[_i] != _defense) continue;
-                    array_delete(_alternatives, _i, 1);
-                    break;
-                }
-            }
-            return array_length(_alternatives) > 0
-                ? [_defense, _alternatives[irandom(array_length(_alternatives) - 1)]] : [_defense];
-        }
+        if (lk_boon_rank(_defense) < boons[_defense].max_rank) return lk_reward_pair(_defense, _new, _upgrades);
     }
     if (array_length(_new) > 0 && array_length(_upgrades) > 0) {
         return [_new[irandom(array_length(_new) - 1)], _upgrades[irandom(array_length(_upgrades) - 1)]];

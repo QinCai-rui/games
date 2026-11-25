@@ -24,15 +24,19 @@ Cinder Below is a single-player pixel-art dungeon shooter for Linux. Clear each 
 
 Drag a window edge or use the desktop maximize button to change the window size. Fit mode keeps the game at 16:9 and fills the available space. Whole-pixel scaling uses the largest integer zoom that fits and falls back to fit in smaller windows. The game remembers your scaling mode.
 
-Armor recovers faster after you clear a room. During combat in Main Delve, Arsenal Run, and Daily Contract, armor recovers one point every five seconds without taking damage. A thin line inside the armor bar shows progress toward the next point.
+Armor recovers faster after you clear a room. In Main Delve, Arsenal Run, and Daily Contract, the first point of armor repairs after three seconds without taking damage. Each additional point takes another five seconds during combat. A thin line inside the armor bar shows progress toward the next point.
 
 In those contracts, shrines on the first two stages offer Bloodroot or Iron Bark unless you have both at max rank. Each rank of Bloodroot adds two max HP. Each rank of Iron Bark adds two max armor.
 
 The keeper uses a backup pistol when the selected weapon runs out of energy. Visit gauntlets, shops, and shrines to equip a stronger build for the late stages.
 
-Shrines and reliquaries can offer a new reward or upgrade one you already own. Forges temper weapons for gold, up to three times per weapon. Pause and hover over a weapon, relic, or boon to see what it does and its current rank.
+Every stage has a Shrine of Ash and a forge. Forges temper weapons for gold, up to three times per weapon. Starting on stage two, look for a Shrine of Sparks for faster skill recharge, weapon perks, and cheaper forging. Shrines and reliquaries can offer a new reward or upgrade one you already own. Pause and hover over a weapon, relic, or boon to see its effect and current rank.
 
 Guardian intros end on their own. Press E or A to skip once the guardian appears. During the fight, the name of an incoming ability appears beneath the guardian's health bar.
+
+Bomb circles fill before they detonate. In Rupture rooms, two floor vents take turns erupting. Other regular rooms have no floor eruptions unless an enemy creates one.
+
+From stage three in Main Delve, Arsenal Run, and Daily Contract, one fight per stage gives way to a safe stop. Pick a weapon at the Salvage Rack, take energy or gold at the Keeper's Stores, or move one temper rank between weapons at the Temper Relay. Some optional gauntlets give way to an Elite Duel, a single fight with a weapon reward.
 
 ## Choose a contract
 
@@ -54,9 +58,15 @@ To play the project locally, select Linux in GameMaker and click **Run**.
 
 ## Build a web release
 
-Set the base release number in `LK_VERSION`. Keep the `+dev` suffix in source. Commit the release changes before building, then run `python tools/build_web.py --help` for the required GameMaker paths.
+Push to `main` to build and deploy the web game to the `games` Worker. To retry a release, rerun **Deploy Cinder Below** from the Actions tab or run the workflow on `main`.
 
-The script exports Git `HEAD` to a new directory. It stamps the game and pages with the same `major.minor.patch+commit` label, using seven characters from the commit hash. Upload the generated `site` directory, not the source checkout.
+To configure the workflow, add these values under **Settings > Secrets and variables > Actions**:
+
+- `GAMEMAKER_ACCESS_KEY` secret: a [GameMaker access key](https://gamemaker.io/en/account/access-keys) for an account that can export HTML5 builds.
+- `CLOUDFLARE_API_TOKEN` secret: a [Cloudflare API token](https://dash.cloudflare.com/profile/api-tokens) with **Workers Scripts: Edit** for the account hosting `games`.
+- `CLOUDFLARE_ACCOUNT_ID` variable: the ID of that Cloudflare account.
+
+Set the base release number in `LK_VERSION`. Keep the `+dev` suffix in source. The workflow builds the pushed commit and stamps the game and pages with the same `major.minor.patch+commit` label. To build locally from a commit, run `python3 tools/build_web.py --help` for the required GameMaker paths. The script puts the finished website in the generated `site` directory.
 
 ## Render the soundtrack
 

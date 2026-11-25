@@ -1,5 +1,5 @@
 enum LK_MODE { Title, Select, Play, Pause, Boon, Dead, Won, Journal, Contract }
-enum LK_ROOM { Landing, Fight, Cache, Shop, Shrine, Boss, Gauntlet, Relic, Forge }
+enum LK_ROOM { Landing, Fight, Cache, Shop, Shrine, Boss, Gauntlet, Relic, Forge, SparkShrine, Armory, SupplyPost, TemperRelay, Duel }
 enum LK_LOOT { Coin, Energy, Heart, Weapon }
 enum LK_ENEMY { Skulk, Spitter, Charger, Wisp, Boss, Sentry, Leech, Bruiser, Harpoon, Prism, Monk }
 
@@ -21,7 +21,7 @@ enum LK_ENEMY { Skulk, Spitter, Charger, Wisp, Boss, Sentry, Leech, Bruiser, Har
 #macro KEEP_BOTTOM 227
 #macro KEEP_MID_Y 143
 #macro LK_BOSS_INTRO 90
-#macro LK_VERSION "1.1.2+dev"
+#macro LK_VERSION "1.2.0+dev"
 
 function lk_input() {
     pad = -1;
@@ -172,7 +172,7 @@ function lk_begin_run() {
 
 function lk_new_room(_gx, _gy, _kind) {
     return {gx: _gx, gy: _gy, kind: _kind, exits: [-1,-1,-1,-1], visited: false,
-        clear: _kind != LK_ROOM.Fight && _kind != LK_ROOM.Boss && _kind != LK_ROOM.Gauntlet,
+        clear: _kind != LK_ROOM.Fight && _kind != LK_ROOM.Boss && _kind != LK_ROOM.Gauntlet && _kind != LK_ROOM.Duel,
         layout: irandom_range(0, 9), seed: irandom_range(20, 9000), props: [], loot: [],
         opened: false, bought: [false, false, false], stock: irandom_range(2, array_length(weapons) - 1),
         stock_temper: depth_no >= 3 ? irandom_range(1, clamp(floor(depth_no / 2), 1, 3)) : 0,
@@ -208,15 +208,18 @@ function lk_link_room(_from, _kind, _preferred = -1) {
 }
 
 function lk_stage_fights() {
-    return 3 + min(depth_no, 5);
+    return 3 + min(depth_no, 5) - (lk_stage_waystation() >= 0);
 }
 
 function lk_make_route(_preferred) {
     dungeon = [];
     array_push(dungeon, lk_new_room(0, 0, LK_ROOM.Landing));
+    var _station = lk_stage_waystation();
+    var _length = lk_stage_fights() + (_station >= 0);
+    var _station_index = _station >= 0 ? irandom_range(2, _length) : -1;
     var _parent = 0;
-    repeat (lk_stage_fights()) {
-        _parent = lk_link_room(_parent, LK_ROOM.Fight, _preferred);
+    for (var _i = 1; _i <= _length; _i++) {
+        _parent = lk_link_room(_parent, _i == _station_index ? _station : LK_ROOM.Fight, _preferred);
         if (_parent == -1) return false;
     }
     return lk_link_room(_parent, LK_ROOM.Boss, _preferred) >= 0;
@@ -226,27 +229,40 @@ function lk_stage_biome(_stage) {
     return _stage < 6 ? floor(_stage / 2) : _stage - 3;
 }
 
+function lk_add_branches() {
+    var _route_end = array_length(dungeon) - 1;
+    var _trial = lk_stage_waystation() == LK_ROOM.SupplyPost ? LK_ROOM.Duel : LK_ROOM.Gauntlet;
+    var _branches = [LK_ROOM.Shrine, LK_ROOM.Forge, LK_ROOM.Cache, LK_ROOM.Shop, _trial];
+    if (depth_no > 0) {
+        array_push(_branches, LK_ROOM.SparkShrine);
+        array_push(_branches, LK_ROOM.Relic);
+    }
+    for (var _j = 0; _j < array_length(_branches); _j++) {
+        var _start = irandom(_route_end - 1);
+        var _placed = false;
+        for (var _i = 0; _i < _route_end; _i++) {
+            if (lk_link_room((_start + _i) mod _route_end, _branches[_j]) < 0) continue;
+            _placed = true;
+            break;
+        }
+        if (!_placed) return false;
+    }
+    return true;
+}
+
+function lk_build_stage_map() {
+    repeat (36) {
+        if (lk_make_route(-1) && lk_add_branches()) return;
+    }
+    // A straight route leaves space for every branch.
+    lk_make_route(0);
+    lk_add_branches();
+}
+
 function lk_start_floor() {
     floor_no = lk_stage_biome(depth_no);
     if (run_contract == LK_CONTRACT.Daily) random_set_seed(run_seed + depth_no * 8731);
-    var _valid = false;
-    repeat (36) {
-        if (lk_make_route(-1)) { _valid = true; break; }
-    }
-    if (!_valid) lk_make_route(0);
-
-    var _main_size = array_length(dungeon);
-    var _branches = [LK_ROOM.Cache, LK_ROOM.Shop, LK_ROOM.Shrine, LK_ROOM.Gauntlet];
-    if (depth_no > 0) {
-        array_push(_branches, LK_ROOM.Relic);
-        if (depth_no mod 2 == 0 || floor_no >= 3) array_push(_branches, LK_ROOM.Forge);
-    }
-    for (var _j = 0; _j < array_length(_branches); _j++) {
-        var _start = irandom(_main_size - 2);
-        for (var _i = 0; _i < _main_size - 1; _i++) {
-            if (lk_link_room((_start + _i) mod (_main_size - 1), _branches[_j]) >= 0) break;
-        }
-    }
+    lk_build_stage_map();
     lk_contract_record();
     lk_save();
     lk_enter_room(0, -1);
@@ -262,6 +278,11 @@ function lk_furnish(_cell) {
     if (_cell.kind == LK_ROOM.Boss) {
         lk_add_prop(_cell, 116, 142, 1);
         lk_add_prop(_cell, 364, 142, 1);
+        return;
+    }
+    if (_cell.kind == LK_ROOM.Duel) {
+        lk_add_prop(_cell, 162, 160, 1);
+        lk_add_prop(_cell, 318, 124, 1);
         return;
     }
     if (_cell.kind != LK_ROOM.Fight && _cell.kind != LK_ROOM.Gauntlet) return;
@@ -353,10 +374,11 @@ function lk_enter_room(_index, _entry) {
     particles = [];
     floaters = [];
     wave = 0;
-    wave_count = cell.kind == LK_ROOM.Boss ? 1 : (cell.kind == LK_ROOM.Gauntlet ? 3
+    wave_count = cell.kind == LK_ROOM.Boss || cell.kind == LK_ROOM.Duel ? 1 : (cell.kind == LK_ROOM.Gauntlet ? 3
         : ((depth_no > 0 || _index mod 3 != 1) ? 2 : 1));
     if (cell.kind == LK_ROOM.Fight && (cell.encounter == 2 || cell.encounter == 4)) wave_count = 1;
-    hazard_wait = (cell.encounter == 3 ? 70 : 145) + cell.seed mod 68;
+    hazard_wait = 145 + cell.seed mod 68;
+    hazard_side = cell.seed mod 2;
     wave_wait = -1;
     shaking = 0;
     hit_stop = 0;
@@ -373,8 +395,9 @@ function lk_enter_room(_index, _entry) {
     player.tide = 0;
     player.target = undefined;
     player.hurt = max(22, player.hurt);
+    armor_repair_span = LK_ARMOR_FIRST_REPAIR;
     if (!cell.clear && player.armor < player.max_armor && lk_combat_armor_enabled()) {
-        player.regen = LK_COMBAT_ARMOR_WAIT;
+        lk_armor_timer(LK_ARMOR_FIRST_REPAIR);
     }
     switch (_entry) {
         case 0: player.px = 403; player.py = KEEP_MID_Y; break;
@@ -401,6 +424,10 @@ function lk_enter_room(_index, _entry) {
     }
 }
 
+function lk_is_shrine(_kind) {
+    return _kind == LK_ROOM.Shrine || _kind == LK_ROOM.SparkShrine;
+}
+
 function lk_room_name(_kind) {
     switch (_kind) {
         case LK_ROOM.Landing: return stage_names[depth_no];
@@ -408,9 +435,14 @@ function lk_room_name(_kind) {
         case LK_ROOM.Cache: return "SUPPLY CACHE";
         case LK_ROOM.Shop: return "TINKER'S SHOP";
         case LK_ROOM.Shrine: return "SHRINE OF ASH";
+        case LK_ROOM.SparkShrine: return "SHRINE OF SPARKS";
         case LK_ROOM.Gauntlet: return "GAUNTLET";
         case LK_ROOM.Relic: return "RELIQUARY";
         case LK_ROOM.Forge: return "TEMPER FORGE";
+        case LK_ROOM.Armory: return "SALVAGE RACK";
+        case LK_ROOM.SupplyPost: return "KEEPER'S STORES";
+        case LK_ROOM.TemperRelay: return "TEMPER RELAY";
+        case LK_ROOM.Duel: return "ELITE DUEL";
         case LK_ROOM.Boss: return boss_names[depth_no];
     }
     return "";
@@ -504,8 +536,14 @@ function lk_interaction() {
             }
         }
     }
-    if (cell.kind == LK_ROOM.Shrine && !cell.shrine_used && point_distance(player.px, player.py, 240, 137) < _reach) {
-        return {kind: "shrine", label: "CHOOSE A BOON"};
+    if (lk_is_waystation(cell.kind) && !cell.opened) {
+        for (var _i = 0; _i < 2; _i++) {
+            var _offer = lk_waystation_offer(_i);
+            if (point_distance(player.px, player.py, _offer.px, _offer.py) < _reach) return _offer;
+        }
+    }
+    if (lk_is_shrine(cell.kind) && !cell.shrine_used && point_distance(player.px, player.py, 240, 137) < _reach) {
+        return {kind: "shrine", label: cell.kind == LK_ROOM.SparkShrine ? "CHOOSE A SPARK BOON" : "CHOOSE A BOON"};
     }
     if (cell.kind == LK_ROOM.Relic && !cell.opened && point_distance(player.px, player.py, 240, 137) < _reach) {
         return {kind: "relic", label: "CLAIM A RELIC"};
@@ -570,7 +608,7 @@ function lk_interact(_action) {
             }
             break;
         case "shrine":
-            boon_options = lk_reward_choices(false);
+            boon_options = lk_reward_choices(false, cell.kind == LK_ROOM.SparkShrine);
             if (array_length(boon_options) == 0) {
                 cell.shrine_used = true;
                 lk_drop(LK_LOOT.Coin, 240, 137, 8);
@@ -595,6 +633,9 @@ function lk_interact(_action) {
         case "forge":
             if (!lk_temper_changed()) return;
             _sound = snd_relic;
+            break;
+        case "waystation":
+            if (!lk_claim_waystation(_action.index)) return;
             break;
         case "portal":
             _sound = snd_portal;
@@ -623,6 +664,7 @@ function lk_interact(_action) {
 
 function lk_take_boon(_boon) {
     cell.shrine_used = true;
+    var _old_cooldown = lk_skill_cooldown();
     array_push(player.boons, _boon);
     switch (_boon) {
         case LK_BOON.Armor: player.max_armor += 2; player.armor = player.max_armor; break;
@@ -634,6 +676,9 @@ function lk_take_boon(_boon) {
         case LK_BOON.Warm: player.traits[0] = true; break;
         case LK_BOON.Edge: player.traits[1] = true; break;
         case LK_BOON.Volley: player.traits[2] = true; break;
+    }
+    if (_boon == LK_BOON.Haste || _boon == LK_BOON.StillWick) {
+        player.skill_wait = round(player.skill_wait * lk_skill_cooldown() / _old_cooldown);
     }
     mode = LK_MODE.Play;
     lk_sparks(240, 127, boons[_boon].tint, 24, 2);

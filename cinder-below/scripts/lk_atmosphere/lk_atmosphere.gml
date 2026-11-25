@@ -17,8 +17,8 @@ function lk_draw_room_lighting(_xx, _yy) {
         lk_light(_x, 49 + _yy, 54 + 4 * dsin(world_tick * 3 + _i * 77), _accent, .38 + _wave, .78);
         lk_light(_x, 57 + _yy, 32, _accent, .12 + _wave * .75, .55);
     }
-    if (cell.kind == LK_ROOM.Landing || cell.kind == LK_ROOM.Shrine) {
-        var _shade = cell.kind == LK_ROOM.Landing ? C_GOLD : C_LILAC;
+    if (cell.kind == LK_ROOM.Landing || lk_is_shrine(cell.kind)) {
+        var _shade = cell.kind == LK_ROOM.Landing ? C_GOLD : lk_room_color(cell.kind);
         lk_light(240 + _xx, 130 + _yy, 72, _shade, .19 + dsin(world_tick * 3) * .035, .62);
     }
     if (cell.kind == LK_ROOM.Boss) {
@@ -104,10 +104,15 @@ function lk_room_color(_kind) {
         case LK_ROOM.Cache: return C_GOLD;
         case LK_ROOM.Shop: return C_BLUE;
         case LK_ROOM.Shrine: return C_LILAC;
+        case LK_ROOM.SparkShrine: return C_TEAL;
         case LK_ROOM.Boss: return C_PINK;
         case LK_ROOM.Gauntlet: return C_PINK;
+        case LK_ROOM.Duel: return C_PINK;
         case LK_ROOM.Relic: return C_LILAC;
         case LK_ROOM.Forge: return C_GOLD;
+        case LK_ROOM.Armory: return C_MINT;
+        case LK_ROOM.SupplyPost: return C_MINT;
+        case LK_ROOM.TemperRelay: return C_MINT;
     }
     return C_TEAL;
 }
