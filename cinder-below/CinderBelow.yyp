@@ -1,0 +1,480 @@
+{
+  "$GMProject": "v1",
+  "%Name": "CinderBelow",
+  "AudioGroups": [
+    {
+      "$GMAudioGroup": "v1",
+      "%Name": "audiogroup_default",
+      "exportDir": "",
+      "name": "audiogroup_default",
+      "resourceType": "GMAudioGroup",
+      "resourceVersion": "2.0",
+      "targets": -1
+    }
+  ],
+  "configs": {
+    "children": [],
+    "name": "Default"
+  },
+  "defaultScriptType": 1,
+  "Folders": [
+    {
+      "$GMFolder": "",
+      "%Name": "Scripts",
+      "folderPath": "folders/Scripts.yy",
+      "name": "Scripts",
+      "resourceType": "GMFolder",
+      "resourceVersion": "2.0"
+    },
+    {
+      "$GMFolder": "",
+      "%Name": "Objects",
+      "folderPath": "folders/Objects.yy",
+      "name": "Objects",
+      "resourceType": "GMFolder",
+      "resourceVersion": "2.0"
+    },
+    {
+      "$GMFolder": "",
+      "%Name": "Sprites",
+      "folderPath": "folders/Sprites.yy",
+      "name": "Sprites",
+      "resourceType": "GMFolder",
+      "resourceVersion": "2.0"
+    },
+    {
+      "$GMFolder": "",
+      "%Name": "Sounds",
+      "folderPath": "folders/Sounds.yy",
+      "name": "Sounds",
+      "resourceType": "GMFolder",
+      "resourceVersion": "2.0"
+    },
+    {
+      "$GMFolder": "",
+      "%Name": "Rooms",
+      "folderPath": "folders/Rooms.yy",
+      "name": "Rooms",
+      "resourceType": "GMFolder",
+      "resourceVersion": "2.0"
+    }
+  ],
+  "ForcedPrefabProjectReferences": [],
+  "IncludedFiles": [],
+  "isEcma": false,
+  "LibraryEmitters": [],
+  "MetaData": {
+    "IDEVersion": "2026.1.0.0"
+  },
+  "name": "CinderBelow",
+  "resources": [
+    {
+      "id": {
+        "name": "room1",
+        "path": "rooms/room1/room1.yy"
+      }
+    },
+    {
+      "id": {
+        "name": "obj_keep",
+        "path": "objects/obj_keep/obj_keep.yy"
+      }
+    },
+    {
+      "id": {
+        "name": "lk_run",
+        "path": "scripts/lk_run/lk_run.yy"
+      }
+    },
+    {
+      "id": {
+        "name": "lk_combat",
+        "path": "scripts/lk_combat/lk_combat.yy"
+      }
+    },
+    {
+      "id": {
+        "name": "lk_draw",
+        "path": "scripts/lk_draw/lk_draw.yy"
+      }
+    },
+    {
+      "id": {
+        "name": "lk_ui",
+        "path": "scripts/lk_ui/lk_ui.yy"
+      }
+    },
+    {
+      "id": {
+        "name": "spr_actors",
+        "path": "sprites/spr_actors/spr_actors.yy"
+      }
+    },
+    {
+      "id": {
+        "name": "spr_cover",
+        "path": "sprites/spr_cover/spr_cover.yy"
+      }
+    },
+    {
+      "id": {
+        "name": "spr_wordmark",
+        "path": "sprites/spr_wordmark/spr_wordmark.yy"
+      }
+    },
+    {
+      "id": {
+        "name": "spr_font",
+        "path": "sprites/spr_font/spr_font.yy"
+      }
+    },
+    {
+      "id": {
+        "name": "snd_blade",
+        "path": "sounds/snd_blade/snd_blade.yy"
+      }
+    },
+    {
+      "id": {
+        "name": "snd_clear",
+        "path": "sounds/snd_clear/snd_clear.yy"
+      }
+    },
+    {
+      "id": {
+        "name": "snd_fire",
+        "path": "sounds/snd_fire/snd_fire.yy"
+      }
+    },
+    {
+      "id": {
+        "name": "snd_gate",
+        "path": "sounds/snd_gate/snd_gate.yy"
+      }
+    },
+    {
+      "id": {
+        "name": "snd_heavy",
+        "path": "sounds/snd_heavy/snd_heavy.yy"
+      }
+    },
+    {
+      "id": {
+        "name": "snd_hit",
+        "path": "sounds/snd_hit/snd_hit.yy"
+      }
+    },
+    {
+      "id": {
+        "name": "snd_hurt",
+        "path": "sounds/snd_hurt/snd_hurt.yy"
+      }
+    },
+    {
+      "id": {
+        "name": "snd_music",
+        "path": "sounds/snd_music/snd_music.yy"
+      }
+    },
+    {
+      "id": {
+        "name": "snd_pick",
+        "path": "sounds/snd_pick/snd_pick.yy"
+      }
+    },
+    {
+      "id": {
+        "name": "snd_skill",
+        "path": "sounds/snd_skill/snd_skill.yy"
+      }
+    },
+    {
+      "id": {
+        "name": "lk_atmosphere",
+        "path": "scripts/lk_atmosphere/lk_atmosphere.yy"
+      }
+    },
+    {
+      "id": {
+        "name": "spr_radial",
+        "path": "sprites/spr_radial/spr_radial.yy"
+      }
+    },
+    {
+      "id": {
+        "name": "spr_vignette",
+        "path": "sprites/spr_vignette/spr_vignette.yy"
+      }
+    },
+    {
+      "id": {
+        "name": "spr_weapons",
+        "path": "sprites/spr_weapons/spr_weapons.yy"
+      }
+    },
+    {
+      "id": {
+        "name": "snd_blast",
+        "path": "sounds/snd_blast/snd_blast.yy"
+      }
+    },
+    {
+      "id": {
+        "name": "snd_boss",
+        "path": "sounds/snd_boss/snd_boss.yy"
+      }
+    },
+    {
+      "id": {
+        "name": "snd_charge",
+        "path": "sounds/snd_charge/snd_charge.yy"
+      }
+    },
+    {
+      "id": {
+        "name": "snd_chest",
+        "path": "sounds/snd_chest/snd_chest.yy"
+      }
+    },
+    {
+      "id": {
+        "name": "snd_cinder",
+        "path": "sounds/snd_cinder/snd_cinder.yy"
+      }
+    },
+    {
+      "id": {
+        "name": "snd_click",
+        "path": "sounds/snd_click/snd_click.yy"
+      }
+    },
+    {
+      "id": {
+        "name": "snd_dash",
+        "path": "sounds/snd_dash/snd_dash.yy"
+      }
+    },
+    {
+      "id": {
+        "name": "snd_hollow",
+        "path": "sounds/snd_hollow/snd_hollow.yy"
+      }
+    },
+    {
+      "id": {
+        "name": "snd_kill",
+        "path": "sounds/snd_kill/snd_kill.yy"
+      }
+    },
+    {
+      "id": {
+        "name": "snd_portal",
+        "path": "sounds/snd_portal/snd_portal.yy"
+      }
+    },
+    {
+      "id": {
+        "name": "snd_ricochet",
+        "path": "sounds/snd_ricochet/snd_ricochet.yy"
+      }
+    },
+    {
+      "id": {
+        "name": "snd_shield",
+        "path": "sounds/snd_shield/snd_shield.yy"
+      }
+    },
+    {
+      "id": {
+        "name": "snd_title",
+        "path": "sounds/snd_title/snd_title.yy"
+      }
+    },
+    {
+      "id": {
+        "name": "snd_zap",
+        "path": "sounds/snd_zap/snd_zap.yy"
+      }
+    },
+    {
+      "id": {
+        "name": "lk_expansion",
+        "path": "scripts/lk_expansion/lk_expansion.yy"
+      }
+    },
+    {
+      "id": {
+        "name": "spr_expansion",
+        "path": "sprites/spr_expansion/spr_expansion.yy"
+      }
+    },
+    {
+      "id": {
+        "name": "spr_arenas",
+        "path": "sprites/spr_arenas/spr_arenas.yy"
+      }
+    },
+    {
+      "id": {
+        "name": "lk_relics",
+        "path": "scripts/lk_relics/lk_relics.yy"
+      }
+    },
+    {
+      "id": {
+        "name": "lk_late_combat",
+        "path": "scripts/lk_late_combat/lk_late_combat.yy"
+      }
+    },
+    {
+      "id": {
+        "name": "spr_late_arenas",
+        "path": "sprites/spr_late_arenas/spr_late_arenas.yy"
+      }
+    },
+    {
+      "id": {
+        "name": "spr_late_enemies",
+        "path": "sprites/spr_late_enemies/spr_late_enemies.yy"
+      }
+    },
+    {
+      "id": {
+        "name": "spr_extended_weapons",
+        "path": "sprites/spr_extended_weapons/spr_extended_weapons.yy"
+      }
+    },
+    {
+      "id": {
+        "name": "snd_glassfen",
+        "path": "sounds/snd_glassfen/snd_glassfen.yy"
+      }
+    },
+    {
+      "id": {
+        "name": "snd_reliquary",
+        "path": "sounds/snd_reliquary/snd_reliquary.yy"
+      }
+    },
+    {
+      "id": {
+        "name": "snd_relic",
+        "path": "sounds/snd_relic/snd_relic.yy"
+      }
+    },
+    {
+      "id": {
+        "name": "spr_boss_motion",
+        "path": "sprites/spr_boss_motion/spr_boss_motion.yy"
+      }
+    },
+    {
+      "id": {
+        "name": "snd_poison",
+        "path": "sounds/snd_poison/snd_poison.yy"
+      }
+    },
+    {
+      "id": {
+        "name": "snd_aegis",
+        "path": "sounds/snd_aegis/snd_aegis.yy"
+      }
+    },
+    {
+      "id": {
+        "name": "snd_starfall",
+        "path": "sounds/snd_starfall/snd_starfall.yy"
+      }
+    },
+    {
+      "id": {
+        "name": "snd_mortar",
+        "path": "sounds/snd_mortar/snd_mortar.yy"
+      }
+    },
+    {
+      "id": {
+        "name": "snd_disc",
+        "path": "sounds/snd_disc/snd_disc.yy"
+      }
+    },
+    {
+      "id": {
+        "name": "snd_wick",
+        "path": "sounds/snd_wick/snd_wick.yy"
+      }
+    },
+    {
+      "id": {
+        "name": "lk_contracts",
+        "path": "scripts/lk_contracts/lk_contracts.yy"
+      }
+    },
+    {
+      "id": {
+        "name": "lk_encounters",
+        "path": "scripts/lk_encounters/lk_encounters.yy"
+      }
+    },
+    {
+      "id": {
+        "name": "spr_final_keepers",
+        "path": "sprites/spr_final_keepers/spr_final_keepers.yy"
+      }
+    },
+    {
+      "id": {
+        "name": "lk_display",
+        "path": "scripts/lk_display/lk_display.yy"
+      }
+    },
+    {
+      "id": {
+        "name": "snd_armor",
+        "path": "sounds/snd_armor/snd_armor.yy"
+      }
+    },
+    {
+      "id": {
+        "name": "snd_harpoon",
+        "path": "sounds/snd_harpoon/snd_harpoon.yy"
+      }
+    },
+    {
+      "id": {
+        "name": "snd_revive",
+        "path": "sounds/snd_revive/snd_revive.yy"
+      }
+    }
+  ],
+  "resourceType": "GMProject",
+  "resourceVersion": "2.0",
+  "RoomOrderNodes": [
+    {
+      "roomId": {
+        "name": "room1",
+        "path": "rooms/room1/room1.yy"
+      }
+    }
+  ],
+  "templateType": null,
+  "TextureGroups": [
+    {
+      "$GMTextureGroup": "",
+      "%Name": "Default",
+      "autocrop": true,
+      "border": 2,
+      "compressFormat": "bz2",
+      "customOptions": "",
+      "directory": "",
+      "groupParent": null,
+      "isScaled": true,
+      "loadType": "default",
+      "mipsToGenerate": 0,
+      "name": "Default",
+      "resourceType": "GMTextureGroup",
+      "resourceVersion": "2.0",
+      "targets": -1
+    }
+  ]
+}
