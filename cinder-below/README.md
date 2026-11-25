@@ -41,4 +41,14 @@ Open `CinderBelow.yyp` in GameMaker LTS 2026. To compile the Linux build, run th
 bunx @gamemaker/gm-cli compile CinderBelow.yyp --target linux
 ```
 
-To play the project locally, select Linux in GameMaker and click **Run**. The project uses original pixel sprites and synthesized music and effects.
+To play the project locally, select Linux in GameMaker and click **Run**.
+
+## Render the soundtrack
+
+Install `uv` and FFmpeg, then run this from the game directory to render a separate copy of the music:
+
+```sh
+uv run tools/render_score.py --cache .gmcache/piano --output .gmcache/score
+```
+
+The first run downloads [Steinway B piano samples](https://theremin.music.uiowa.edu/MISpiano.html) from the University of Iowa Electronic Music Studios. Evan Mazunik played the piano, and Michael Cash recorded it.

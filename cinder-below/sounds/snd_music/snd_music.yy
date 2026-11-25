@@ -9,7 +9,7 @@
   "compression": 1,
   "compressionQuality": 7,
   "conversionMode": 0,
-  "duration": 44.44444444444444,
+  "duration": 32.0,
   "exportDir": "",
   "preload": true,
   "resourceType": "GMSound",
