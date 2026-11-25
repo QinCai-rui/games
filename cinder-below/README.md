@@ -2,13 +2,7 @@
 
 Cinder Below is a single-player pixel-art dungeon shooter for Linux. Clear each room, find weapons and relics, and defeat the guardians to relight the keep.
 
-## Play on this machine
-
-Run the packaged build from a terminal.
-
-```sh
-./PlayLanternKeep
-```
+## Controls
 
 | Action | Keyboard and mouse | Controller |
 |---|---|---|
@@ -47,4 +41,4 @@ Open `CinderBelow.yyp` in GameMaker LTS 2026. To compile the Linux build, run th
 bunx @gamemaker/gm-cli compile CinderBelow.yyp --target linux
 ```
 
-The project uses original pixel sprites and synthesized music and effects. The Linux build includes notices for its bundled runtime compatibility libraries under `Build/Linux/licenses`.
+To play the project locally, select Linux in GameMaker and click **Run**. The project uses original pixel sprites and synthesized music and effects.
