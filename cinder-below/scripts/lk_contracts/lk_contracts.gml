@@ -125,7 +125,7 @@ function lk_save_checkpoint() {
     player.target = undefined;
     var _record = {
         version: 1, keeper: hero_id, contract: run_contract, cycle: run_cycle,
-        seed: run_seed, depth: depth_no, grid: dungeon, current: cell_index,
+        seed: run_seed, stage_index: depth_no, grid: dungeon, current: cell_index,
         body: player, timer: world_tick, clears: rooms_cleared, defeated: kills
     };
     var _json = json_stringify(_record);
@@ -167,12 +167,15 @@ function lk_load_checkpoint() {
     var _json = buffer_read(_buffer, buffer_string);
     buffer_delete(_buffer);
     var _saved = undefined;
+    var _stage = undefined;
     try {
         _saved = json_parse(_json);
         if (!is_struct(_saved) || _saved.version != 1 || !is_array(_saved.grid) || !is_struct(_saved.body)) return false;
+        // Older desktop checkpoints used the built-in name "depth".
+        _stage = variable_struct_exists(_saved, "stage_index") ? _saved.stage_index : variable_struct_get(_saved, "depth");
+        if (!is_real(_stage) || _stage != floor(_stage) || _stage < 0 || _stage >= array_length(stage_names)) return false;
         if (_saved.current < 0 || _saved.current >= array_length(_saved.grid) || !_saved.grid[_saved.current].clear
             || _saved.keeper < 0 || _saved.keeper >= array_length(heroes)
-            || _saved.depth < 0 || _saved.depth >= array_length(stage_names)
             || _saved.contract < 0 || _saved.contract >= array_length(contracts)) return false;
     } catch (_error) {
         return false;
@@ -182,10 +185,11 @@ function lk_load_checkpoint() {
     chosen_contract = run_contract;
     run_cycle = _saved.cycle;
     run_seed = _saved.seed;
-    depth_no = _saved.depth;
+    depth_no = _stage;
     floor_no = lk_stage_biome(depth_no);
     dungeon = _saved.grid;
     player = _saved.body;
+    if (!variable_struct_exists(player, "move_pace")) player.move_pace = variable_struct_get(player, "speed");
     player.target = undefined;
     var _x = player.px;
     var _y = player.py;

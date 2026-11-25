@@ -970,7 +970,7 @@ function lk_play_step() {
         player.dash_time -= 1;
         player.hurt = max(player.hurt, 3);
     } else {
-        var _pace = player.speed * (player.guard > 0 ? .88 : 1) * (player.fury > 0 ? 1.23 : 1);
+        var _pace = player.move_pace * (player.guard > 0 ? .88 : 1) * (player.fury > 0 ? 1.23 : 1);
         lk_move(player, move_x * _pace, move_y * _pace, 5, true);
         if (player.moving && world_tick mod 8 == 0) {
             lk_sparks(player.px, player.py + 1, merge_color(lk_theme_tint(floor_no), C_PANEL, .60), 2, .58);

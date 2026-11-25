@@ -169,8 +169,8 @@ function lk_disc_turn(_b) {
 
 function lk_lead(_enemy, _speed) {
     var _time = min(31, point_distance(_enemy.px, _enemy.py, player.px, player.py) / _speed);
-    return point_direction(_enemy.px, _enemy.py, player.px + move_x * player.speed * _time * .50,
-        player.py + move_y * player.speed * _time * .50);
+    return point_direction(_enemy.px, _enemy.py, player.px + move_x * player.move_pace * _time * .50,
+        player.py + move_y * player.move_pace * _time * .50);
 }
 
 function lk_champion_step(_e, _toward, _range) {

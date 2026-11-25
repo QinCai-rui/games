@@ -148,7 +148,7 @@ function lk_begin_run() {
         regen: 0, hurt: 0, fire_wait: 0, kick: 0, facing: 1, aim: 0, moving: false,
         skill_wait: 0, skill_time: 0, guard: 0, skill_anim: 0, target: undefined, dash_time: 0, dash_x: 0, dash_y: 0,
         arms: [_hero.arms[0], _hero.arms[1]], slot: 0, coins: 0,
-        power: 1, haste: 1, speed: _hero.speed,
+        power: 1, haste: 1, move_pace: _hero.speed,
         relics: array_create(array_length(relic_catalog), false), knot_spent: false,
         temper: [0, 0], boons: [], tide: 0, fury: 0, traits: [false, false, false],
         charged_shot: false, fire_number: 0
@@ -612,7 +612,7 @@ function lk_take_boon(_boon) {
         case 2: player.power *= 1.25; break;
         case 3: player.haste *= 1.20; break;
         case 4: player.max_energy += 30; player.energy = player.max_energy; break;
-        case 5: player.speed *= 1.15; break;
+        case 5: player.move_pace *= 1.15; break;
         case 6: player.traits[0] = true; break;
         case 7: player.traits[1] = true; break;
         case 8: player.traits[2] = true; break;
