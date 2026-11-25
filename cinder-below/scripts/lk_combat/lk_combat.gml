@@ -69,6 +69,10 @@ function lk_update_effects() {
     }
 }
 
+function lk_later_fight() {
+    return cell.kind == LK_ROOM.Fight && (depth_no > 0 || cell_index > 1);
+}
+
 function lk_spawn(_kind, _x = -1, _y = -1, _elite = false) {
     var _boss_hp = depth_no mod 2 == 0 ? 148 + depth_no * 35 : 184 + depth_no * 61;
     if (floor_no >= 3) _boss_hp = 380 + (floor_no - 3) * 109;
@@ -95,7 +99,7 @@ function lk_spawn(_kind, _x = -1, _y = -1, _elite = false) {
     var _tint = _elite ? C_GOLD : _colors[_kind];
     var _cool = irandom_range(30, 77);
     if (cell.kind == LK_ROOM.Duel) _cool = ceil(_cool / 4);
-    else if (cell.kind == LK_ROOM.Fight && (depth_no > 0 || cell_index > 1)) _cool -= 12;
+    else if (lk_later_fight()) _cool -= 12;
     array_push(enemies, {px: _x, py: _y, kind: _kind, hp: _health, max_hp: _health,
         radius: _r[_kind] + (_elite ? 2 : 0), color: _tint, emerge: 24, cool: _cool,
         tell: 0, angle: 0, facing: -1, hit: 0, dash: 0, alive: true, dash_hit: false,
@@ -137,8 +141,8 @@ function lk_spawn_wave() {
         _count += 2;
     }
 
-    // Keep the first fight simple. Later ambushes mix close and ranged threats.
-    var _mixed = cell.kind == LK_ROOM.Fight && _style == 0 && (depth_no > 0 || cell_index > 1);
+    // Keep the first fight simple. Later fights use different mixes for each encounter.
+    var _later = lk_later_fight();
     var _front = [LK_ENEMY.Skulk, LK_ENEMY.Charger, LK_ENEMY.Leech, LK_ENEMY.Prism, LK_ENEMY.Bruiser];
     var _back = [LK_ENEMY.Spitter, LK_ENEMY.Sentry, LK_ENEMY.Wisp, LK_ENEMY.Harpoon, LK_ENEMY.Monk];
     for (var _i = 0; _i < _count; _i++) {
@@ -146,7 +150,10 @@ function lk_spawn_wave() {
         var _elite = _i < min(run_cycle, 2);
         var _px = -1;
         var _py = -1;
-        if (_style == 1) {
+        if (_later && _style == 1 && _i == _count - 1) {
+            // One roaming enemy can flush the keeper out of cover between the two firing lines.
+            _kind = _front[floor_no];
+        } else if (_style == 1) {
             var _left = [LK_ENEMY.Spitter, LK_ENEMY.Sentry, LK_ENEMY.Wisp, LK_ENEMY.Harpoon, LK_ENEMY.Monk];
             var _right = [LK_ENEMY.Sentry, LK_ENEMY.Spitter, LK_ENEMY.Sentry, LK_ENEMY.Prism, LK_ENEMY.Harpoon];
             _kind = _i mod 2 == 0 ? _left[floor_no] : _right[floor_no];
@@ -158,8 +165,10 @@ function lk_spawn_wave() {
             _kind = _rushers[floor_no];
         } else if (depth_no == 0 && cell_index == 1 && _i < 2) {
             _kind = LK_ENEMY.Skulk;
-        } else if (_mixed && _i < 2) {
+        } else if (_later && (_style == 0 || _style == 3) && _i < 2) {
             _kind = _i == 0 ? _front[floor_no] : _back[floor_no];
+        } else if (_later && _style == 2 && _i == 0) {
+            _kind = floor_no < 3 ? _back[floor_no] : _front[floor_no];
         }
         lk_spawn(_kind, _px, _py, _elite);
     }
@@ -559,6 +568,11 @@ function lk_enemy_walk(_e, _distance, _angle) {
     if (_e.slow > 0) _distance *= .53;
     if (run_contract == LK_CONTRACT.Iron) _distance *= 1.13;
     if (_e.elite) _distance *= (cell.kind == LK_ROOM.Duel && _e.dash == 0) ? 1.22 : 1.09;
+    if (_e.dash == 0 && lk_later_fight()) {
+        var _pursuit = _e.kind == LK_ENEMY.Skulk || _e.kind == LK_ENEMY.Charger
+            || _e.kind == LK_ENEMY.Leech || _e.kind == LK_ENEMY.Bruiser;
+        _distance *= _pursuit ? 1.22 : 1.12;
+    }
     // Try a short diagonal when the direct line runs into a pillar.
     var _x = _e.px;
     var _y = _e.py;
@@ -658,6 +672,7 @@ function lk_enemy_step(_e) {
     if (_e.emerge > 0) { _e.emerge -= 1; return; }
     var _range = point_distance(_e.px, _e.py, player.px, player.py);
     var _toward = point_direction(_e.px, _e.py, player.px, player.py);
+    var _later = lk_later_fight();
     _e.facing = player.px >= _e.px ? 1 : -1;
     // Standard contracts leave more time to counterattack between boss moves.
     var _cool_rate = _e.kind == LK_ENEMY.Boss && !lk_standard_contract() ? 1.25 : 1;
@@ -724,6 +739,8 @@ function lk_enemy_step(_e) {
                     _e.cool = irandom_range(86, 125);
                     break;
             }
+            // Shorten the idle time after an attack, not its warning or release.
+            if (_later) _e.cool = ceil(_e.cool * (.76 - min(depth_no, 3) * .02));
         }
     } else {
         switch (_e.kind) {
@@ -772,16 +789,21 @@ function lk_enemy_step(_e) {
                     lk_enemy_walk(_e, .72, _toward + 155);
                 }
                 break;
-            case LK_ENEMY.Sentry:
+            case LK_ENEMY.Sentry: {
                 if (_e.echo > 0) break;
-                if (_e.cool <= 0 && _range < 210 && lk_line_clear(_e.px, _e.py, player.px, player.py)) {
+                var _clear = lk_line_clear(_e.px, _e.py, player.px, player.py);
+                var _side = _e.phase mod 2 == 0 ? 1 : -1;
+                if (_e.cool <= 0 && _range < 210 && _clear) {
                     _e.tell = 25;
                     _e.angle = lk_lead(_e, 3.35 + depth_no * .12);
                     lk_charge_sound(_e);
-                } else if (_range > 152 || !lk_line_clear(_e.px, _e.py, player.px, player.py)) {
-                    lk_enemy_walk(_e, .88, _toward);
+                } else if (_range > 152 || !_clear) {
+                    lk_enemy_walk(_e, .88, _toward + (_later && !_clear ? _side * 45 : 0));
+                } else if (_later) {
+                    lk_enemy_walk(_e, .58, _toward + _side * (_range < 80 ? 120 : 90));
                 }
                 break;
+            }
             case LK_ENEMY.Bruiser:
                 if (_e.cool <= 0 && _range < 102) {
                     _e.tell = 34;
@@ -791,17 +813,22 @@ function lk_enemy_step(_e) {
                     lk_enemy_walk(_e, .93, _toward);
                 }
                 break;
-            case LK_ENEMY.Spitter:
-                if (_e.cool <= 0 && _range < 170) {
+            case LK_ENEMY.Spitter: {
+                var _clear = !_later || lk_line_clear(_e.px, _e.py, player.px, player.py);
+                var _side = _e.phase mod 2 == 0 ? 1 : -1;
+                if (_e.cool <= 0 && _range < 170 && _clear) {
                     _e.tell = 27;
                     lk_charge_sound(_e);
                     _e.angle = lk_lead(_e, 2.47 + floor_no * .23);
-                } else if (_range > 94) {
-                    lk_enemy_walk(_e, .66 + floor_no * .09, _toward);
+                } else if (_range > 94 || !_clear) {
+                    lk_enemy_walk(_e, .66 + floor_no * .09, _toward + (!_clear ? _side * 45 : 0));
                 } else if (_range < 46) {
                     lk_enemy_walk(_e, .76, _toward + 164);
+                } else if (_later) {
+                    lk_enemy_walk(_e, .55, _toward + _side * 90);
                 }
                 break;
+            }
             case LK_ENEMY.Wisp:
                 if (_e.cool <= 0 && _range < 145) {
                     _e.tell = 30;
