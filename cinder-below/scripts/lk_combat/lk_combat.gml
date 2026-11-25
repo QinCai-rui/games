@@ -71,7 +71,7 @@ function lk_update_effects() {
 function lk_spawn(_kind, _x = -1, _y = -1, _elite = false) {
     var _boss_hp = depth_no mod 2 == 0 ? 148 + depth_no * 35 : 184 + depth_no * 61;
     if (floor_no >= 3) _boss_hp = 380 + (floor_no - 3) * 109;
-    var _hp = [9, 11, 17, 10, _boss_hp, 13, 10, 23, 15, 13, 21];
+    var _hp = [9, 11, 17, 10, ceil(_boss_hp * 1.6), 13, 10, 23, 15, 13, 21];
     var _r = [7, 8, 9, 7, 16, 8, 7, 10, 8, 8, 9];
     var _colors = [C_MINT, C_GOLD, C_PINK, C_BLUE, lk_theme_tint(floor_no), C_GOLD,
         C_LILAC, C_PINK, C_TEAL, C_BLUE, C_GOLD];
@@ -87,7 +87,7 @@ function lk_spawn(_kind, _x = -1, _y = -1, _elite = false) {
             if (_free) break;
         }
     }
-    var _health = _hp[_kind] + (_kind == LK_ENEMY.Boss ? 0 : depth_no * 1.5);
+    var _health = _hp[_kind] + (_kind == LK_ENEMY.Boss ? 0 : depth_no * 2);
     var _scale = 1 + min(run_cycle, 7) * .12 + (run_contract == LK_CONTRACT.Iron ? .13 : 0);
     _health = ceil(_health * _scale * (_elite ? 2.25 : 1));
     var _tint = _elite ? C_GOLD : _colors[_kind];
@@ -161,7 +161,10 @@ function lk_finish_wave() {
     }
     cell.clear = true;
     rooms_cleared += 1;
-    player.energy = min(player.max_energy, player.energy + 11);
+    player.energy = min(player.max_energy, player.energy + 11 + lk_relic_rank(LK_RELIC.Canteen) * 6);
+    player.armor = min(player.max_armor, player.armor + lk_relic_rank(LK_RELIC.Gateward));
+    var _medic = lk_boon_rank(LK_BOON.Medic);
+    if (_medic > 0 && rooms_cleared mod (5 - _medic) == 0) player.hp = min(player.max_hp, player.hp + 1);
     player.regen = min(player.regen, 86);
     for (var _i = array_length(shots) - 1; _i >= 0; _i--) {
         var _b = shots[_i];
@@ -247,8 +250,9 @@ function lk_shot(_friendly, _x, _y, _angle, _speed, _power, _color, _kind = 0) {
         if (_kind == LK_SHOT.Pierce) _pierce = 1;
     }
     var _bounces = _kind == LK_SHOT.Ricochet ? 2 : 0;
-    if (_friendly && lk_has_relic(LK_RELIC.Mirror)
-        && (_kind == LK_SHOT.Pellet || _kind == LK_SHOT.Pierce || _kind == LK_SHOT.Star || _kind == LK_SHOT.Echo)) _bounces = 1;
+    if (_friendly && (_kind == LK_SHOT.Pellet || _kind == LK_SHOT.Pierce || _kind == LK_SHOT.Star || _kind == LK_SHOT.Echo)) {
+        _bounces = lk_relic_rank(LK_RELIC.Mirror);
+    }
     array_push(shots, {px: _x, py: _y, angle: _angle, speed: _speed, damage: _power, friendly: _friendly,
         color: _color, kind: _kind, radius: _radius, life: _life, pierce: _pierce, bounces: _bounces,
         age: 0, returning: false, hit_list: []});
@@ -256,7 +260,10 @@ function lk_shot(_friendly, _x, _y, _angle, _speed, _power, _color, _kind = 0) {
 
 function lk_enemy_damage(_enemy, _power, _angle, _quiet = false) {
     if (!_enemy.alive || _enemy.emerge > 9) return;
-    if (_enemy.kind == LK_ENEMY.Boss && lk_has_relic(LK_RELIC.Crown)) _power = ceil(_power * 1.25);
+    if (_enemy.kind == LK_ENEMY.Boss) {
+        var _rank = lk_relic_rank(LK_RELIC.Crown);
+        if (_rank > 0) _power = ceil(_power * (_rank == 1 ? 1.25 : 1.40));
+    }
     _enemy.hp -= _power;
     _enemy.hit = 7;
     if (_enemy.kind != LK_ENEMY.Boss) {
@@ -278,7 +285,8 @@ function lk_enemy_damage(_enemy, _power, _angle, _quiet = false) {
     lk_ring(_enemy.px, _enemy.py, _enemy.color, _enemy.kind == LK_ENEMY.Boss ? 64 : 15, 20);
     shaking = max(shaking, _enemy.kind == LK_ENEMY.Boss ? 12 : 3);
     lk_sparks(_enemy.px, _enemy.py - 5, _enemy.color, _enemy.kind == LK_ENEMY.Boss ? 58 : 14, 2.7);
-    lk_drop(LK_LOOT.Coin, _enemy.px, _enemy.py, _enemy.kind == LK_ENEMY.Boss ? 14 : (_enemy.elite ? 5 : irandom_range(1, 2)));
+    var _gold = _enemy.kind == LK_ENEMY.Boss ? 14 + lk_relic_rank(LK_RELIC.Due) * 6 : (_enemy.elite ? 5 : irandom_range(1, 2));
+    lk_drop(LK_LOOT.Coin, _enemy.px, _enemy.py, _gold);
     if (irandom(3) == 0) lk_drop(LK_LOOT.Energy, _enemy.px + 8, _enemy.py - 4, 9);
 }
 
@@ -291,23 +299,29 @@ function lk_break_prop(_prop, _power) {
     if (irandom(2) == 0) lk_drop(LK_LOOT.Coin, _prop.px, _prop.py, 1);
 }
 
+function lk_weapon_cost(_id) {
+    var _cost = weapons[_id].cost;
+    return _cost == 0 ? 0 : max(1, _cost - lk_boon_rank(LK_BOON.Focus));
+}
+
 function lk_active_weapon() {
     var _id = player.arms[player.slot];
     // A keeper can always finish a locked room, even with two empty weapons.
-    return !player.charged_shot && weapons[_id].cost > player.energy ? 0 : _id;
+    return !player.charged_shot && lk_weapon_cost(_id) > player.energy ? 0 : _id;
 }
 
 function lk_fire() {
     var _id = lk_active_weapon();
     var _w = weapons[_id];
-    if (!player.charged_shot) player.energy -= _w.cost;
+    if (!player.charged_shot) player.energy -= lk_weapon_cost(_id);
     player.charged_shot = false;
     player.fire_wait = max(4, round(_w.delay / player.haste));
     player.kick = 6;
     var _direction = player.aim;
     var _tier = _id == player.arms[player.slot] ? player.temper[player.slot] : 0;
-    var _desperate = player.hp <= 2 && lk_has_relic(LK_RELIC.LowLight);
-    var _power = ceil(_w.damage * player.power * (1 + _tier * .2)
+    var _light = lk_relic_rank(LK_RELIC.LowLight);
+    var _desperate = _light > 0 && player.hp <= 1 + _light;
+    var _power = ceil(_w.damage * player.damage_scale * (1 + _tier * .2)
         * (_desperate ? 1.40 : 1) * (player.fury > 0 ? 1.35 : 1));
     var _xx = player.px + lengthdir_x(10, _direction);
     var _yy = player.py + lengthdir_y(10, _direction);
@@ -408,14 +422,14 @@ function lk_use_skill() {
             var _e = enemies[_i];
             if (point_distance(player.px, player.py, _e.px, _e.py) <= 86) {
                 _e.slow = 150;
-                lk_enemy_damage(_e, ceil(10 * player.power), point_direction(player.px, player.py, _e.px, _e.py), true);
+                lk_enemy_damage(_e, ceil(10 * player.damage_scale), point_direction(player.px, player.py, _e.px, _e.py), true);
             }
         }
         lk_ring(player.px, player.py, C_LILAC, 86, 26);
         lk_ring(player.px, player.py, C_BLUE, 72, 23);
         shaking = 6;
     } else if (hero_id == 3) {
-        var _power = ceil(4 * player.power);
+        var _power = ceil(4 * player.damage_scale);
         for (var _i = -1; _i <= 1; _i += 2) {
             var _aim = player.aim + _i * 21;
             lk_field(player.px + lengthdir_x(64, _aim), player.py + lengthdir_y(64, _aim),
@@ -430,11 +444,11 @@ function lk_use_skill() {
         for (var _i = 0; _i < array_length(enemies) && _marks < 5; _i++) {
             var _enemy = enemies[_i];
             if (!_enemy.alive || point_distance(player.px, player.py, _enemy.px, _enemy.py) > 132) continue;
-            lk_field(_enemy.px, _enemy.py, 1, 16 + _marks * 8, ceil(15 * player.power), 26, C_GOLD);
+            lk_field(_enemy.px, _enemy.py, 1, 16 + _marks * 8, ceil(15 * player.damage_scale), 26, C_GOLD);
             _marks += 1;
         }
         if (_marks == 0) lk_field(player.px + lengthdir_x(52, player.aim),
-            player.py + lengthdir_y(52, player.aim), 1, 16, ceil(15 * player.power), 26, C_GOLD);
+            player.py + lengthdir_y(52, player.aim), 1, 16, ceil(15 * player.damage_scale), 26, C_GOLD);
     } else if (hero_id == 6) {
         player.tide = 43;
         for (var _i = 0; _i < array_length(enemies); _i++) enemies[_i].tided = false;
@@ -473,7 +487,10 @@ function lk_player_hurt(_power) {
         player.armor -= _absorbed;
         _power -= _absorbed;
         lk_ring(player.px, player.py - 4, C_TEAL, 16, 18);
-        if (player.armor == 0 && lk_has_relic(LK_RELIC.Breaker)) lk_nova();
+        if (player.armor == 0) {
+            var _shell = lk_relic_rank(LK_RELIC.Breaker);
+            if (_shell > 0) lk_nova(_shell == 1 ? 72 : 104);
+        }
     }
     player.hp = max(0, player.hp - _power);
     player.regen = lk_combat_armor_enabled() ? LK_COMBAT_ARMOR_WAIT : 150;
@@ -483,7 +500,7 @@ function lk_player_hurt(_power) {
     lk_sparks(player.px, player.py - 8, C_PINK, 12, 2.0);
     lk_sound(_shielded ? snd_shield : snd_hurt, _shielded && player.armor == 0 ? .83 : 1);
     if (player.hp == 0) {
-        if (lk_has_relic(LK_RELIC.Knot) && !player.knot_spent) {
+        if (lk_relic_rank(LK_RELIC.Knot) > 0 && !player.knot_spent) {
             player.knot_spent = true;
             player.hp = min(player.max_hp, 3);
             player.hurt = 240;
@@ -591,7 +608,9 @@ function lk_enemy_step(_e) {
     var _range = point_distance(_e.px, _e.py, player.px, player.py);
     var _toward = point_direction(_e.px, _e.py, player.px, player.py);
     _e.facing = player.px >= _e.px ? 1 : -1;
-    _e.cool -= run_contract == LK_CONTRACT.Iron ? 1.17 : 1;
+    // Reduce boss downtime without changing the windup players see.
+    var _cool_rate = _e.kind == LK_ENEMY.Boss ? 1.25 : 1;
+    _e.cool -= _cool_rate * (run_contract == LK_CONTRACT.Iron ? 1.17 : 1);
     if (_e.kind == LK_ENEMY.Sentry && _e.echo > 0) {
         _e.echo -= 1;
         if (_e.echo mod 8 == 0) {
@@ -918,6 +937,14 @@ function lk_play_step() {
     door_cooldown = max(0, door_cooldown - 1);
     flash_screen = max(0, flash_screen - 1);
     shaking = max(0, shaking - .47);
+    if (boss_intro > 0) {
+        boss_intro -= 1;
+        var _boss = enemies[0];
+        _boss.emerge = max(0, _boss.emerge - 1);
+        if (boss_intro > 0 && _boss.emerge == 0 && interact_pressed) boss_intro = 0;
+        lk_update_effects();
+        return;
+    }
     player.hurt = max(0, player.hurt - 1);
     player.fire_wait = max(0, player.fire_wait - 1);
     player.kick = max(0, player.kick - 1);
@@ -964,7 +991,7 @@ function lk_play_step() {
             var _e = enemies[_i];
             if (!_e.dash_hit && point_distance(player.px, player.py, _e.px, _e.py) < _e.radius + 11) {
                 _e.dash_hit = true;
-                lk_enemy_damage(_e, ceil(8 * player.power), player.aim, true);
+                lk_enemy_damage(_e, ceil(8 * player.damage_scale), player.aim, true);
             }
         }
         player.dash_time -= 1;

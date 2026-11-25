@@ -20,6 +20,8 @@ enum LK_ENEMY { Skulk, Spitter, Charger, Wisp, Boss, Sentry, Leech, Bruiser, Har
 #macro KEEP_TOP 59
 #macro KEEP_BOTTOM 227
 #macro KEEP_MID_Y 143
+#macro LK_BOSS_INTRO 90
+#macro LK_VERSION "1.1.0+dev"
 
 function lk_input() {
     pad = -1;
@@ -102,7 +104,8 @@ function lk_music() {
     var _track = snd_title;
     if (mode == LK_MODE.Play || mode == LK_MODE.Pause || mode == LK_MODE.Boon) {
         _track = cell.kind == LK_ROOM.Boss && !cell.clear
-            ? snd_boss : [snd_music, snd_cinder, snd_hollow, snd_glassfen, snd_reliquary][floor_no];
+            ? (floor_no == 4 ? snd_boss_crown : snd_boss)
+            : [snd_music, snd_cinder, snd_hollow, snd_glassfen, snd_reliquary][floor_no];
     }
     var _seconds = clamp(delta_time * .000001, 0, .05);
     var _volume = (mode == LK_MODE.Pause || mode == LK_MODE.Boon) ? .35 : .82;
@@ -148,8 +151,8 @@ function lk_begin_run() {
         regen: 0, hurt: 0, fire_wait: 0, kick: 0, facing: 1, aim: 0, moving: false,
         skill_wait: 0, skill_time: 0, guard: 0, skill_anim: 0, target: undefined, dash_time: 0, dash_x: 0, dash_y: 0,
         arms: [_hero.arms[0], _hero.arms[1]], slot: 0, coins: 0,
-        power: 1, haste: 1, move_pace: _hero.speed,
-        relics: array_create(array_length(relic_catalog), false), knot_spent: false,
+        damage_scale: 1, haste: 1, move_pace: _hero.speed,
+        relics: array_create(array_length(relic_catalog), 0), knot_spent: false,
         temper: [0, 0], boons: [], tide: 0, fury: 0, traits: [false, false, false],
         charged_shot: false, fire_number: 0
     };
@@ -384,7 +387,17 @@ function lk_enter_room(_index, _entry) {
     }
     banner = lk_room_name(cell.kind);
     banner_time = 105;
-    if (!cell.clear) wave_wait = 48;
+    boss_intro = 0;
+    if (!cell.clear) {
+        if (cell.kind == LK_ROOM.Boss) {
+            boss_intro = LK_BOSS_INTRO;
+            banner_time = 0;
+            player.moving = false;
+            lk_spawn_wave();
+        } else {
+            wave_wait = 48;
+        }
+    }
 }
 
 function lk_room_name(_kind) {
@@ -473,7 +486,7 @@ function lk_interaction() {
             _distance = _range;
             var _quality = _loot.temper > 0 ? " +" + string(_loot.temper) : "";
             _near = {kind: "weapon", target: _loot, label: "TAKE " + weapons[_loot.value].name + _quality,
-                detail: lk_weapon_details(_loot.value, _loot.temper)};
+                detail: lk_weapon_details(_loot.value, _loot.temper, true)};
         }
     }
     if (cell.kind == LK_ROOM.Cache && !cell.opened && point_distance(player.px, player.py, 240, 137) < _reach) {
@@ -553,19 +566,18 @@ function lk_interact(_action) {
             }
             break;
         case "shrine":
-            var _available = [0, 1, 2, 3, 4, 5];
-            for (var _i = 0; _i < 3; _i++) if (!player.traits[_i]) array_push(_available, _i + 6);
-            var _roll = irandom(array_length(_available) - 1);
-            var _first = _available[_roll];
-            array_delete(_available, _roll, 1);
-            var _second = _available[irandom(array_length(_available) - 1)];
-            boon_options = [_first, _second];
+            boon_options = lk_reward_choices(false);
+            if (array_length(boon_options) == 0) {
+                cell.shrine_used = true;
+                lk_drop(LK_LOOT.Coin, 240, 137, 8);
+                break;
+            }
             choose_relic = false;
             selected = 0;
             mode = LK_MODE.Boon;
             break;
         case "relic":
-            boon_options = lk_relic_choices();
+            boon_options = lk_reward_choices(true);
             if (array_length(boon_options) == 0) {
                 cell.opened = true;
                 lk_drop(LK_LOOT.Coin, 240, 137, 8);
@@ -607,15 +619,15 @@ function lk_take_boon(_boon) {
     cell.shrine_used = true;
     array_push(player.boons, _boon);
     switch (_boon) {
-        case 0: player.max_armor += 2; player.armor = player.max_armor; break;
-        case 1: player.max_hp += 2; player.hp = min(player.max_hp, player.hp + 3); break;
-        case 2: player.power *= 1.25; break;
-        case 3: player.haste *= 1.20; break;
-        case 4: player.max_energy += 30; player.energy = player.max_energy; break;
-        case 5: player.move_pace *= 1.15; break;
-        case 6: player.traits[0] = true; break;
-        case 7: player.traits[1] = true; break;
-        case 8: player.traits[2] = true; break;
+        case LK_BOON.Armor: player.max_armor += 2; player.armor = player.max_armor; break;
+        case LK_BOON.Health: player.max_hp += 2; player.hp = min(player.max_hp, player.hp + 3); break;
+        case LK_BOON.Damage: player.damage_scale *= 1.25; break;
+        case LK_BOON.Haste: player.haste *= 1.20; break;
+        case LK_BOON.Energy: player.max_energy += 30; player.energy = player.max_energy; break;
+        case LK_BOON.Speed: player.move_pace *= 1.15; break;
+        case LK_BOON.Warm: player.traits[0] = true; break;
+        case LK_BOON.Edge: player.traits[1] = true; break;
+        case LK_BOON.Volley: player.traits[2] = true; break;
     }
     mode = LK_MODE.Play;
     lk_sparks(240, 127, boons[_boon].tint, 24, 2);

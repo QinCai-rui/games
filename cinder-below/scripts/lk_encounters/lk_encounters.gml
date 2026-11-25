@@ -97,6 +97,31 @@ function lk_sanctum_pattern(_e, _phase_two) {
     }
 }
 
+function lk_boss_ability(_e) {
+    if (_e.tell <= 0) return "";
+    if (floor_no == 4) {
+        return ["GOLDEN RUPTURE", "CINDER HALO", "ROYAL VOLLEY", "CROWN PRISM", "SOVEREIGN CHARGE"]
+            [_e.attack mod (3 + _e.final_phase)];
+    }
+    if (floor_no == 3) {
+        return ["GLASS SURGE", "FEN QUAKES", "GILDED CROSSFIRE", "SHATTER RING"][_e.attack mod 4];
+    }
+    var _moves = [
+        ["MOSS CHARGE", "THORN FAN", "ROOT TRAP", "ROOT RING"],
+        ["SEED HALO", "THORN SALVO", "ROOT ERUPTION"],
+        ["RIVET MINES", "SHRAPNEL RING", "TIN VOLLEY"],
+        ["FURNACE HALO", "COAL SEAMS", "BELLFIRE"],
+        ["VEIL STEP", "PRISM BOUNCE", "VEIL SIGILS"],
+        ["PALE HALO", "REGENT'S STEP", "HOLLOW SIGIL"]
+    ];
+    var _set = _moves[depth_no];
+    return _set[_e.attack mod lk_boss_rotation(_e)];
+}
+
+function lk_boss_rotation(_e) {
+    return depth_no == 0 && _e.hp <= _e.max_hp * .51 ? 4 : 3;
+}
+
 function lk_crown_attack(_e) {
     var _r = _e.hp / _e.max_hp;
     var _phase = _r > .69 ? 0 : (_r > .34 ? 1 : 2);
@@ -192,7 +217,7 @@ function lk_tide_step() {
         _e.tided = true;
         _e.slow = max(_e.slow, 106);
         var _a = point_direction(player.px, player.py, _e.px, _e.py);
-        lk_enemy_damage(_e, ceil(7 * player.power), _a, true);
+        lk_enemy_damage(_e, ceil(7 * player.damage_scale), _a, true);
         if (_e.kind != LK_ENEMY.Boss) lk_move(_e, lengthdir_x(19, _a), lengthdir_y(19, _a), _e.radius);
     }
 }

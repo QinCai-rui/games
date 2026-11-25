@@ -78,6 +78,7 @@ function lk_draw_menu() {
         lk_text("F11 FULLSCREEN", 128, 247, C_MUTED);
         lk_text("F10 " + (integer_scaling ? "INTEGER" : "FIT"), 232, 247, C_MUTED);
         if (best_floor > 0) lk_text_right("DEEPEST  " + string(best_floor) + " / " + string(array_length(stage_names)), 448, 247, C_MUTED);
+        lk_text_right(LK_VERSION, 448, 258, C_MUTED);
         return;
     }
 
@@ -216,7 +217,21 @@ function lk_draw_hud() {
     if (_ready > 0) lk_rect(228, 263, 228 + floor(_ready * 105), 264, _skill_tint);
     lk_text_right(pad >= 0 ? "START  PAUSE" : "ESC  PAUSE", 468, 253, C_MUTED);
 
-    if (!cell.clear && cell.kind == LK_ROOM.Boss && banner_time <= 20) {
+    if (boss_intro > 0) {
+        var _tint = lk_theme_tint(floor_no);
+        lk_panel(100, 148, 380, 213, true, _tint);
+        lk_text_center("GUARDIAN " + string(depth_no + 1) + " / " + string(array_length(boss_names)),
+            240, 153, _tint);
+        lk_text_center(boss_names[depth_no], 240, 167, C_PAPER, true);
+        lk_ornament(130, 184, 350, _tint);
+        lk_text_center(boss_titles[depth_no], 240, 190, C_PAPER);
+        if (boss_intro <= LK_BOSS_INTRO - 24) {
+            lk_text_center(pad >= 0 ? "A TO SKIP" : "E TO SKIP", 240, 218, C_MUTED);
+        }
+        return;
+    }
+    var _boss_room = !cell.clear && cell.kind == LK_ROOM.Boss;
+    if (_boss_room) {
         for (var _i = 0; _i < array_length(enemies); _i++) {
             var _boss = enemies[_i];
             if (_boss.kind != LK_ENEMY.Boss || !_boss.alive) continue;
@@ -224,15 +239,21 @@ function lk_draw_hud() {
             lk_text_center(boss_names[depth_no], 132, 36, _boss.color);
             lk_rect(60, 48, 204, 51, C_PANEL);
             lk_rect(60, 48, 60 + floor(144 * max(0, _boss.hp / _boss.max_hp)), 50, _boss.color);
+            var _ability = lk_boss_ability(_boss);
+            if (_ability != "") {
+                lk_rect(55, 54, 210, 66, C_INK);
+                lk_text_center(_ability, 132, 54, C_GOLD);
+            }
             break;
         }
     }
     if (banner_time > 0) {
         draw_set_alpha(min(1, banner_time / 20));
         var _w = max(104, string_length(banner) * 7 + 20);
-        lk_rect(134 - _w / 2, 35, 134 + _w / 2, 52, C_INK);
-        lk_line(134 - _w / 2, 51, 134 + _w / 2, 51, C_EDGE);
-        lk_text_center(banner, 134, 38, cell.clear ? C_GOLD : C_PAPER, false);
+        var _banner_x = _boss_room ? 346 : 134;
+        lk_rect(_banner_x - _w / 2, 35, _banner_x + _w / 2, 52, C_INK);
+        lk_line(_banner_x - _w / 2, 51, _banner_x + _w / 2, 51, C_EDGE);
+        lk_text_center(banner, _banner_x, 38, cell.clear ? C_GOLD : C_PAPER, false);
         draw_set_alpha(1);
     }
     var _action = lk_interaction();
@@ -254,41 +275,83 @@ function lk_draw_hud() {
     }
 }
 
+function lk_pause_inventory(_relic, _top) {
+    var _catalog = _relic ? relic_catalog : boons;
+    var _hover = undefined;
+    var _count = 0;
+    lk_text(_relic ? "RELICS" : "BOONS", 199, _top - 13, _relic ? C_LILAC : C_GOLD);
+    for (var _i = 0; _i < array_length(_catalog); _i++) {
+        var _rank = lk_reward_rank(_relic, _i);
+        if (_rank == 0) continue;
+        var _item = _catalog[_i];
+        var _x = 199 + (_count mod 4) * 56;
+        var _y = _top + floor(_count / 4) * 16;
+        var _active = pointer_inside && pointer_x >= _x && pointer_x <= _x + 53
+            && pointer_y >= _y && pointer_y <= _y + 13;
+        lk_panel(_x, _y, _x + 53, _y + 13, _active, _item.tint);
+        lk_text(_item.short, _x + 3, _y + 1, _item.tint);
+        if (_item.max_rank > 1) lk_text_right(string(_rank), _x + 51, _y + 1, C_PAPER);
+        if (_active) {
+            var _label = _item.name + (_item.max_rank > 1 ? " / RANK " + string(_rank) : "");
+            var _note = _relic && _i == LK_RELIC.Knot && player.knot_spent
+                ? "THE REVIVE HAS ALREADY BEEN USED." : lk_reward_note(_item, _rank);
+            if (!_relic && _i <= LK_BOON.Speed && _rank > 1) _note = "EACH RANK: " + _note;
+            _hover = {label: _label, note: _note, tint: _item.tint};
+        }
+        _count += 1;
+    }
+    if (_count == 0) lk_text("NONE YET", 199, _top + 1, C_MUTED);
+    return _hover;
+}
+
+function lk_draw_pause() {
+    lk_panel(40, 31, 440, 242, true, C_GOLD);
+    lk_text_center("PAUSED", 240, 39, C_PAPER, true);
+    lk_ornament(55, 58, 425, C_EDGE);
+    lk_line(188, 68, 188, 229, C_EDGE);
+    lk_text("ENTER / ESC RESUME", 55, 68, C_GOLD);
+    var _save_hint = cell.clear ? (pad >= 0 ? "Y SAVE AND EXIT" : "S SAVE AND EXIT") : "CLEAR ROOM TO SAVE";
+    lk_text(_save_hint, 55, 82, cell.clear ? C_GOLD : C_MUTED);
+    lk_text("Q RETURN TO TITLE", 55, 96, C_MUTED);
+    lk_text("M " + (muted ? "UNMUTE" : "MUTE"), 55, 110, C_MUTED);
+    lk_text(contracts[run_contract].name, 55, 127, contracts[run_contract].tint);
+    lk_text("WEAPON UPGRADES", 55, 146, C_GOLD);
+    var _hover = lk_pause_inventory(true, 84);
+    var _boon_hover = lk_pause_inventory(false, 150);
+    if (!is_undefined(_boon_hover)) _hover = _boon_hover;
+    for (var _i = 0; _i < 2; _i++) {
+        var _id = player.arms[_i];
+        var _weapon = weapons[_id];
+        var _rank = player.temper[_i];
+        var _y = 159 + _i * 17;
+        var _active = pointer_inside && pointer_x >= 54 && pointer_x <= 177
+            && pointer_y >= _y && pointer_y <= _y + 14;
+        lk_panel(54, _y, 177, _y + 14, _active, _weapon.color);
+        lk_text(string(_i + 1) + " " + _weapon.name, 57, _y + 2, _weapon.color);
+        if (_rank > 0) lk_text_right("+" + string(_rank), 174, _y + 2, C_GOLD);
+        if (_active) {
+            _hover = {label: _weapon.name + " / TEMPER " + string(_rank) + " OF 3",
+                note: lk_weapon_details(_id, _rank, true) + ". FORGES ADD 20% BASE DAMAGE PER LEVEL.",
+                tint: _weapon.color};
+        }
+    }
+    lk_text("F11 SCREEN   F10 " + (integer_scaling ? "INT" : "FIT"), 55, 208, C_MUTED);
+    lk_text(LK_VERSION, 55, 221, C_MUTED);
+    lk_panel(199, 201, 427, 236);
+    if (is_undefined(_hover)) {
+        lk_text_center("HOVER OVER AN ITEM FOR DETAILS", 313, 211, C_MUTED);
+    } else {
+        lk_text_center(_hover.label, 313, 202, _hover.tint);
+        lk_text_wrap(_hover.note, 313, 213, 36, C_PAPER);
+    }
+}
+
 function lk_draw_overlay() {
     draw_set_alpha(.73);
     lk_rect(0, 0, 479, 269, C_INK);
     draw_set_alpha(1);
     if (mode == LK_MODE.Pause) {
-        lk_panel(71, 45, 409, 226, true, C_GOLD);
-        lk_text_center("PAUSED", 240, 56, C_PAPER, true);
-        lk_ornament(99, 79, 381, C_EDGE);
-        lk_text("ENTER / ESC RESUME", 91, 94, C_GOLD);
-        lk_text("Q  RETURN TO TITLE", 91, 109, C_MUTED);
-        lk_text("M  " + (muted ? "UNMUTE" : "MUTE"), 91, 124, C_MUTED);
-        var _save_hint = cell.clear ? (pad >= 0 ? "Y SAVE AND EXIT" : "S SAVE AND EXIT") : "CLEAR ROOM TO SAVE";
-        lk_text(_save_hint, 91, 141, cell.clear ? C_GOLD : C_MUTED);
-        lk_text(contracts[run_contract].name, 91, 157, contracts[run_contract].tint);
-        lk_text("E INTERACT   Q SKILL", 91, 181, C_MUTED);
-        lk_text("TAB SWAP   SPACE FIRE", 91, 196, C_MUTED);
-        lk_text("F11 SCREEN   F10 " + (integer_scaling ? "INTEGER" : "FIT"), 91, 211, C_MUTED);
-        lk_line(234, 91, 234, 208, C_EDGE);
-        lk_text("RELICS", 251, 94, C_GOLD);
-        var _row = 0;
-        for (var _i = 0; _i < array_length(relic_catalog); _i++) {
-            if (!lk_has_relic(_i)) continue;
-            lk_text(relic_catalog[_i].short, 251 + (_row mod 3) * 46,
-                108 + floor(_row / 3) * 11, relic_catalog[_i].tint);
-            _row += 1;
-        }
-        if (_row == 0) lk_text("NONE", 251, 108, C_MUTED);
-        lk_text("BOONS", 251, 150, C_GOLD);
-        var _count = array_length(player.boons);
-        for (var _i = 0; _i < min(_count, 4); _i++) {
-            var _boon = boons[player.boons[_count - 1 - _i]];
-            lk_text(_boon.name, 251, 163 + _i * 11, _boon.tint);
-        }
-        if (_count == 0) lk_text("NONE", 251, 163, C_MUTED);
-        if (_count > 4) lk_text("+" + string(_count - 4), 375, 150, C_MUTED);
+        lk_draw_pause();
         return;
     }
     if (mode == LK_MODE.Boon) {
@@ -297,13 +360,15 @@ function lk_draw_overlay() {
         for (var _i = 0; _i < array_length(boon_options); _i++) {
             var _option = boon_options[_i];
             var _boon = choose_relic ? relic_catalog[_option] : boons[_option];
+            var _rank = lk_reward_rank(choose_relic, _option);
             var _x = 61 + _i * 187;
             lk_panel(_x, 111, _x + 171, 178, _i == selected, _boon.tint);
+            lk_text(_rank > 0 ? "RANK " + string(_rank + 1) : "NEW", _x + 7, 115, C_MUTED);
             lk_glow(_x + 86, 127, 18, _boon.tint, .36);
             lk_diamond(_x + 86, 127, 6, _boon.tint);
             lk_diamond(_x + 86, 127, 2, C_PAPER);
             lk_text_center(_boon.name, _x + 86, 137, _boon.tint);
-            lk_text_wrap(_boon.note, _x + 86, 151, 26, C_PAPER);
+            lk_text_wrap(lk_reward_note(_boon, _rank + 1), _x + 86, 151, 26, C_PAPER);
         }
         lk_text_center("A / D  SELECT     ENTER  TAKE", 240, 189, C_MUTED);
         return;

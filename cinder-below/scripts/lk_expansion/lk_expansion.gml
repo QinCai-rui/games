@@ -189,7 +189,7 @@ function lk_champion_step(_e, _toward, _range) {
     }
     if (_e.tell > 0) {
         if (_e.tell != 1) return;
-        var _move = _e.attack mod 3;
+        var _move = _e.attack mod lk_boss_rotation(_e);
         switch (floor_no) {
             case 0:
                 if (_move == 0) {
@@ -198,9 +198,16 @@ function lk_champion_step(_e, _toward, _range) {
                 } else if (_move == 1) {
                     lk_enemy_burst(_e, 7, _e.angle, 15, 2.61, C_PINK);
                     if (_enraged) lk_enemy_burst(_e, 7, _e.angle + 180, 13, 2.26, C_MINT);
-                } else {
+                } else if (_move == 2) {
                     for (var _i = -1; _i <= 1; _i++) {
                         lk_field(player.px + _i * 36, player.py - abs(_i) * 17, 1, 34 + abs(_i) * 11, 2, 21, C_TEAL, true);
+                    }
+                } else {
+                    // Leave gaps between the marked eruptions so players can step through.
+                    for (var _i = 0; _i < 6; _i++) {
+                        var _a = _e.angle + _i * 60;
+                        lk_field(_e.px + lengthdir_x(50, _a), _e.py + lengthdir_y(50, _a),
+                            1, 36, 2, 15, C_MINT, true);
                     }
                 }
                 break;

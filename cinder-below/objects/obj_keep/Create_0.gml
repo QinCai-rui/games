@@ -1,5 +1,5 @@
 randomize();
-window_set_caption("Cinder Below");
+window_set_caption("Cinder Below " + LK_VERSION);
 
 mode = LK_MODE.Title;
 hero_id = 0;
@@ -30,16 +30,25 @@ heroes = [
 ];
 stage_names = ["ROOT GATES", "MOSSVAULT", "EMBERWORKS", "CINDER HALLS", "VEIL TUNNELS", "THE HOLLOW", "GLASSFEN", "BLACK RELIQUARY"];
 boss_names = ["MOSSJAW", "THE ROOTBOUND", "THE TIN RAM", "THE BELL FORGE", "VEIL HARROW", "THE PALE REGENT", "THE GILDED EEL", "CROWN OF CINDERS"];
+boss_titles = ["WARDEN OF THE ROOT GATES", "HEART OF THE MOSSVAULT", "SIEGE ENGINE OF THE EMBERWORKS",
+    "THE FURNACE THAT WALKS", "HUNTER BETWEEN VEILS", "REGENT OF THE HOLLOW",
+    "TERROR OF THE GLASSFEN", "LAST KEEPER OF THE FLAME"];
 boons = [
-    {name: "IRON BARK", note: "+2 MAX ARMOR. REFILL ARMOR.", icon: 0, tint: C_TEAL},
-    {name: "BLOODROOT", note: "+2 MAX HEALTH. HEAL 3.", icon: 1, tint: C_PINK},
-    {name: "COAL HEART", note: "+25% WEAPON DAMAGE.", icon: 2, tint: C_GOLD},
-    {name: "QUICKEN", note: "SHOOT AND RECAST SKILLS FASTER.", icon: 3, tint: C_LILAC},
-    {name: "DEEP CELL", note: "+30 MAX ENERGY. REFILL ENERGY.", icon: 4, tint: C_BLUE},
-    {name: "FLEETFOOT", note: "+15% MOVEMENT SPEED.", icon: 5, tint: C_MINT},
-    {name: "WARM CHAMBER", note: "YOUR SKILL MAKES THE NEXT ATTACK FREE.", icon: 6, tint: C_GOLD},
-    {name: "EDGEGUARD", note: "CUT BULLETS WITH MELEE TO RESTORE ENERGY.", icon: 7, tint: C_TEAL},
-    {name: "VOLLEY RHYTHM", note: "EVERY SIXTH RANGED ATTACK FIRES EXTRA SHOTS.", icon: 8, tint: C_LILAC}
+    {name: "IRON BARK", short: "BARK", note: "+2 MAX ARMOR. REFILL ARMOR.", max_rank: 3, tint: C_TEAL},
+    {name: "BLOODROOT", short: "BLOOD", note: "+2 MAX HEALTH. HEAL 3.", max_rank: 3, tint: C_PINK},
+    {name: "COAL HEART", short: "COAL", note: "+25% WEAPON DAMAGE.", max_rank: 3, tint: C_GOLD},
+    {name: "QUICKEN", short: "QUICK", note: "SHOOT AND RECAST SKILLS FASTER.", max_rank: 3, tint: C_LILAC},
+    {name: "DEEP CELL", short: "CELL", note: "+30 MAX ENERGY. REFILL ENERGY.", max_rank: 3, tint: C_BLUE},
+    {name: "FLEETFOOT", short: "FLEET", note: "+15% MOVEMENT SPEED.", max_rank: 3, tint: C_MINT},
+    {name: "WARM CHAMBER", short: "WARM", note: "YOUR SKILL MAKES THE NEXT ATTACK FREE.", max_rank: 1, tint: C_GOLD},
+    {name: "EDGEGUARD", short: "EDGE", note: "CUT BULLETS WITH MELEE TO RESTORE ENERGY.", max_rank: 1, tint: C_TEAL},
+    {name: "VOLLEY RHYTHM", short: "VOLLEY", note: "EVERY SIXTH RANGED ATTACK FIRES EXTRA SHOTS.", max_rank: 1, tint: C_LILAC},
+    {name: "CINDER FOCUS", short: "FOCUS", note: "WEAPONS COST 1 LESS ENERGY. MINIMUM 1.",
+        upgrade: "WEAPONS COST 2 LESS ENERGY. MINIMUM 1.", max_rank: 2, tint: C_BLUE},
+    {name: "MEDIC'S VOW", short: "MEDIC", note: "HEAL 1 HP EVERY FOUR COMBAT CLEARS.",
+        upgrade: "HEAL 1 HP EVERY THREE COMBAT CLEARS.", max_rank: 2, tint: C_MINT},
+    {name: "SMITH'S FAVOR", short: "SMITH", note: "WEAPON TEMPERING COSTS 3 LESS GOLD.",
+        upgrade: "WEAPON TEMPERING COSTS 6 LESS GOLD.", max_rank: 2, tint: C_GOLD}
 ];
 selected = 0;
 relic_catalog = lk_relic_catalog();

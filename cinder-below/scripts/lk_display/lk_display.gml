@@ -37,7 +37,9 @@ function lk_display_browser_resize() {
     if (integer_scaling && _scale >= 1) _scale = floor(_scale);
     var _view_width = max(1, floor(LK_WIDTH * _scale));
     var _view_height = max(1, floor(LK_HEIGHT * _scale));
-    window_set_rectangle(floor((_width - _view_width) / 2), floor((_height - _view_height) / 2), _view_width, _view_height);
+    browser_view_x = floor((_width - _view_width) / 2);
+    browser_view_y = floor((_height - _view_height) / 2);
+    window_set_rectangle(browser_view_x, browser_view_y, _view_width, _view_height);
 }
 
 function lk_display_layout() {
@@ -65,12 +67,15 @@ function lk_display_input() {
         ini_write_real("settings", "integer_scaling", integer_scaling);
         ini_close();
     }
-    if (os_browser != browser_not_a_browser) lk_display_browser_resize();
+    var _in_browser = os_browser != browser_not_a_browser;
+    if (_in_browser) lk_display_browser_resize();
     lk_display_layout();
 
-    // Rendering and hit tests use the same centered rectangle.
-    pointer_x = (window_mouse_get_x() - display_view_x) * LK_WIDTH / display_view_width;
-    pointer_y = (window_mouse_get_y() - display_view_y) * LK_HEIGHT / display_view_height;
+    // The HTML5 runner reports pointer coordinates relative to the page, not the canvas.
+    var _x = window_mouse_get_x() - (_in_browser ? browser_view_x : 0);
+    var _y = window_mouse_get_y() - (_in_browser ? browser_view_y : 0);
+    pointer_x = (_x - display_view_x) * LK_WIDTH / display_view_width;
+    pointer_y = (_y - display_view_y) * LK_HEIGHT / display_view_height;
     pointer_inside = pointer_x >= 0 && pointer_x < LK_WIDTH && pointer_y >= 0 && pointer_y < LK_HEIGHT;
     pointer_fire = pointer_inside && mouse_check_button(mb_left);
     pointer_click = pointer_inside && mouse_check_button_pressed(mb_left);

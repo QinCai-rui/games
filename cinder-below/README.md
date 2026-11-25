@@ -27,6 +27,10 @@ Armor recovers faster after you clear a room. During combat in Main Delve, Arsen
 
 The keeper uses a backup pistol when the selected weapon runs out of energy. Visit gauntlets, shops, and shrines to equip a stronger build for the late stages.
 
+Shrines and reliquaries can offer a new reward or upgrade one you already own. Forges temper weapons for gold, up to three times per weapon. Pause and hover over a weapon, relic, or boon to see what it does and its current rank.
+
+Guardian intros end on their own. Press E or A to skip once the guardian appears. During the fight, the name of an incoming ability appears beneath the guardian's health bar.
+
 ## Choose a contract
 
 The main delve has eight stages across five biomes. Choose Iron Trial for faster enemies, less armor, and lasting wounds. Arsenal Run deals a fresh weapon pair after combat. Daily Contract uses a new dungeon seed each day. Beat the main delve or another finite contract to unlock Endless Keep, where each cycle adds pressure and elite enemies.
@@ -42,6 +46,12 @@ bunx @gamemaker/gm-cli compile CinderBelow.yyp --target linux
 ```
 
 To play the project locally, select Linux in GameMaker and click **Run**.
+
+## Build a web release
+
+Set the base release number in `LK_VERSION`. Keep the `+dev` suffix in source. Commit the release changes before building, then run `python tools/build_web.py --help` for the required GameMaker paths.
+
+The script exports Git `HEAD` to a new directory. It stamps the game and pages with the same `major.minor.patch+commit` label, using seven characters from the commit hash. Upload the generated `site` directory, not the source checkout.
 
 ## Render the soundtrack
 

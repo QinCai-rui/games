@@ -190,6 +190,10 @@ function lk_load_checkpoint() {
     dungeon = _saved.grid;
     player = _saved.body;
     if (!variable_struct_exists(player, "move_pace")) player.move_pace = variable_struct_get(player, "speed");
+    // The HTML5 runner omitted the old "power" field from checkpoint JSON.
+    if (!variable_struct_exists(player, "damage_scale")) player.damage_scale = power(1.25, lk_boon_rank(LK_BOON.Damage));
+    // Rank values and the three new relic slots share the existing checkpoint format.
+    while (array_length(player.relics) < array_length(relic_catalog)) array_push(player.relics, 0);
     player.target = undefined;
     var _x = player.px;
     var _y = player.py;

@@ -226,6 +226,12 @@
     },
     {
       "id": {
+        "name": "snd_boss_crown",
+        "path": "sounds/snd_boss_crown/snd_boss_crown.yy"
+      }
+    },
+    {
+      "id": {
         "name": "snd_charge",
         "path": "sounds/snd_charge/snd_charge.yy"
       }

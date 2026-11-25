@@ -501,7 +501,7 @@ function lk_draw_game() {
         }
     }
     lk_draw_shots(_xx, _yy);
-    if (mode == LK_MODE.Play) lk_draw_reticle(_xx, _yy);
+    if (mode == LK_MODE.Play && boss_intro == 0) lk_draw_reticle(_xx, _yy);
     lk_draw_effects(_xx, _yy);
     lk_draw_ambient(_xx, _yy);
     draw_sprite(spr_vignette, 0, 0, 0);
