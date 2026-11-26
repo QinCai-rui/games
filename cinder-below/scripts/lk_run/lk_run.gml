@@ -1,4 +1,4 @@
-enum LK_MODE { Title, Select, Play, Pause, Boon, Dead, Won, Journal, Contract, Map }
+enum LK_MODE { Title, Select, Play, Pause, Boon, Dead, Won, Journal, Contract }
 enum LK_ROOM { Landing, Fight, Cache, Shop, Shrine, Boss, Gauntlet, Relic, Forge, SparkShrine, Armory, SupplyPost, TemperRelay, Duel, Passage }
 enum LK_LOOT { Coin, Energy, Heart, Weapon }
 enum LK_ENEMY {
@@ -31,7 +31,7 @@ enum LK_FIGHT {
 #macro KEEP_BOTTOM 227
 #macro KEEP_MID_Y 143
 #macro LK_BOSS_INTRO 90
-#macro LK_VERSION "1.5.0+dev"
+#macro LK_VERSION "1.5.1+dev"
 
 function lk_input() {
     pad = -1;
@@ -119,13 +119,13 @@ function lk_music() {
     }
 
     var _track = snd_title;
-    if (mode == LK_MODE.Play || mode == LK_MODE.Pause || mode == LK_MODE.Boon || mode == LK_MODE.Map) {
+    if (mode == LK_MODE.Play || mode == LK_MODE.Pause || mode == LK_MODE.Boon) {
         _track = cell.kind == LK_ROOM.Boss && !cell.clear
             ? (floor_no == 4 ? snd_boss_crown : snd_boss)
             : [snd_music, snd_cinder, snd_hollow, snd_glassfen, snd_reliquary][floor_no];
     }
     var _seconds = clamp(delta_time * .000001, 0, .05);
-    var _volume = (mode == LK_MODE.Pause || mode == LK_MODE.Boon || mode == LK_MODE.Map) ? .35 : .82;
+    var _volume = (mode == LK_MODE.Pause || mode == LK_MODE.Boon) ? .35 : .82;
     music_gain += clamp(_volume - music_gain, -_seconds * 1.3, _seconds * 1.3);
     var _step = _seconds / 1.8;
     music_fade_in = min(1, music_fade_in + _step);

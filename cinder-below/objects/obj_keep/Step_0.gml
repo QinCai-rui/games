@@ -103,20 +103,9 @@ switch (mode) {
     case LK_MODE.Journal:
         lk_journal_step();
         break;
-    case LK_MODE.Map:
-        if (lk_map_key() || back_pressed || (pointer_click && lk_map_close_hover())) {
-            mode = LK_MODE.Play;
-            lk_sound(snd_click);
-        }
-        break;
     case LK_MODE.Play:
         if (back_pressed) {
             mode = LK_MODE.Pause;
-            break;
-        }
-        if (lk_map_key() || (pointer_click && lk_minimap_hover())) {
-            mode = LK_MODE.Map;
-            lk_sound(snd_click);
             break;
         }
         if (lk_tour_active() && lk_tour_skip_pressed()) {
