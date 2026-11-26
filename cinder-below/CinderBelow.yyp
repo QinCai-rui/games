@@ -388,6 +388,30 @@
     },
     {
       "id": {
+        "name": "spr_forged_arms",
+        "path": "sprites/spr_forged_arms/spr_forged_arms.yy"
+      }
+    },
+    {
+      "id": {
+        "name": "spr_forged_items",
+        "path": "sprites/spr_forged_items/spr_forged_items.yy"
+      }
+    },
+    {
+      "id": {
+        "name": "spr_encounter_actors",
+        "path": "sprites/spr_encounter_actors/spr_encounter_actors.yy"
+      }
+    },
+    {
+      "id": {
+        "name": "spr_alt_guardians",
+        "path": "sprites/spr_alt_guardians/spr_alt_guardians.yy"
+      }
+    },
+    {
+      "id": {
         "name": "snd_glassfen",
         "path": "sounds/snd_glassfen/snd_glassfen.yy"
       }
