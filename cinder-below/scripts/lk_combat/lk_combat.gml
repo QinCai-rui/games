@@ -1,8 +1,8 @@
 enum LK_SHOT { Pellet, Blade, Pierce, Blast, Ricochet, Buckshot, Chain, Disc, Vial, Star, Mortar, Echo, Orbit, Beacon, Wraith,
     Nail, Bell, Thread, Hook, Seep, Choir, Split, Ember, Silt, Lens, Winter, Ash, Briar, Crown }
 
-#macro LK_ARMOR_FIRST_REPAIR 240
-#macro LK_ARMOR_FOLLOWUP 300
+#macro LK_ARMOR_FIRST_REPAIR 300
+#macro LK_ARMOR_FOLLOWUP 180
 
 function lk_weapons() {
     return [

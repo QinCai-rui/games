@@ -276,7 +276,7 @@ The Keeper's Journal lists six recipes and tracks 16 discoveries across routes, 
 | Reinforcements | Summoned enemies have 65% of their usual base-plus-stage HP, rounded down before contract and cycle scaling. They do not drop loot or trigger kill rewards. |
 | Hit damage | Most enemy shots and contact hits deal 1. Dashing enemies, guardians, and Bruisers can deal 2 on contact. Most floor blasts deal 2. Armor absorbs as much damage as it can and leftover damage reaches HP. |
 | Hit protection | 32 steps after taking damage, about 0.53 seconds. Room entry grants at least 22 steps. Soul Knot grants 240 steps on revive. |
-| Armor repair in combat | When enabled, repair 1 point after 240 hit-free steps (4 seconds), then 1 per 300 steps (5 seconds). Taking damage or entering a fight with missing armor restarts the initial timer. |
+| Armor repair in combat | When enabled, repair 1 point after 300 hit-free steps (5 seconds), then 1 per 180 steps (3 seconds). Taking damage or entering a fight with missing armor restarts the initial timer. |
 | Armor repair out of combat | All contracts shorten the timer to at most 86 steps after a clear, then recover 1 point every 53 steps until full. Gateward Seal can grant immediate armor on clear. |
 | Between-room and portal recovery | Main Delve clears grant 6 energy above half capacity or 11 at or below half. Other contracts grant 11. Empty Stores grants 7. Portals restore 30 energy and refill armor, and heal 2 HP in Arsenal, Daily, and Endless. |
 | Health and loot safety | At 2 HP or less, ordinary room clears increase the heart-drop chance to 7 in 12. The free Ember Pistol fires when the selected weapon would cost more energy than you have. |

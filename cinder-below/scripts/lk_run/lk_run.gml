@@ -31,7 +31,7 @@ enum LK_FIGHT {
 #macro KEEP_BOTTOM 227
 #macro KEEP_MID_Y 143
 #macro LK_BOSS_INTRO 90
-#macro LK_VERSION "1.4.0+dev"
+#macro LK_VERSION "1.5.0+dev"
 
 function lk_input() {
     pad = -1;

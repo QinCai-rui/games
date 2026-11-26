@@ -25,7 +25,7 @@ Cinder Below is a single-player pixel-art dungeon shooter for Linux. Clear each 
 
 Drag a window edge or use the desktop maximize button to change the window size. Fit mode keeps the game at 16:9 and fills the available space. Whole-pixel scaling uses the largest integer zoom that fits and falls back to fit in smaller windows. The game remembers your scaling mode.
 
-Armor recovers faster after you clear a room. With combat repair enabled, the first point repairs after four seconds without taking damage. Each additional point takes another five seconds during combat. The line in the armor bar shows progress.
+Armor recovers faster after you clear a room. With combat repair enabled, the first point repairs after five seconds without taking damage. Each additional point takes three seconds. The line in the armor bar shows progress.
 
 In those contracts, shrines on the first two stages offer Bloodroot or Iron Bark unless you have both at max rank. Each rank of Bloodroot adds two max HP. Each rank of Iron Bark adds two max armor.
 
