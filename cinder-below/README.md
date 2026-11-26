@@ -42,7 +42,9 @@ Flank the Bulwark in Shield Line, destroy the nest before it summons more enemie
 
 Destroy the Crown of Cinders' Furnace Anchors to remove its damage resistance. Anchors left alive at the last phase overload before disappearing.
 
-Approach a marked door to see its danger and reward. Take the lower-danger route or fight the elites for a weapon. On stages 4, 6, and 8, spend 7 gold to skip that elite fight. Optional trials loop back into the main route and lead to a reliquary starting in Mossvault.
+Sword doors lead to elites and a weapon reward. Arrow doors mark the lower-danger route. Get close to a door for a short label. On stages 4, 6, and 8, spend 7 gold to skip the elite fight. Optional trials loop back into the main route and lead to a reliquary starting in Mossvault.
+
+New players start with a guided tour. Prompts appear as you learn the controls and reach rooms with new mechanics. Press **H** or **Y** to skip during a run. To replay the tour, turn it on from the keeper selection screen before descending.
 
 Examine three inscriptions in Root Gates to open the Buried Archive for 9 gold after Mossvault. Take the spindle from the optional Sluice Machinery fight in Veil Tunnels to open the Drowned Furnace after the Hollow. These routes replace Emberworks and Glassfen for the run. Briar Matron and the Split Regent can also appear in regular stages.
 

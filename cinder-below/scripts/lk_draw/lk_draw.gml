@@ -71,6 +71,36 @@ function lk_flame(_x, _y, _seed, _color) {
     lk_rect(_x + (_frame mod 3) - 1, _y - 8 - _frame, _x + (_frame mod 3) - 1, _y - 8 - _frame, _color);
 }
 
+function lk_draw_gate_icon(_role, _x, _y, _color, _dir) {
+    switch (_role) {
+        case LK_ROUTE_ROOM.High:
+            lk_line(_x - 2, _y + 2, _x + 3, _y - 3, _color);
+            lk_line(_x - 3, _y, _x, _y + 3, _color);
+            break;
+        case LK_ROUTE_ROOM.Fork:
+        case LK_ROUTE_ROOM.Low:
+            var _dx = [1, 0, -1, 0][_dir];
+            var _dy = [0, 1, 0, -1][_dir];
+            lk_line(_x - _dx + 3 * _dy, _y - _dy - 3 * _dx, _x + 2 * _dx, _y + 2 * _dy, _color);
+            lk_line(_x + 2 * _dx, _y + 2 * _dy, _x - _dx - 3 * _dy, _y - _dy + 3 * _dx, _color);
+            break;
+        case LK_ROUTE_ROOM.Shortcut:
+        case LK_ROUTE_ROOM.Toll:
+            lk_border(_x - 2, _y - 3, _x + 2, _y + 3, _color);
+            lk_line(_x, _y - 1, _x, _y + 1, _color);
+            break;
+        case LK_ROUTE_ROOM.Trial:
+            lk_line(_x - 3, _y + 3, _x + 3, _y - 3, _color);
+            lk_line(_x - 3, _y - 3, _x + 3, _y + 3, _color);
+            break;
+        case LK_ROUTE_ROOM.CircuitReward:
+            lk_border(_x - 3, _y - 2, _x + 3, _y + 2, _color);
+            lk_diamond(_x, _y, 1, _color);
+            break;
+        default: lk_diamond(_x, _y, 3, _color);
+    }
+}
+
 function lk_draw_gate(_dir, _xx, _yy) {
     if (cell.exits[_dir] < 0) return;
     var _x = _xx + [432, 240, 47, 240][_dir];
@@ -90,7 +120,6 @@ function lk_draw_gate(_dir, _xx, _yy) {
             for (var _i = -12; _i <= 12; _i += 6) lk_rect(_x + _i, _y - 7, _x + _i + 2, _y + 7, _rim);
             lk_rect(_x - 3, _y - 3, _x + 3, _y + 2, C_INK);
         }
-        lk_diamond(_x, _y, 3, _accent);
         lk_rect(_x - 19, _y + 7, _x - 16, _y + 9, _accent);
         lk_rect(_x + 16, _y + 7, _x + 19, _y + 9, _accent);
     } else {
@@ -105,11 +134,13 @@ function lk_draw_gate(_dir, _xx, _yy) {
             lk_line(_x - 12, _y - 11, _x + 11, _y - 11, C_EDGE);
             lk_line(_x - 12, _y + 11, _x + 11, _y + 11, C_EDGE);
         }
-        lk_diamond(_x, _y, 3, _accent);
         var _edge = _x + _sign * 10;
         lk_rect(_edge - 2, _y - 15, _edge + 2, _y - 13, _accent);
         lk_rect(_edge - 2, _y + 13, _edge + 2, _y + 15, _accent);
     }
+    var _role = lk_route_role(_other);
+    if (_role != LK_ROUTE_ROOM.None) lk_rect(_x - 4, _y - 4, _x + 4, _y + 4, C_INK);
+    lk_draw_gate_icon(_role, _x, _y, _open || _role == LK_ROUTE_ROOM.None ? _accent : C_MUTED, _dir);
 }
 
 function lk_weapon_draw(_id, _x, _y, _angle, _scale = 1, _frame = 0) {
@@ -254,8 +285,7 @@ function lk_draw_forge(_xx, _yy) {
     }
 }
 
-function lk_draw_route_markers(_xx, _yy) {
-    if (!cell.clear) return;
+function lk_draw_route_marker(_xx, _yy) {
     var _mark = lk_route_marker();
     if (!is_undefined(_mark)) {
         var _x = _mark.px + _xx;
@@ -265,17 +295,6 @@ function lk_draw_route_markers(_xx, _yy) {
         lk_rect(_x - 6, _y - 11, _x + 6, _y + 4, C_EDGE);
         lk_diamond(_x, _y - 8 - round(dsin(world_tick * 4) * 2), _mark.variant > 0 ? 6 : 4, _tint);
         lk_line(_x - 9, _y + 5, _x + 9, _y + 5, _tint);
-    }
-    for (var _dir = 0; _dir < 4; _dir++) {
-        var _hint = lk_route_door_hint(_dir);
-        if (is_undefined(_hint)) continue;
-        var _node = dungeon[cell.exits[_dir]];
-        var _x = [407, 240, 73, 240][_dir] + _xx;
-        var _y = [123, 211, 123, 74][_dir] + _yy;
-        var _tint = _hint.locked ? C_MUTED : lk_route_room_color(_node);
-        lk_rect(_x - 6, _y - 3, _x + 6, _y + 3, C_INK);
-        lk_diamond(_x, _y, 3, _tint);
-        if (lk_route_role(_node) == LK_ROUTE_ROOM.High) lk_rect(_x + 4, _y, _x + 5, _y, _tint);
     }
 }
 
@@ -795,7 +814,7 @@ function lk_draw_game() {
     }
     draw_set_alpha(1);
     lk_room_setpiece(_xx, _yy);
-    lk_draw_route_markers(_xx, _yy);
+    lk_draw_route_marker(_xx, _yy);
     lk_draw_rupture_vents(_xx, _yy);
     lk_draw_seals(_xx, _yy);
     for (var _i = 0; _i < array_length(fields); _i++) lk_field_draw(fields[_i], _xx, _yy);

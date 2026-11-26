@@ -93,6 +93,8 @@ wins = ini_read_real("runs", "expanded_wins", 0);
 muted = ini_read_real("settings", "muted", 0) != 0;
 integer_scaling = ini_read_real("settings", "integer_scaling", 0) != 0;
 runs_started = ini_read_real("runs", "started", 0);
+tour_next_run = ini_read_real("settings", "tour", runs_started == 0) != 0;
+tour_skipped_seed = ini_read_real("settings", "tour_skipped_seed", -1);
 total_kills = ini_read_real("runs", "archived_kills", 0);
 daily_record_date = ini_read_real("daily", "date", 0);
 daily_record_depth = ini_read_real("daily", "depth", 0);

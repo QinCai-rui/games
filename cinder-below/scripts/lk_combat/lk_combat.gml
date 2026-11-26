@@ -229,6 +229,7 @@ function lk_finish_wave() {
         return;
     }
     cell.clear = true;
+    lk_tour_clear();
     rooms_cleared += 1;
     player.coins += 2 * lk_boon_rank(LK_BOON.Salvager);
     var _energy = lk_has_modifier(LK_OMEN.EmptyStores) ? 7 : 11;
@@ -415,6 +416,7 @@ function lk_active_weapon() {
 }
 
 function lk_fire() {
+    lk_tour_record(LK_TOUR.Fire);
     var _id = lk_active_weapon();
     lk_armory_begin_attack(_id);
     lk_fire_weapon(_id);
@@ -564,6 +566,8 @@ function lk_skill_cooldown() {
 
 function lk_use_skill() {
     if (player.skill_wait > 0) return;
+    lk_tour_record(LK_TOUR.Skill);
+    if (!cell.clear && lk_combat_armor_enabled()) lk_tour_show(LK_TOUR.Combat);
     player.skill_wait = lk_skill_cooldown();
     player.skill_anim = 19;
     if (player.traits[0]) player.charged_shot = true;
@@ -1236,6 +1240,7 @@ function lk_play_step() {
         if (keyboard_check_pressed(ord("2"))) _slot = 1;
         if (_slot != player.slot) {
             player.slot = _slot;
+            lk_tour_record(LK_TOUR.Swap);
             player.fire_wait = max(player.fire_wait, 6);
             lk_sound(snd_pick, .72);
         }
@@ -1270,7 +1275,9 @@ function lk_play_step() {
         }
     }
     if (lk_check_door()) return;
-    lk_armory_motion(point_distance(_move_start_x, _move_start_y, player.px, player.py));
+    var _moved = point_distance(_move_start_x, _move_start_y, player.px, player.py);
+    if (_moved > 0) lk_tour_record(LK_TOUR.Move);
+    lk_armory_motion(_moved);
     lk_forged_fire_step();
     if (interact_pressed) {
         lk_interact(lk_interaction());

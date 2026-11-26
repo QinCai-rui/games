@@ -37,6 +37,10 @@ switch (mode) {
             mode = LK_MODE.Title;
             break;
         }
+        if (lk_tour_skip_pressed() || (pointer_click && abs(pointer_x - 240) <= 72 && pointer_y >= 221 && pointer_y < 231)) {
+            tour_next_run = !tour_next_run;
+            lk_save();
+        }
         if (swap_pressed || (pointer_click && pointer_y >= 231 && pointer_y <= 254 && pointer_x >= 324)) {
             use_alt_loadout = !use_alt_loadout;
             lk_sound(snd_click);
@@ -103,6 +107,13 @@ switch (mode) {
         if (back_pressed) {
             mode = LK_MODE.Pause;
             break;
+        }
+        if (lk_tour_active() && lk_tour_skip_pressed()) {
+            player.tour.enabled = false;
+            tour_skipped_seed = run_seed;
+            tour_next_run = false;
+            lk_save();
+            if (cell.clear) lk_save_checkpoint();
         }
         lk_play_step();
         break;

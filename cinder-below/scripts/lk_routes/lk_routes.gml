@@ -90,14 +90,11 @@ function lk_route_door_hint(_dir) {
     switch (lk_route_role(_target)) {
         case LK_ROUTE_ROOM.High:
             var _variant = lk_route_variant();
-            var _label = _variant > 0 ? lk_route_room_name(_target) : "ELITE HUNT";
             var _reward = _variant == 1 ? "FITTED WEAPON" : (_variant == 2 ? "+2 WEAPON" : "WEAPON");
-            return {label: _label, detail: "HIGH DANGER / " + _reward, locked: false};
+            return "ELITE / " + _reward;
         case LK_ROUTE_ROOM.Fork:
-            return {label: "SIDE ROUTE", detail: "LOWER DANGER / COMBAT LOOT", locked: false};
         case LK_ROUTE_ROOM.Low:
-            var _low_name = lk_route_variant() > 0 ? lk_route_room_name(_target) : "SWARM";
-            return {label: _low_name, detail: "LOWER DANGER / COMBAT LOOT", locked: false};
+            return "SIDE ROUTE";
         case LK_ROUTE_ROOM.Shortcut:
             var _passage = undefined;
             for (var _i = 0; _i < 4; _i++) {
@@ -106,20 +103,13 @@ function lk_route_door_hint(_dir) {
                 _passage = dungeon[_index];
                 break;
             }
-            var _price = is_undefined(_passage) || !_passage.toll_paid ? string(LK_SHORTCUT_COST) + " GOLD" : "PAID";
-            return {label: "SHORTCUT", detail: "SAFE / " + _price, locked: false};
+            return is_undefined(_passage) || !_passage.toll_paid ? "SHORTCUT / " + string(LK_SHORTCUT_COST) + "G" : "SHORTCUT / PAID";
         case LK_ROUTE_ROOM.Toll:
-            return {label: "SHORTCUT GATE", detail: _target.toll_paid ? "SAFE / PAID" : "SAFE / " + string(LK_SHORTCUT_COST) + " GOLD",
-                locked: !_target.toll_paid};
+            return _target.toll_paid ? "SHORTCUT / PAID" : "SHORTCUT / " + string(LK_SHORTCUT_COST) + "G";
         case LK_ROUTE_ROOM.Trial:
-            if (variable_struct_exists(_target, "route_mark")) {
-                return {label: "SLUICE MACHINERY", detail: "HIGH DANGER / SPINDLE + RELIC", locked: false};
-            }
-            var _trial = _target.kind == LK_ROOM.Duel ? "ELITE DUEL" : "GAUNTLET";
-            return {label: _trial, detail: "HIGH DANGER / WEAPON + RELIC", locked: false};
+            return variable_struct_exists(_target, "route_mark") ? "SLUICE TRIAL / SPINDLE" : "TRIAL / WEAPON + RELIC";
         case LK_ROUTE_ROOM.CircuitReward:
-            var _locked = !lk_route_door_available(_dir);
-            return {label: "RELIQUARY", detail: _locked ? "CLEAR THE TRIAL TO OPEN" : "SAFE / RELIC", locked: _locked};
+            return lk_route_door_available(_dir) ? "RELIQUARY" : "TRIAL REQUIRED";
     }
     return undefined;
 }

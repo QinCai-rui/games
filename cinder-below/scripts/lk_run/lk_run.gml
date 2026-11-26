@@ -82,6 +82,8 @@ function lk_save() {
     ini_write_real("runs", "best_depth", best_floor);
     ini_write_real("runs", "expanded_wins", wins);
     ini_write_real("settings", "muted", muted);
+    ini_write_real("settings", "tour", tour_next_run);
+    ini_write_real("settings", "tour_skipped_seed", tour_skipped_seed);
     ini_write_real("runs", "started", runs_started);
     ini_write_real("runs", "archived_kills", total_kills);
     ini_write_real("daily", "date", daily_record_date);
@@ -161,6 +163,7 @@ function lk_music() {
 function lk_begin_run() {
     var _hero = heroes[hero_id];
     var _arms = lk_keeper_arms(hero_id, use_alt_loadout);
+    tour_skipped_seed = -1;
     player = {
         px: 240, py: 155, hp: _hero.hp, max_hp: _hero.hp,
         armor: _hero.armor, max_armor: _hero.armor, energy: 100, max_energy: 100,
@@ -171,6 +174,7 @@ function lk_begin_run() {
         relics: array_create(array_length(relic_catalog), 0), knot_spent: false,
         temper: [0, 0], boons: [], tide: 0, fury: 0, traits: [false, false, false],
         charged_shot: false, fire_number: 0, pilgrim_stage: 0,
+        tour: {enabled: tour_next_run, seen: 0},
         challenge: lk_modifier_choice(chosen_contract, chosen_modifier)
     };
     lk_armory_restore();
@@ -436,6 +440,7 @@ function lk_enter_room(_index, _entry) {
         if (depth_no > 0 && cell.kind == LK_ROOM.Landing) lk_unstable_roll();
     }
     banner = lk_room_name(cell.kind);
+    lk_tour_enter();
     banner_time = 105;
     boss_intro = 0;
     guardian_started_at = world_tick;

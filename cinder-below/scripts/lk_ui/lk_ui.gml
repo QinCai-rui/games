@@ -110,6 +110,8 @@ function lk_draw_menu() {
     var _alternative = lk_keeper_arms(hero_id, true);
     lk_text_center(_keeper.note, 240, 199, C_PAPER);
     lk_text_center(weapons[_arms[0]].name + "  /  " + weapons[_arms[1]].name, 240, 211, C_MUTED);
+    lk_text_center((pad >= 0 ? "Y" : "H") + (tour_next_run ? "  GUIDED TOUR ON" : "  GUIDED TOUR OFF"),
+        240, 221, tour_next_run ? C_GOLD : C_MUTED);
     lk_button("DESCEND", 167, 232, 313, true);
     if (_alternative[0] != _keeper.arms[0]) {
         lk_button((pad >= 0 ? "X " : "TAB ") + (use_alt_loadout ? "ORIGINAL KIT" : "ALTERNATE KIT"), 321, 232, 445, true);
@@ -297,6 +299,7 @@ function lk_draw_hud() {
         }
         draw_set_alpha(1);
     }
+    var _tour = lk_tour_prompt();
     var _action = lk_interaction();
     if (!is_undefined(_action)) {
         var _text = (pad >= 0 ? "A" : "E") + "  " + _action.label;
@@ -304,12 +307,13 @@ function lk_draw_hud() {
         var _w = max(string_length(_text), string_length(_detail)) * 6 + 14;
         var _height = _detail == "" ? 12 : 24;
         var _x = clamp(round(player.px), _w / 2 + 9, 471 - _w / 2);
-        var _y = clamp(round(player.py) + 8, 57, 241 - _height);
+        var _y = clamp(round(player.py) + 8, 57, (_tour == "" ? 241 : 230) - _height);
         lk_rect(_x - _w / 2, _y, _x + _w / 2, _y + _height, C_INK);
         lk_text_center(_text, _x, _y + 1, C_GOLD);
         if (_detail != "") lk_text_center(_detail, _x, _y + 12, C_PAPER);
     } else if (cell.clear) lk_draw_route_hint();
-    if (cell.kind == LK_ROOM.Landing && depth_no == 0 && world_tick < 520) {
+    if (_tour != "") lk_draw_tour(_tour);
+    if (!variable_struct_exists(player, "tour") && cell.kind == LK_ROOM.Landing && depth_no == 0 && world_tick < 520) {
         var _tip = pad >= 0 ? "LEFT STICK MOVE   RT FIRE   LB SKILL   X SWAP"
             : "WASD MOVE   SPACE AUTO-AIM   LMB AIM/FIRE   TAB SWAP";
         lk_text_center(_tip, 240, 198, C_PAPER);
@@ -317,23 +321,28 @@ function lk_draw_hud() {
 }
 
 function lk_draw_route_hint() {
-    var _near = undefined;
-    var _distance = 74;
+    var _door = -1;
+    var _distance = 43;
     for (var _dir = 0; _dir < 4; _dir++) {
-        var _hint = lk_route_door_hint(_dir);
-        if (is_undefined(_hint)) continue;
+        var _next = cell.exits[_dir];
+        if (_next < 0 || lk_route_role(dungeon[_next]) == LK_ROUTE_ROOM.None) continue;
         var _x = [426, 240, 54, 240][_dir];
         var _y = [143, 222, 143, 65][_dir];
         var _range = point_distance(player.px, player.py, _x, _y);
         if (_range >= _distance) continue;
         _distance = _range;
-        _near = _hint;
+        _door = _dir;
     }
-    if (is_undefined(_near)) return;
-    var _w = max(string_length(_near.label), string_length(_near.detail)) * 6 + 20;
-    lk_panel(240 - _w / 2, 204, 240 + _w / 2, 229, !_near.locked, C_TEAL);
-    lk_text_center(_near.label, 240, 205, C_PAPER);
-    lk_text_center(_near.detail, 240, 217, _near.locked ? C_MUTED : C_GOLD);
+    if (_door < 0) return;
+    var _label = lk_route_door_hint(_door);
+    var _half = string_length(_label) * 3 + 3;
+    var _x = [410 - _half, 240, 72 + _half, 240][_door];
+    var _y = [138, 206, 138, 68][_door];
+    draw_set_alpha(.74);
+    lk_rect(_x - _half, _y, _x + _half, _y + 11, C_INK);
+    draw_set_alpha(1);
+    var _tint = lk_route_door_available(_door) ? lk_route_room_color(dungeon[cell.exits[_door]]) : C_MUTED;
+    lk_text_center(_label, _x, _y, _tint);
 }
 
 function lk_pause_inventory(_relic, _top) {

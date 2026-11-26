@@ -130,6 +130,12 @@
     },
     {
       "id": {
+        "name": "lk_tour",
+        "path": "scripts/lk_tour/lk_tour.yy"
+      }
+    },
+    {
+      "id": {
         "name": "lk_alt_guardians",
         "path": "scripts/lk_alt_guardians/lk_alt_guardians.yy"
       }
