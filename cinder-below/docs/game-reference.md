@@ -117,6 +117,14 @@ Each forge tempers the active weapon once. The price is 9 gold + 7 × current te
 | Elite Hunt | One wave with two guaranteed elites plus regular enemies. Clearing it guarantees a weapon drop. |
 | Rupture | Alternates eruptions between two fixed vents. Has two clusters of pillars. |
 | Swarm | One wave of the biome's designated rusher type, with two extra enemies. |
+| Shield Line | A Bulwark screens two ranged enemies while two pursuers circle. Flank its shield, attack during its recovery, or use piercing shots, blasts, or melee. |
+| Brood Nest | A stationary Brood Husk can summon up to three reinforcements while its defenders keep you occupied. Destroy it to stop the next spawn. |
+| Twin Seals | Close both seals with Interact and defeat all enemies to open the doors. Open seals can summon up to four reinforcements total. |
+| Relay Guard | A Bellkeeper rallies two Sentries and nearby pursuers. Central pillars break sightlines as the guards prepare their next attacks. |
+| Heat Works | A Cauteriser predicts your movement and leaves a patch of fire. A Bulwark screens the Cauteriser while two other enemies cover the flanks. |
+| Threaded Crossing | A Threadbinder links two enemies. The beam follows them and starts dealing damage after a warning. Killing either linked enemy or the Threadbinder breaks it. |
+| Shattered Colonnade | Two rows of pillars frame a central firing lane. Harpoons control the flanks, a Prism fires bouncing shots, and two Fracturelings split if killed. |
+| Flood Pulse | The inner lane and the two outer lanes flood in turn. Move out of the marked lanes as you fight the defenders. |
 | Supply Cache | The chest offers a weapon you are not carrying, 20 energy, and 3 gold. Its weapon pool excludes the Ember Pistol and Keeper Blade. |
 | Tinker's Shop | Sells a Tonic, an Energy Cell, and one weapon. Each purchase is available once per shop. |
 | Shrine of Ash | Offers one boon or a rank upgrade. Every stage has one. On stages 1 and 2 in standard contracts, it prioritizes Iron Bark or Bloodroot until both are maxed. Ties favor Bloodroot if you are wounded. |
@@ -132,7 +140,7 @@ Each forge tempers the active weapon once. The price is 9 gold + 7 × current te
 | Pillar | Permanent cover. Blocks ordinary shots and movement. Compatible ricochet shots bounce off it. |
 | Crate and small breakable prop | Blocks movement and shots until broken. Two points of durability. Each damaging hit removes at least one point, or one per four damage rounded down if greater. |
 
-Fight doors stay locked until you clear every wave. Iron Trial and Endless Keep have 49 regular fights and 8 guardian rooms per circuit. In Main Delve, Arsenal Run, and Daily Contract, a safe stop replaces one fight per stage from stage 3, for 43 regular fights and 8 guardians. Each stage also has one optional gauntlet or duel.
+Fight doors stay locked until you finish the objectives and defeat every enemy. Main Delve, Arsenal Run, and Daily Contract have 34 required regular fights and 8 guardians, with a safe stop on every stage from stage 3. Iron Trial and Endless Keep have 49 regular fights and 8 guardians per circuit. Each stage also has one optional gauntlet or duel. Room types never repeat within a newly generated stage. Root Gates starts with Ambush, Shield Line, and Brood Nest in that order. Mossvault opens with Twin Seals.
 
 ## Stages and floor hazards
 
@@ -141,11 +149,11 @@ Fight doors stay locked until you clear every wave. Iron Trial and Endless Keep 
 | ![Root Gates arena](reference-art/root-gates.png) | 1. Root Gates | Moss | 3 / 3 | Three offset bursts for 1 damage each. |
 | ![Mossvault arena](reference-art/mossvault.png) | 2. Mossvault | Moss | 4 / 4 | Same moss bursts. |
 | ![Emberworks arena](reference-art/emberworks.png) | 3. Emberworks | Cinder | 4 / 5 | Three blasts along a horizontal line in staggered order, 2 damage each. |
-| ![Cinder Halls arena](reference-art/cinder-halls.png) | 4. Cinder Halls | Cinder | 5 / 6 | Same staggered cinder blasts. |
-| ![Veil Tunnels arena](reference-art/veil-tunnels.png) | 5. Veil Tunnels | Veil | 6 / 7 | Three simultaneous blasts in a triangle, 2 damage each. |
-| ![The Hollow arena](reference-art/the-hollow.png) | 6. The Hollow | Veil | 7 / 8 | Same triangular blasts. |
-| ![Glassfen arena](reference-art/glassfen.png) | 7. Glassfen | Glassfen | 7 / 8 | Three staggered blasts in a line across the direction from the arena center, 2 damage each. |
-| ![Black Reliquary arena](reference-art/black-reliquary.png) | 8. Black Reliquary | Black Reliquary | 7 / 8 | Four staggered blasts in a rotating cross, 2 damage each. |
+| ![Cinder Halls arena](reference-art/cinder-halls.png) | 4. Cinder Halls | Cinder | 4 / 6 | Same staggered cinder blasts. |
+| ![Veil Tunnels arena](reference-art/veil-tunnels.png) | 5. Veil Tunnels | Veil | 4 / 7 | Three simultaneous blasts in a triangle, 2 damage each. |
+| ![The Hollow arena](reference-art/the-hollow.png) | 6. The Hollow | Veil | 5 / 8 | Same triangular blasts. |
+| ![Glassfen arena](reference-art/glassfen.png) | 7. Glassfen | Glassfen | 5 / 8 | Three staggered blasts in a line across the direction from the arena center, 2 damage each. |
+| ![Black Reliquary arena](reference-art/black-reliquary.png) | 8. Black Reliquary | Black Reliquary | 5 / 8 | Four staggered blasts in a rotating cross, 2 damage each. |
 
 Gauntlet hazards are centered near your projected position. Rupture vents stay in place and deal 1 damage. Guardians use their own hazard patterns.
 
@@ -165,6 +173,12 @@ Base HP is the value before stage, contract, cycle, and elite scaling. The names
 | ![Harpoon](reference-art/harpoon.png) | Harpoon | 15 | Creates distance, telegraphs a long aim line, and fires one fast shot. |
 | ![Prism](reference-art/prism.png) | Prism | 13 | Flanks you and fires five shots that can bounce off cover and walls. |
 | ![Monk](reference-art/monk.png) | Monk | 21 | Marks the floor under you and to one side, then detonates both spots in sequence. |
+|  | Bulwark | 19 | Blocks frontal projectiles while its shield is raised. It commits to a direction before charging and leaves its shield down during recovery. |
+|  | Brood Husk | 26 | Stationary nest that warns before releasing a Skulk, or a Leech in Veil and deeper biomes. It can release up to three and cannot be pushed by ordinary hits. |
+|  | Bellkeeper | 16 | Rings a warning bell and shortens the cooldowns of nearby ordinary allies. |
+|  | Cauteriser | 19 | Predicts your movement and marks a spot that burns for more than two seconds. |
+|  | Threadbinder | 21 | Connects allies with a damaging beam that tracks their positions. When alone, it fires a three-shot fan. |
+|  | Fractureling | 19 | Pursues you and splits into up to two fragile, fast shards on death. Shards yield no loot. |
 |  | Elite variant | ×2.25 HP | Gold-marked regular enemy with 9% faster movement and a larger collision radius. Drops 5 gold. |
 
 | Biome | Standard spawn pool | Elite Hunt type | Swarm type |
@@ -188,7 +202,7 @@ HP below is for the first circuit of Main Delve, Arsenal Run, or Daily Contract.
 | ![Veil Harrow](reference-art/veil-harrow.png) | Veil Harrow | 5 | 461 | **Veil Step** tries to teleport past you and fires. **Prism Bounce** fires nine bouncing shots. **Veil Sigils** marks four blasts around you. At 51% HP, the blasts grow and attacks come faster. |
 | ![The Pale Regent](reference-art/the-pale-regent.png) | The Pale Regent | 6 | 783 | **Pale Halo** fires a ring with a gap. **Regent's Step** tries to teleport to your flank and fires. **Hollow Sigil** combines bouncing shots with a targeted blast. Below 53% HP it summons two Leeches and adds aimed shots and delayed rings. |
 | ![The Gilded Eel](reference-art/the-gilded-eel.png) | The Gilded Eel | 7 | 608 | **Glass Surge** dashes, leaves shots behind, and ends in a delayed blast. **Fen Quakes** marks four blasts. **Gilded Crossfire** fires opposing spreads. **Shatter Ring** fires a ring and a delayed second ring. At 48% HP it summons two Prisms. |
-| ![Crown of Cinders](reference-art/crown-of-cinders.png) | Crown of Cinders | 8 | 783 | **Golden Rupture** marks three blasts initially and four in later phases. **Cinder Halo** fires two rings with gaps in sequence. **Royal Volley** fires opposing spreads. At 69% HP, it summons a Monk and adds **Crown Prism**, a sweep of bouncing shots. At 34%, it summons a Prism and adds **Sovereign Charge**, a dash that fires sideways and ends in a ring. |
+| ![Crown of Cinders](reference-art/crown-of-cinders.png) | Crown of Cinders | 8 | 783 | **Golden Rupture** marks three blasts initially and four in later phases. **Cinder Halo** fires two rings with gaps in sequence. **Royal Volley** fires opposing spreads. At 69% HP, two Furnace Anchors activate, cut damage to the Crown by 45% before rounding, and fire warning beams. The Crown adds **Crown Prism**, a sweep of bouncing shots. At 34%, surviving anchors overload, a Prism joins the fight, and the Crown adds **Sovereign Charge**, a dash that fires sideways and ends in a ring. |
 
 ## Contracts
 
@@ -211,7 +225,8 @@ The Keeper's Journal records discovered weapons and relics, runs started, deepes
 | Iron and Endless HP scaling | Multiply by `1 + 0.12 × min(cycle, 7)`. Add 0.13 to the multiplier in Iron Trial. The first circuit is cycle 0. Endless HP scaling caps at +84%. The Rootbound has 392 HP in Endless cycle 0 and 443 HP in Iron Trial. |
 | Count per ordinary wave | Base count = 4 + biome index (0–4, capped at 3) + 1 from wave 2 onward + a random 0 or 1 + up to 2 from the Endless cycle. Swarm adds 2. Elite Hunt instead starts with 2 elites and adds 2–4 more enemies depending on biome. |
 | Endless elites | From cycle 1, the first eligible regular spawn in each wave is elite. From cycle 2, the first two are elite. Elite Hunt still spawns its two guaranteed elites. |
-| Waves and time between fights | Most fights have 2 waves. The first Root Gates fight and every Elite Hunt or Swarm have 1. Gauntlets have 3. Regular rooms wait 48 steps before the first wave, then 50 between waves. Enemies emerge over 24 steps. |
+| Waves and time between fights | Ambush, Crossfire, and Rupture can have 2 waves. Other regular encounters have 1. Gauntlets have 3. Regular rooms wait 48 steps before the first wave, then 50 between waves. Enemies emerge over 24 steps. |
+| Reinforcements | Summoned enemies have 65% of their usual base-plus-stage HP, rounded down before contract and cycle scaling. They do not drop loot or trigger kill rewards. |
 | Hit damage | Most enemy shots and contact hits deal 1. Dashing enemies, guardians, and Bruisers can deal 2 on contact. Most floor blasts deal 2. Armor absorbs as much damage as it can and leftover damage reaches HP. |
 | Hit protection | 32 steps after taking damage, about 0.53 seconds. Room entry grants at least 22 steps. Soul Knot grants 240 steps on revive. |
 | Armor repair in combat | Main Delve, Arsenal, and Daily repair 1 point after 180 hit-free steps (3 seconds), then 1 per 300 steps (5 seconds). Taking damage resets the initial timer. Entering another uncleared room with missing armor restarts it. |

@@ -1,7 +1,15 @@
 enum LK_MODE { Title, Select, Play, Pause, Boon, Dead, Won, Journal, Contract }
 enum LK_ROOM { Landing, Fight, Cache, Shop, Shrine, Boss, Gauntlet, Relic, Forge, SparkShrine, Armory, SupplyPost, TemperRelay, Duel }
 enum LK_LOOT { Coin, Energy, Heart, Weapon }
-enum LK_ENEMY { Skulk, Spitter, Charger, Wisp, Boss, Sentry, Leech, Bruiser, Harpoon, Prism, Monk }
+enum LK_ENEMY {
+    Skulk, Spitter, Charger, Wisp, Boss, Sentry, Leech, Bruiser, Harpoon, Prism, Monk,
+    Bulwark, BroodHusk, Bellkeeper, Cauteriser, Threadbinder, Fractureling, FurnaceAnchor
+}
+// Checkpoints store encounter IDs. Append new types here.
+enum LK_FIGHT {
+    Ambush, Crossfire, EliteHunt, Rupture, Swarm, ShieldLine, BroodNest, TwinSeals,
+    RelayGuard, HeatWorks, ThreadedCrossing, ShatteredColonnade, FloodPulse
+}
 
 #macro C_INK $1B1015
 #macro C_DEEP $2B191E
@@ -21,7 +29,7 @@ enum LK_ENEMY { Skulk, Spitter, Charger, Wisp, Boss, Sentry, Leech, Bruiser, Har
 #macro KEEP_BOTTOM 227
 #macro KEEP_MID_Y 143
 #macro LK_BOSS_INTRO 90
-#macro LK_VERSION "1.2.2+dev"
+#macro LK_VERSION "1.3.0+dev"
 
 function lk_input() {
     pad = -1;
@@ -176,7 +184,7 @@ function lk_new_room(_gx, _gy, _kind) {
         layout: irandom_range(0, 9), seed: irandom_range(20, 9000), props: [], loot: [],
         opened: false, bought: [false, false, false], stock: irandom_range(2, array_length(weapons) - 1),
         stock_temper: depth_no >= 3 ? irandom_range(1, clamp(floor(depth_no / 2), 1, 3)) : 0,
-        encounter: _kind == LK_ROOM.Fight && array_length(dungeon) > 1 ? irandom(4) : 0,
+        encounter: LK_FIGHT.Ambush,
         shrine_used: false};
 }
 
@@ -208,7 +216,8 @@ function lk_link_room(_from, _kind, _preferred = -1) {
 }
 
 function lk_stage_fights() {
-    return 3 + min(depth_no, 5) - (lk_stage_waystation() >= 0);
+    if (!lk_standard_contract()) return 3 + min(depth_no, 5);
+    return [3, 4, 4, 4, 4, 5, 5, 5][depth_no];
 }
 
 function lk_make_route(_preferred) {
@@ -251,6 +260,11 @@ function lk_add_branches() {
 }
 
 function lk_build_stage_map() {
+    lk_build_stage_route();
+    lk_deal_encounters();
+}
+
+function lk_build_stage_route() {
     repeat (36) {
         if (lk_make_route(-1) && lk_add_branches()) return;
     }
@@ -276,8 +290,13 @@ function lk_add_prop(_cell, _x, _y, _kind) {
 
 function lk_furnish(_cell) {
     if (_cell.kind == LK_ROOM.Boss) {
-        lk_add_prop(_cell, 116, 142, 1);
-        lk_add_prop(_cell, 364, 142, 1);
+        if (floor_no == 4) {
+            lk_add_prop(_cell, 161, 112, 1);
+            lk_add_prop(_cell, 319, 174, 1);
+        } else {
+            lk_add_prop(_cell, 116, 142, 1);
+            lk_add_prop(_cell, 364, 142, 1);
+        }
         return;
     }
     if (_cell.kind == LK_ROOM.Duel) {
@@ -286,14 +305,15 @@ function lk_furnish(_cell) {
         return;
     }
     if (_cell.kind != LK_ROOM.Fight && _cell.kind != LK_ROOM.Gauntlet) return;
-    if (_cell.encounter == 2) {
+    if (lk_furnish_objective_room(_cell)) return;
+    if (_cell.encounter == LK_FIGHT.EliteHunt) {
         lk_add_prop(_cell, 115, 99, 1);
         lk_add_prop(_cell, 365, 99, 1);
         lk_add_prop(_cell, 115, 190, 1);
         lk_add_prop(_cell, 365, 190, 1);
         return;
     }
-    if (_cell.encounter == 3) {
+    if (_cell.encounter == LK_FIGHT.Rupture) {
         var _stagger = _cell.seed mod 2 * 17;
         for (var _i = 0; _i < 3; _i++) {
             lk_add_prop(_cell, 143 + _i * 22, 119 - _stagger, 1);
@@ -376,8 +396,11 @@ function lk_enter_room(_index, _entry) {
     wave = 0;
     wave_count = cell.kind == LK_ROOM.Boss || cell.kind == LK_ROOM.Duel ? 1 : (cell.kind == LK_ROOM.Gauntlet ? 3
         : ((depth_no > 0 || _index mod 3 != 1) ? 2 : 1));
-    if (cell.kind == LK_ROOM.Fight && (cell.encounter == 2 || cell.encounter == 4)) wave_count = 1;
+    if (cell.kind == LK_ROOM.Fight && (cell.encounter == LK_FIGHT.EliteHunt || cell.encounter == LK_FIGHT.Swarm
+        || cell.encounter >= LK_FIGHT.ShieldLine)) wave_count = 1;
+    lk_reset_room_objective();
     hazard_wait = lk_rupture_room() ? 108 + cell.seed mod 36 : 145 + cell.seed mod 68;
+    if (cell.kind == LK_ROOM.Fight && cell.encounter == LK_FIGHT.FloodPulse) hazard_wait = 78;
     hazard_side = cell.seed mod 2;
     wave_wait = -1;
     shaking = 0;
@@ -431,7 +454,9 @@ function lk_is_shrine(_kind) {
 function lk_room_name(_kind) {
     switch (_kind) {
         case LK_ROOM.Landing: return stage_names[depth_no];
-        case LK_ROOM.Fight: return ["AMBUSH", "CROSSFIRE", "ELITE HUNT", "RUPTURE", "SWARM"][cell.encounter];
+        case LK_ROOM.Fight: return ["AMBUSH", "CROSSFIRE", "ELITE HUNT", "RUPTURE", "SWARM",
+            "SHIELD LINE", "BROOD NEST", "TWIN SEALS", "RELAY GUARD", "HEAT WORKS",
+            "THREADED CROSSING", "SHATTERED COLONNADE", "FLOOD PULSE"][cell.encounter];
         case LK_ROOM.Cache: return "SUPPLY CACHE";
         case LK_ROOM.Shop: return "TINKER'S SHOP";
         case LK_ROOM.Shrine: return "SHRINE OF ASH";
@@ -512,6 +537,14 @@ function lk_shop_item(_i) {
 
 function lk_interaction() {
     var _reach = 23;
+    if (!cell.clear && wave > 0) {
+        for (var _i = 0; _i < array_length(room_seals); _i++) {
+            var _seal = room_seals[_i];
+            if (!_seal.used && point_distance(player.px, player.py, _seal.px, _seal.py) < _reach) {
+                return {kind: "seal", target: _seal, label: "CLOSE SEAL"};
+            }
+        }
+    }
     var _near = undefined;
     var _distance = _reach;
     for (var _i = 0; _i < array_length(cell.loot); _i++) {
@@ -564,6 +597,13 @@ function lk_interact(_action) {
     if (is_undefined(_action)) return;
     var _sound = snd_pick;
     switch (_action.kind) {
+        case "seal":
+            _action.target.used = true;
+            seals_left -= 1;
+            lk_ring(_action.target.px, _action.target.py, C_MINT, 30, 24);
+            lk_sparks(_action.target.px, _action.target.py - 5, C_MINT, 12, 1.6);
+            lk_sound(snd_gate, 1.2);
+            return;
         case "weapon":
             var _loot = _action.target;
             var _old = player.arms[player.slot];

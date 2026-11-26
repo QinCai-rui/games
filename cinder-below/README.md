@@ -34,9 +34,13 @@ Every stage has a Shrine of Ash and a forge. Forges temper weapons for gold, up 
 
 Guardian intros end on their own. Press E or A to skip once the guardian appears. During the fight, the name of an incoming ability appears beneath the guardian's health bar.
 
-Bomb circles fill before they detonate. In Rupture rooms, two floor vents take turns erupting. Other regular rooms have no floor eruptions unless an enemy creates one.
+Bomb circles fill before they detonate. In Rupture rooms, two vents take turns erupting. In Flood Pulse, dashed lines warn you which lanes will flood.
 
-From stage three in Main Delve, Arsenal Run, and Daily Contract, one fight per stage gives way to a safe stop. Pick a weapon at the Salvage Rack, take energy or gold at the Keeper's Stores, or move one temper rank between weapons at the Temper Relay. Some optional gauntlets give way to an Elite Duel, a single fight with a weapon reward.
+Flank the Bulwark in Shield Line, destroy the nest before it summons more enemies in Brood Nest, and close both seals before leaving Twin Seals. Later rooms introduce Bellkeepers that rally nearby enemies, Cauterisers that set the floor on fire, and Threadbinders that link allies with a damaging beam. A stage never repeats a regular encounter type.
+
+Destroy the Crown of Cinders' Furnace Anchors to remove its damage resistance. Anchors left alive at the last phase overload before disappearing.
+
+Main Delve, Arsenal Run, and Daily Contract have 34 required fights and eight guardians. From stage three on, each stage also has a safe stop. Pick a weapon at the Salvage Rack, take energy or gold at the Keeper's Stores, or move one temper rank between weapons at the Temper Relay. Some optional gauntlets give way to an Elite Duel, a single fight with a weapon reward.
 
 ## Choose a contract
 

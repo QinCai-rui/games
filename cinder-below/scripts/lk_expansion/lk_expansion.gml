@@ -6,10 +6,40 @@ function lk_field(_x, _y, _kind, _wait, _power, _radius, _color, _hostile = fals
         power: _power, color: _color, hostile: _hostile, shot_angle: _angle, windup: _wait});
 }
 
+function lk_lane(_x, _y, _end_x, _end_y, _width, _wait, _duration, _power, _color,
+    _owner = undefined, _first = undefined, _second = undefined) {
+    array_push(fields, {px: _x, py: _y, end_x: _end_x, end_y: _end_y, radius: _width,
+        windup: _wait, duration: _duration, life: _duration + _wait, power: _power,
+        kind: 4, hostile: true, color: _color, owner: _owner, first: _first, second: _second});
+}
+
+function lk_lane_step(_lane, _age) {
+    if (!is_undefined(_lane.owner) && !_lane.owner.alive) return false;
+    if (!is_undefined(_lane.first)) {
+        if (!_lane.first.alive || !_lane.second.alive) return false;
+        _lane.px = _lane.first.px;
+        _lane.py = _lane.first.py;
+        _lane.end_x = _lane.second.px;
+        _lane.end_y = _lane.second.py;
+    }
+    if (_age == 0) lk_sound(snd_zap, .84);
+    if (_age >= 0) {
+        var _dx = _lane.end_x - _lane.px;
+        var _dy = _lane.end_y - _lane.py;
+        var _projection = ((player.px - _lane.px) * _dx + (player.py - _lane.py) * _dy);
+        var _t = clamp(_projection / max(1, _dx * _dx + _dy * _dy), 0, 1);
+        if (point_distance(player.px, player.py, _lane.px + _t * _dx, _lane.py + _t * _dy) <= _lane.radius) {
+            lk_player_hurt(_lane.power);
+        }
+    }
+    return true;
+}
+
 function lk_field_step(_field) {
     _field.life -= 1;
     if (_field.life < 0) return false;
     var _age = _field.duration - _field.life;
+    if (_field.kind == 4) return lk_lane_step(_field, _age);
     if (_age < 0) return true;
     if (_field.kind == 2) {
         if (_age mod 28 == 0) lk_beacon_tick(_field);
@@ -43,10 +73,32 @@ function lk_field_step(_field) {
     return true;
 }
 
+function lk_lane_draw(_lane, _xx, _yy, _age) {
+    var _x = _lane.px + _xx;
+    var _y = _lane.py + _yy;
+    var _end_x = _lane.end_x + _xx;
+    var _end_y = _lane.end_y + _yy;
+    var _progress = clamp(1 + _age / _lane.windup, 0, 1);
+    draw_set_color(_lane.color);
+    draw_set_alpha(_age < 0 ? .12 + _progress * .23 : .44);
+    draw_line_width(_x, _y, _end_x, _end_y, _lane.radius * 2);
+    draw_set_color(merge_color(_lane.color, C_PAPER, .46));
+    draw_set_alpha(_age < 0 ? .62 : .95);
+    var _n = max(1, ceil(point_distance(_x, _y, _end_x, _end_y) / 12));
+    for (var _i = 0; _i < _n; _i++) {
+        var _start = (_i + (world_tick mod 12) / 24) / _n;
+        var _end = min(1, _start + .58 / _n);
+        draw_line_width(lerp(_x, _end_x, _start), lerp(_y, _end_y, _start),
+            lerp(_x, _end_x, _end), lerp(_y, _end_y, _end), _age < 0 ? 1 : 3);
+    }
+    draw_set_alpha(1);
+}
+
 function lk_field_draw(_field, _xx, _yy) {
     var _x = round(_field.px + _xx);
     var _y = round(_field.py + _yy);
     var _age = _field.duration - _field.life;
+    if (_field.kind == 4) { lk_lane_draw(_field, _xx, _yy, _age); return; }
     var _r = _field.radius;
     var _edge = _field.hostile ? _r + 3 : _r;
     var _height = _field.hostile ? _edge : _r * .64;
@@ -63,7 +115,7 @@ function lk_field_draw(_field, _xx, _yy) {
         lk_diamond(_x, _y - 6, _warning ? 2 : 4, C_LILAC);
         return;
     }
-    if (_warning && _field.hostile && _field.kind == 1) {
+    if (_warning && _field.hostile) {
         var _progress = 1 + _age / _field.windup;
         var _fill = _edge * _progress;
         draw_set_color(_color);

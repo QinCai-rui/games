@@ -350,6 +350,114 @@ function lk_draw_player(_x, _y) {
     }
 }
 
+function lk_draw_seals(_xx, _yy) {
+    for (var _i = 0; _i < array_length(room_seals); _i++) {
+        var _seal = room_seals[_i];
+        var _x = _seal.px + _xx;
+        var _y = _seal.py + _yy;
+        var _color = _seal.used ? C_MUTED : C_LILAC;
+        lk_shadow(_x, _y + 1, 16);
+        lk_diamond(_x, _y, 12, C_INK);
+        lk_diamond(_x, _y, 10, _color);
+        lk_diamond(_x, _y, 8, C_PANEL);
+        if (!_seal.used) {
+            var _lift = round(dsin(world_tick * 6) * 2);
+            lk_glow(_x, _y - 4, 17, _color, .40);
+            lk_line(_x - 4, _y + 1, _x + 4, _y + 1, _color);
+            lk_diamond(_x, _y - 7 + _lift, 4, _color);
+            lk_diamond(_x, _y - 7 + _lift, 1, C_PAPER);
+        }
+    }
+}
+
+function lk_draw_bulwark(_enemy, _x, _y, _tint, _stride) {
+    var _feet = _enemy.tell == 0 ? _stride mod 2 : 0;
+    lk_rect(_x - 7, _y - 5, _x - 3, _y - 1 + _feet, C_INK);
+    lk_rect(_x + 3, _y - 5, _x + 7, _y - _feet, C_INK);
+    lk_rect(_x - 8, _y - 14, _x + 8, _y - 5, C_EDGE);
+    lk_rect(_x - 5, _y - 18, _x + 5, _y - 9, C_INK);
+    lk_rect(_x - 4, _y - 17, _x + 4, _y - 13, _tint);
+    lk_line(_x - 3, _y - 12, _x + 3, _y - 12, C_GOLD);
+    var _raised = lk_bulwark_guarding(_enemy);
+    var _direction = _enemy.angle;
+    var _sx = round(_x + lengthdir_x(11, _direction));
+    var _sy = round(_y - 6 + lengthdir_y(9, _direction)) + (_raised ? 0 : 5);
+    var _metal = _raised ? C_TEAL : C_MUTED;
+    lk_diamond(_sx, _sy, 8, C_INK);
+    lk_diamond(_sx, _sy, 6, _metal);
+    lk_diamond(_sx, _sy, 4, C_DEEP);
+    lk_diamond(_sx, _sy, 2, _raised ? C_MINT : C_EDGE);
+    if (_raised) {
+        for (var _i = -60; _i < 60; _i += 20) {
+            var _a = _direction + _i;
+            lk_line(_x + lengthdir_x(17, _a), _y + lengthdir_y(17, _a),
+                _x + lengthdir_x(17, _a + 20), _y + lengthdir_y(17, _a + 20), C_TEAL);
+        }
+    }
+}
+
+function lk_draw_brood(_enemy, _x, _y, _tint) {
+    var _pulse = round(dsin(world_tick * (_enemy.tell > 0 ? 13 : 5)) * 2);
+    lk_diamond(_x, _y - 2, 14, C_INK);
+    lk_diamond(_x, _y - 4, 11, C_EDGE);
+    lk_diamond(_x, _y - 6, 8 + _pulse, _tint);
+    lk_diamond(_x, _y - 6, 6 + _pulse, C_DEEP);
+    lk_diamond(_x, _y - 6, 3 + _pulse, _enemy.tell > 0 ? C_PAPER : C_MINT);
+    for (var _i = 0; _i < 3; _i++) {
+        lk_diamond(_x - 6 + _i * 6, _y - 22, 2, _i < _enemy.attack ? C_EDGE : C_MINT);
+    }
+}
+
+function lk_draw_special_enemy(_e, _x, _y, _color) {
+    var _step = floor(world_tick / 8 + _e.phase) mod 2;
+    var _lift = _e.tell > 0 ? 2 : _step;
+    var _steel = merge_color(_color, C_DEEP, .62);
+    draw_set_alpha(1 - _e.emerge / 30);
+    switch (_e.kind) {
+        case LK_ENEMY.Bellkeeper:
+            lk_rect(_x - 7, _y - 12, _x + 7, _y - 3, _steel);
+            lk_rect(_x - 5, _y - 3, _x - 2, _y - _step, C_EDGE);
+            lk_rect(_x + 2, _y - 3, _x + 5, _y - (1 - _step), C_EDGE);
+            lk_rect(_x - 6, _y - 18 - _lift, _x + 6, _y - 12, _color);
+            lk_rect(_x - 8, _y - 12, _x + 8, _y - 10, C_GOLD);
+            lk_rect(_x - 4, _y - 17 - _lift, _x + 2, _y - 17 - _lift, C_PAPER);
+            lk_diamond(_x + _step * 2 - 1, _y - 8, 2, C_GOLD);
+            break;
+        case LK_ENEMY.Cauteriser:
+            lk_rect(_x - 6, _y - 12, _x + 6, _y - 2, _steel);
+            lk_rect(_x - 6, _y - 2, _x - 2, _y - _step, _color);
+            lk_rect(_x + 2, _y - 2, _x + 6, _y - (1 - _step), _color);
+            lk_rect(_x - 5, _y - 18, _x + 5, _y - 10, C_EDGE);
+            lk_rect(_x - 4, _y - 14, _x + 4, _y - 13, C_PAPER);
+            var _nozzle = _x + 8 * _e.facing;
+            lk_rect(_nozzle - 2, _y - 12 - _lift, _nozzle + 2, _y - 6 - _lift, _color);
+            lk_diamond(_nozzle, _y - 13 - _lift, _e.tell > 0 ? 4 : 2, C_GOLD);
+            break;
+        case LK_ENEMY.Threadbinder:
+            lk_diamond(_x, _y - 10 - _lift, 10, _steel);
+            lk_diamond(_x, _y - 15 - _lift, 5, _color);
+            lk_line(_x - 10, _y - 10, _x + 10, _y - 10, _color);
+            lk_diamond(_x - 9, _y - 10, _e.tell > 0 ? 3 : 2, C_PAPER);
+            lk_diamond(_x + 9, _y - 10, _e.tell > 0 ? 3 : 2, C_PAPER);
+            lk_rect(_x - 2, _y - 15 - _lift, _x + 2, _y - 14 - _lift, C_INK);
+            break;
+        case LK_ENEMY.Fractureling:
+            lk_diamond(_x - 4, _y - 9 - _step, 8, _steel);
+            lk_diamond(_x + 3, _y - 12, 8, _color);
+            lk_diamond(_x + 5, _y - 14, 3, C_PAPER);
+            lk_line(_x - 5, _y - 15, _x - 1, _y - 9, C_BLUE);
+            lk_line(_x - 1, _y - 9, _x - 3, _y - 4, C_BLUE);
+            break;
+        case LK_ENEMY.FurnaceAnchor:
+            lk_rect(_x - 9, _y - 5, _x + 9, _y + 2, _steel);
+            lk_rect(_x - 7, _y - 18, _x + 7, _y - 5, C_EDGE);
+            lk_diamond(_x, _y - 16, 8, _color);
+            lk_diamond(_x, _y - 16, 4 + _lift, C_GOLD);
+            lk_rect(_x - 5, _y - 7, _x + 5, _y - 6, C_PAPER);
+            break;
+    }
+}
+
 function lk_draw_enemy(_e, _x, _y) {
     lk_shadow(_x, _y + 1, _e.radius + 2);
     if (_e.elite) {
@@ -368,7 +476,9 @@ function lk_draw_enemy(_e, _x, _y) {
         var _aim = _e.angle;
         var _sniper = _e.kind == LK_ENEMY.Harpoon;
         var _length = _sniper ? 420 : (_boss ? 45 : (_e.kind == LK_ENEMY.Charger ? 68 : 31));
-        if (_e.kind == LK_ENEMY.Monk || _e.kind == LK_ENEMY.Wisp) _length = 0;
+        if (_e.kind == LK_ENEMY.Monk || _e.kind == LK_ENEMY.Wisp || _e.kind >= LK_ENEMY.BroodHusk) _length = 0;
+        if (_e.kind == LK_ENEMY.Bulwark) _length = 55;
+        if (_e.kind == LK_ENEMY.Threadbinder && _e.attack == 1) _length = 43;
         var _heat = 1 - clamp(_e.tell / 35, 0, 1);
         var _flare = .34 + _heat * .32;
         gpu_set_blendmode(bm_add);
@@ -389,9 +499,15 @@ function lk_draw_enemy(_e, _x, _y) {
     }
     if (_boss) {
         lk_glow(_x, _y - 11, 25, _e.color, .30);
-        var _pose = _e.hit > 0 ? 3 : (_e.tell > 0 || _e.dash > 0 ? 2 : (floor(world_tick / 9) mod 2));
+        var _pose = _e.hit > 0 ? 3 : (_e.tell > 0 || _e.dash > 0 || _e.transition > 0 ? 2 : (floor(world_tick / 9) mod 2));
         var _flinch = _e.hit > 0 ? -_e.facing * round(_e.hit / 2.6) : 0;
         lk_actor(depth_no, _pose, _x + _flinch, _y, _e.facing, 1, _tint, 1 - _e.emerge / 30, true);
+    } else if (_e.kind >= LK_ENEMY.Bulwark) {
+        draw_set_alpha(1 - _e.emerge / 30);
+        var _metal = _e.hit > 0 ? C_PAPER : _e.color;
+        if (_e.kind == LK_ENEMY.Bulwark) lk_draw_bulwark(_e, _x, _y, _metal, _frame);
+        else if (_e.kind == LK_ENEMY.BroodHusk) lk_draw_brood(_e, _x, _y, _metal);
+        else lk_draw_special_enemy(_e, _x, _y, _metal);
     } else {
         var _flinch = _e.hit > 0 ? -_e.facing * round(_e.hit / 3) : 0;
         lk_actor(_e.kind < LK_ENEMY.Boss ? 3 + _e.kind : 6 + _e.kind, _frame, _x + _flinch, _y, _e.facing, 1, _tint, 1 - _e.emerge / 30);
@@ -465,6 +581,11 @@ function lk_draw_effects(_xx, _yy) {
                 draw_ellipse(round(_x - _r), round(_y - _r * .56), round(_x + _r), round(_y + _r * .56), true);
                 break;
             case 5:
+                if (_p.foe >= LK_ENEMY.Bulwark) {
+                    lk_diamond(_x - 4 - (1 - _ratio) * 8, _y + 2, max(1, round(5 * _ratio)), _p.color);
+                    lk_diamond(_x + 4 + (1 - _ratio) * 8, _y + 1, max(1, round(4 * _ratio)), _p.color);
+                    break;
+                }
                 var _big_foe = _p.foe == LK_ENEMY.Boss;
                 var _down = _big_foe ? 4 : 3;
                 var _index = _big_foe ? depth_no : (_p.foe < LK_ENEMY.Boss ? 3 + _p.foe : 6 + _p.foe);
@@ -523,6 +644,7 @@ function lk_draw_game() {
     draw_set_alpha(1);
     lk_room_setpiece(_xx, _yy);
     lk_draw_rupture_vents(_xx, _yy);
+    lk_draw_seals(_xx, _yy);
     for (var _i = 0; _i < array_length(fields); _i++) lk_field_draw(fields[_i], _xx, _yy);
     lk_draw_loot(_xx, _yy);
     var _depths = [{py: player.py, px: player.px, kind: 0, ref: player}];

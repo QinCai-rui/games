@@ -248,20 +248,43 @@ function lk_draw_hud() {
             lk_rect(60, 48, 204, 51, C_PANEL);
             lk_rect(60, 48, 60 + floor(144 * max(0, _boss.hp / _boss.max_hp)), 50, _boss.color);
             var _ability = lk_boss_ability(_boss);
+            var _anchors = floor_no == 4 && _boss.final_phase == 1 ? lk_crown_anchors() : 0;
             if (_ability != "") {
                 lk_rect(55, 54, 210, 66, C_INK);
                 lk_text_center(_ability, 132, 54, C_GOLD);
             }
+            if (_anchors > 0) {
+                lk_rect(55, 66, 210, 77, C_INK);
+                lk_text_center("SHIELDED BY " + string(_anchors) + (_anchors == 1 ? " ANCHOR" : " ANCHORS"), 132, 67, C_GOLD);
+            }
             break;
         }
     }
-    if (banner_time > 0) {
+    if (seals_left > 0) {
+        lk_rect(63, 35, 205, 52, C_INK);
+        lk_line(63, 51, 205, 51, C_LILAC);
+        lk_text_center("CLOSE SEALS " + string(array_length(room_seals) - seals_left) + " / 2", 134, 38, C_LILAC);
+    } else if (banner_time > 0) {
         draw_set_alpha(min(1, banner_time / 20));
         var _w = max(104, string_length(banner) * 7 + 20);
         var _banner_x = _boss_room ? 346 : 134;
         lk_rect(_banner_x - _w / 2, 35, _banner_x + _w / 2, 52, C_INK);
         lk_line(_banner_x - _w / 2, 51, _banner_x + _w / 2, 51, C_EDGE);
         lk_text_center(banner, _banner_x, 38, cell.clear ? C_GOLD : C_PAPER, false);
+        if (!cell.clear && cell.kind == LK_ROOM.Fight) {
+            var _hint = "";
+            if (cell.encounter == LK_FIGHT.ShieldLine) _hint = "FLANK THE BULWARK";
+            if (cell.encounter == LK_FIGHT.BroodNest) _hint = "DESTROY THE BROOD HUSK";
+            if (cell.encounter == LK_FIGHT.RelayGuard) _hint = "STOP THE BELLKEEPER";
+            if (cell.encounter == LK_FIGHT.HeatWorks) _hint = "KEEP CLEAR OF HOT GROUND";
+            if (cell.encounter == LK_FIGHT.ThreadedCrossing) _hint = "BREAK THE LINKS";
+            if (cell.encounter == LK_FIGHT.FloodPulse) _hint = "MOVE BETWEEN THE LANES";
+            if (_hint != "") {
+                var _tip_width = string_length(_hint) * 6 + 12;
+                lk_rect(134 - _tip_width / 2, 52, 134 + _tip_width / 2, 64, C_INK);
+                lk_text_center(_hint, 134, 53, C_MUTED);
+            }
+        }
         draw_set_alpha(1);
     }
     var _action = lk_interaction();

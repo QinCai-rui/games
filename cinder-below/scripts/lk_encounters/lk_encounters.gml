@@ -73,7 +73,337 @@ function lk_claim_waystation(_index) {
 }
 
 function lk_rupture_room() {
-    return cell.kind == LK_ROOM.Fight && cell.encounter == 3;
+    return cell.kind == LK_ROOM.Fight && cell.encounter == LK_FIGHT.Rupture;
+}
+
+function lk_deal_encounters() {
+    var _bag = [];
+    var _layouts = [];
+    var _first_depth = [0, 1, 1, 1, 1, 0, 0, 1, 2, 3, 4, 6, 6];
+    for (var _id = 0; _id < array_length(_first_depth); _id++) {
+        if (depth_no >= _first_depth[_id]) array_push(_bag, _id);
+        if (_id < 10) array_push(_layouts, _id);
+    }
+    var _showcase = [
+        [LK_FIGHT.Ambush, LK_FIGHT.ShieldLine, LK_FIGHT.BroodNest],
+        [LK_FIGHT.TwinSeals], [LK_FIGHT.RelayGuard], [LK_FIGHT.HeatWorks],
+        [LK_FIGHT.ThreadedCrossing], [],
+        [LK_FIGHT.ShatteredColonnade, LK_FIGHT.ThreadedCrossing, LK_FIGHT.FloodPulse],
+        [LK_FIGHT.HeatWorks, LK_FIGHT.ShatteredColonnade]
+    ][depth_no];
+    // Rotate between firing lines, objectives, ground hazards and support enemies.
+    var _family = [0, 0, 0, 2, 0, 0, 1, 1, 3, 2, 3, 0, 2];
+    var _played = [0, 0, 0, 0];
+    var _previous = -1;
+    var _index = 0;
+    for (var _i = 1; _i < array_length(dungeon); _i++) {
+        var _room = dungeon[_i];
+        if (_room.kind != LK_ROOM.Fight) continue;
+        var _deal = 0;
+        if (_index < array_length(_showcase)) {
+            while (_bag[_deal] != _showcase[_index]) _deal += 1;
+        } else {
+            var _best = 100;
+            var _start = irandom(array_length(_bag) - 1);
+            for (var _j = 0; _j < array_length(_bag); _j++) {
+                var _candidate = (_start + _j) mod array_length(_bag);
+                var _group = _family[_bag[_candidate]];
+                var _score = _played[_group] + (_group == _previous ? 10 : 0);
+                if (_score >= _best) continue;
+                _deal = _candidate;
+                _best = _score;
+            }
+        }
+        _room.encounter = _bag[_deal];
+        _previous = _family[_room.encounter];
+        _played[_previous] += 1;
+        array_delete(_bag, _deal, 1);
+        var _layout = irandom(array_length(_layouts) - 1);
+        _room.layout = _layouts[_layout];
+        array_delete(_layouts, _layout, 1);
+        _index += 1;
+    }
+}
+
+function lk_furnish_objective_room(_room) {
+    switch (_room.encounter) {
+        case LK_FIGHT.ShieldLine:
+            lk_add_prop(_room, 240, 97, 1);
+            lk_add_prop(_room, 240, 189, 1);
+            return true;
+        case LK_FIGHT.BroodNest:
+            lk_add_prop(_room, 176, 156, 1);
+            lk_add_prop(_room, 304, 130, 1);
+            lk_add_prop(_room, 153, 131, 2);
+            lk_add_prop(_room, 327, 155, 2);
+            return true;
+        case LK_FIGHT.TwinSeals:
+            lk_add_prop(_room, 162, 111, 1);
+            lk_add_prop(_room, 318, 175, 1);
+            lk_add_prop(_room, 202, 174, 1);
+            lk_add_prop(_room, 278, 112, 1);
+            return true;
+        case LK_FIGHT.RelayGuard:
+            lk_add_prop(_room, 193, 131, 1);
+            lk_add_prop(_room, 287, 155, 1);
+            lk_add_prop(_room, 219, 105, 0);
+            lk_add_prop(_room, 261, 181, 0);
+            return true;
+        case LK_FIGHT.HeatWorks:
+            lk_add_prop(_room, 161, 108, 1);
+            lk_add_prop(_room, 319, 178, 1);
+            lk_add_prop(_room, 189, 174, 2);
+            lk_add_prop(_room, 291, 112, 2);
+            return true;
+        case LK_FIGHT.ThreadedCrossing:
+            lk_add_prop(_room, 240, 113, 1);
+            lk_add_prop(_room, 240, 173, 1);
+            lk_add_prop(_room, 173, 178, 0);
+            lk_add_prop(_room, 307, 108, 0);
+            return true;
+        case LK_FIGHT.ShatteredColonnade:
+            for (var _i = 0; _i < 3; _i++) {
+                lk_add_prop(_room, 184 + 53 * _i, 101, 1);
+                lk_add_prop(_room, 190 + 53 * _i, 185, 1);
+            }
+            lk_add_prop(_room, 212, 134, 0);
+            lk_add_prop(_room, 268, 152, 0);
+            return true;
+        case LK_FIGHT.FloodPulse:
+            lk_add_prop(_room, 136, 139, 1);
+            lk_add_prop(_room, 344, 147, 1);
+            return true;
+    }
+    return false;
+}
+
+function lk_reset_room_objective() {
+    room_seals = [];
+    seals_left = 0;
+    seal_wait = 0;
+    seal_spawns = 0;
+    if (cell.kind != LK_ROOM.Fight || cell.encounter != LK_FIGHT.TwinSeals) return;
+    room_seals = [{px: 122, py: 104, used: cell.clear}, {px: 358, py: 182, used: cell.clear}];
+    if (!cell.clear) {
+        seals_left = array_length(room_seals);
+        seal_wait = 150;
+        seal_spawns = 4;
+    }
+}
+
+function lk_seals_step() {
+    if (seals_left == 0 || wave == 0 || seal_spawns == 0) return;
+    seal_wait -= 1;
+    if (seal_wait > 0) return;
+    var _side = seal_spawns mod 2;
+    if (room_seals[_side].used) _side = 1 - _side;
+    var _seal = room_seals[_side];
+    var _y = _seal.py + (player.py < _seal.py ? 23 : -23);
+    lk_spawn(floor_no >= 2 ? LK_ENEMY.Leech : LK_ENEMY.Skulk, _seal.px, _y, false, true);
+    seal_spawns -= 1;
+    seal_wait = 145;
+    lk_ring(_seal.px, _seal.py, C_LILAC, 26, 24);
+}
+
+function lk_spawn_objective_wave() {
+    var _ranged = [LK_ENEMY.Spitter, LK_ENEMY.Sentry, LK_ENEMY.Wisp, LK_ENEMY.Prism, LK_ENEMY.Harpoon][floor_no];
+    var _pursuer = [LK_ENEMY.Skulk, LK_ENEMY.Charger, LK_ENEMY.Leech, LK_ENEMY.Prism, LK_ENEMY.Bruiser][floor_no];
+    var _side = player.px <= 240 ? 1 : -1;
+    var _far_y = player.py < KEEP_MID_Y ? 181 : 104;
+    var _near_y = 285 - _far_y;
+    switch (cell.encounter) {
+        case LK_FIGHT.ShieldLine:
+            lk_spawn(LK_ENEMY.Bulwark, 240 + _side * 38, KEEP_MID_Y);
+            lk_spawn(_ranged, 240 + _side * 93, 109);
+            lk_spawn(_ranged, 240 + _side * 93, 176);
+            lk_spawn(_pursuer, 150, _far_y, run_cycle >= 1);
+            lk_spawn(_pursuer, 330, _far_y, run_cycle >= 2);
+            break;
+        case LK_FIGHT.BroodNest:
+            lk_spawn(LK_ENEMY.BroodHusk, 240, KEEP_MID_Y);
+            lk_spawn(LK_ENEMY.Sentry, 240 + _side * 136, _near_y);
+            lk_spawn(_pursuer, 137, _far_y, run_cycle >= 1);
+            lk_spawn(_pursuer, 343, _far_y, run_cycle >= 2);
+            if (floor_no >= 2) lk_spawn(_ranged, 240, _near_y);
+            break;
+        case LK_FIGHT.TwinSeals:
+            lk_spawn(_ranged, 105, 186);
+            lk_spawn(_ranged, 375, 102);
+            lk_spawn(_pursuer, 240, _far_y, run_cycle >= 1);
+            lk_spawn(_pursuer, 240 + _side * 93, _near_y == 104 ? 98 : 196, run_cycle >= 2);
+            break;
+        case LK_FIGHT.RelayGuard:
+            lk_spawn(LK_ENEMY.Bellkeeper, 240 + _side * 28, KEEP_MID_Y);
+            lk_spawn(LK_ENEMY.Sentry, 240 + _side * 106, 103);
+            lk_spawn(LK_ENEMY.Sentry, 240 + _side * 106, 182, run_cycle >= 2);
+            lk_spawn(_pursuer, 123, _far_y, run_cycle >= 1);
+            lk_spawn(_pursuer, 357, _far_y);
+            break;
+        case LK_FIGHT.HeatWorks:
+            lk_spawn(LK_ENEMY.Cauteriser, 240 + _side * 122, KEEP_MID_Y);
+            lk_spawn(LK_ENEMY.Bulwark, 240 + _side * 53, KEEP_MID_Y);
+            lk_spawn(_pursuer, 121, _far_y, run_cycle >= 1);
+            lk_spawn(_ranged, 359, _far_y, run_cycle >= 2);
+            break;
+        case LK_FIGHT.ThreadedCrossing:
+            lk_spawn(LK_ENEMY.Threadbinder, 240 + _side * 50, KEEP_MID_Y);
+            lk_spawn(LK_ENEMY.Sentry, 104, 115);
+            lk_spawn(_ranged, 376, 171, run_cycle >= 2);
+            lk_spawn(floor_no >= 3 ? LK_ENEMY.Fractureling : _pursuer, 152, _far_y, run_cycle >= 1);
+            lk_spawn(_pursuer, 328, _far_y);
+            break;
+        case LK_FIGHT.ShatteredColonnade:
+            lk_spawn(LK_ENEMY.Fractureling, 147, KEEP_MID_Y, run_cycle >= 1);
+            lk_spawn(LK_ENEMY.Fractureling, 333, KEEP_MID_Y, run_cycle >= 2);
+            lk_spawn(LK_ENEMY.Harpoon, 103, _far_y);
+            lk_spawn(LK_ENEMY.Harpoon, 377, _far_y);
+            lk_spawn(LK_ENEMY.Prism, 240, KEEP_MID_Y);
+            break;
+        case LK_FIGHT.FloodPulse:
+            lk_spawn(LK_ENEMY.Harpoon, 96, _far_y);
+            lk_spawn(LK_ENEMY.Prism, 380, _far_y, run_cycle >= 2);
+            lk_spawn(LK_ENEMY.Fractureling, 274, _far_y, run_cycle >= 1);
+            lk_spawn(_pursuer, 204, _near_y);
+            lk_spawn(_pursuer, 306, _near_y);
+            break;
+        default: return false;
+    }
+    lk_sound(snd_gate, 1.12);
+    return true;
+}
+
+function lk_brood_step(_enemy) {
+    if (_enemy.attack < 3 && _enemy.cool <= 0) {
+        if (_enemy.tell == 0) {
+            _enemy.tell = 36;
+            lk_ring(_enemy.px, _enemy.py, C_MINT, 39, _enemy.tell);
+            lk_charge_sound(_enemy);
+        } else if (_enemy.tell == 1) {
+            var _x = _enemy.px + (_enemy.attack mod 2 == 0 ? -25 : 25);
+            var _y = _enemy.py + (_enemy.attack == 1 ? 25 : -25);
+            lk_spawn(floor_no >= 2 ? LK_ENEMY.Leech : LK_ENEMY.Skulk, _x, _y, false, true);
+            _enemy.attack += 1;
+            _enemy.cool = 135;
+            lk_sound(snd_gate, .83);
+        }
+        _enemy.tell -= 1;
+    }
+}
+
+function lk_bulwark_guarding(_enemy) {
+    return _enemy.dash == 0 && _enemy.cool <= 0;
+}
+
+function lk_bulwark_blocks(_enemy, _shot) {
+    return _enemy.kind == LK_ENEMY.Bulwark && lk_bulwark_guarding(_enemy)
+        && _shot.kind != LK_SHOT.Pierce && _shot.kind != LK_SHOT.Wraith
+        && abs(angle_difference(_enemy.angle, _shot.angle + 180)) <= 64;
+}
+
+function lk_bulwark_step(_enemy, _toward, _range) {
+    if (_enemy.dash > 0) {
+        lk_enemy_walk(_enemy, 3.25, _enemy.angle);
+        _enemy.dash -= 1;
+    } else if (_enemy.tell > 0) {
+        _enemy.tell -= 1;
+        if (_enemy.tell == 0) {
+            _enemy.dash = 16;
+            _enemy.cool = 57;
+        }
+    } else {
+        _enemy.angle -= clamp(angle_difference(_enemy.angle, _toward), -1.15, 1.15);
+        if (_enemy.cool <= 0 && _range < 84) {
+            _enemy.tell = 30;
+            lk_charge_sound(_enemy);
+        } else if (_range > 43) {
+            lk_enemy_walk(_enemy, .80, _toward);
+        }
+    }
+}
+
+function lk_stationary_enemy(_kind) {
+    return _kind == LK_ENEMY.BroodHusk || _kind == LK_ENEMY.FurnaceAnchor;
+}
+
+function lk_support_step(_e, _toward, _range) {
+    var _kind = _e.kind;
+    if (_e.tell > 0) {
+        if (_e.tell != 1) return;
+        if (_kind == LK_ENEMY.Bellkeeper) {
+            for (var _i = 0; _i < array_length(enemies); _i++) {
+                var _ally = enemies[_i];
+                if (_ally.kind >= LK_ENEMY.Bulwark || !_ally.alive || _ally.tell > 0 || _ally.emerge > 0) continue;
+                if (point_distance(_ally.px, _ally.py, _e.px, _e.py) > 108) continue;
+                _ally.cool = min(_ally.cool, 3 + _i * 4);
+                lk_ring(_ally.px, _ally.py, C_GOLD, 19, 19);
+            }
+            lk_ring(_e.px, _e.py, C_GOLD, 108, 22);
+            lk_sound(snd_gate, 1.25);
+        } else if (_kind == LK_ENEMY.Threadbinder && _e.attack == 1) {
+            lk_enemy_burst(_e, 3, _e.angle, 18, 2.8, C_LILAC);
+            lk_sound(snd_fire, 1.23);
+            _e.attack = 0;
+            _e.cool = 41;
+            return;
+        }
+        _e.cool = _kind == LK_ENEMY.Bellkeeper ? 127 : 152;
+        return;
+    }
+    if (_e.cool > 0) {
+        if (_range < 62) lk_enemy_walk(_e, .88, _toward + 145);
+        else if (_range > 126) lk_enemy_walk(_e, .82, _toward);
+        return;
+    }
+    if (_kind == LK_ENEMY.Bellkeeper) {
+        _e.tell = 37;
+        lk_ring(_e.px, _e.py, C_GOLD, 49, _e.tell);
+    } else if (_kind == LK_ENEMY.Cauteriser) {
+        _e.tell = 43;
+        var _x = clamp(player.px + move_x * 39, KEEP_LEFT + 11, KEEP_RIGHT - 11);
+        var _y = clamp(player.py + move_y * 39, KEEP_TOP + 11, KEEP_BOTTOM - 11);
+        lk_field(_x, _y, 0, _e.tell, 1, 28, C_PINK, true);
+    } else {
+        var _left = undefined;
+        var _right = undefined;
+        for (var _i = 0; _i < array_length(enemies); _i++) {
+            var _ally = enemies[_i];
+            if (_ally == _e || !_ally.alive || _ally.emerge > 0) continue;
+            if (is_undefined(_left) || _ally.px < _left.px) _left = _ally;
+            if (is_undefined(_right) || _ally.px > _right.px) _right = _ally;
+        }
+        if (is_undefined(_left)) {
+            _e.tell = 23;
+            _e.angle = lk_lead(_e, 2.8);
+            _e.attack = 1;
+        } else {
+            if (_left == _right) _right = _e;
+            _e.tell = 43;
+            lk_lane(_left.px, _left.py, _right.px, _right.py, 5, _e.tell, 24, 2, C_LILAC, _e, _left, _right);
+            lk_ring(_left.px, _left.py, C_LILAC, 21, _e.tell);
+            lk_ring(_right.px, _right.py, C_LILAC, 21, _e.tell);
+        }
+    }
+    lk_charge_sound(_e);
+}
+
+function lk_fracture(_e, _angle) {
+    for (var _side = -1; _side <= 1; _side += 2) {
+        for (var _turn = 0; _turn < 4; _turn++) {
+            var _a = _angle + _side * (58 + _turn * 40);
+            var _x = _e.px + lengthdir_x(15, _a);
+            var _y = _e.py + lengthdir_y(15, _a);
+            if (!lk_keep_bounds(_x, _y, 7, false) || !is_undefined(lk_prop_at(_x, _y, 7))) continue;
+            lk_spawn(LK_ENEMY.Skulk, _x, _y, false, true);
+            var _shard = enemies[array_length(enemies) - 1];
+            _shard.hp = ceil(_shard.hp * .65);
+            _shard.max_hp = _shard.hp;
+            _shard.emerge = 15;
+            _shard.color = C_BLUE;
+            _shard.angle = _a;
+            _shard.dash = 9;
+            break;
+        }
+    }
 }
 
 function lk_rupture_vent(_side) {
@@ -82,7 +412,8 @@ function lk_rupture_vent(_side) {
 
 function lk_room_hazard_step() {
     var _rupture = lk_rupture_room();
-    if (cell.clear || (!_rupture && cell.kind != LK_ROOM.Gauntlet)) return;
+    var _flood = cell.kind == LK_ROOM.Fight && cell.encounter == LK_FIGHT.FloodPulse && wave > 0;
+    if (cell.clear || (!_rupture && !_flood && cell.kind != LK_ROOM.Gauntlet)) return;
     hazard_wait -= 1;
     if (hazard_wait > 0) return;
     if (_rupture) {
@@ -90,6 +421,14 @@ function lk_room_hazard_step() {
         lk_field(_vent.px, _vent.py, 1, 36, 1, 17, lk_theme_tint(floor_no), true);
         hazard_side = 1 - hazard_side;
         hazard_wait = 160;
+    } else if (_flood) {
+        for (var _i = 0; _i < 3; _i++) {
+            if (_i mod 2 != hazard_side) continue;
+            var _y = 87 + _i * 56;
+            lk_lane(KEEP_LEFT, _y, KEEP_RIGHT, _y, 27, 58, 38, 2, C_BLUE);
+        }
+        hazard_side = 1 - hazard_side;
+        hazard_wait = 174;
     } else {
         lk_gauntlet_hazards();
         hazard_wait = 190 - min(floor_no, 3) * 11 - min(run_cycle, 4) * 6;
@@ -202,6 +541,7 @@ function lk_sanctum_pattern(_e, _phase_two) {
 }
 
 function lk_boss_ability(_e) {
+    if (_e.transition > 0) return _e.final_phase == 1 ? "FURNACE ANCHORS" : "ANCHOR OVERLOAD";
     if (_e.tell <= 0) return "";
     if (floor_no == 4) {
         return ["GOLDEN RUPTURE", "CINDER HALO", "ROYAL VOLLEY", "CROWN PRISM", "SOVEREIGN CHARGE"]
@@ -226,24 +566,70 @@ function lk_boss_rotation(_e) {
     return depth_no == 0 && _e.enraged ? 4 : 3;
 }
 
+function lk_crown_anchors() {
+    var _count = 0;
+    for (var _i = 0; _i < array_length(enemies); _i++) {
+        if (enemies[_i].kind == LK_ENEMY.FurnaceAnchor && enemies[_i].alive) _count += 1;
+    }
+    return _count;
+}
+
+function lk_crown_damage(_e, _power) {
+    if (_e.final_phase == 1 && lk_crown_anchors() > 0) _power = ceil(_power * .55);
+    // Give each threshold its setup step even if several shots land simultaneously.
+    var _limit = _e.final_phase == 0 ? floor(_e.max_hp * .69) : floor(_e.max_hp * .34);
+    if (_e.final_phase == 2 && _e.transition == 0) return _power;
+    if (_e.transition > 0) _limit = _e.final_phase == 1 ? _limit + 1 : 1;
+    return min(_power, max(0, _e.hp - _limit));
+}
+
+function lk_anchor_step(_e) {
+    if (_e.tell == 0 && _e.cool <= 0) {
+        var _end_x = _e.px < 240 ? KEEP_RIGHT - 8 : KEEP_LEFT + 8;
+        var _end_y = clamp(player.py + move_y * 28, KEEP_TOP + 14, KEEP_BOTTOM - 14);
+        _e.tell = 49;
+        _e.cool = 163;
+        lk_lane(_e.px, _e.py, _end_x, _end_y, 8, _e.tell, 30, 2, C_GOLD, _e);
+        lk_ring(_e.px, _e.py, C_GOLD, 29, _e.tell);
+        lk_charge_sound(_e);
+    }
+}
+
 function lk_crown_attack(_e) {
-    var _r = _e.hp / _e.max_hp;
-    var _phase = _r > .69 ? 0 : (_r > .34 ? 1 : 2);
+    if (_e.transition > 0) {
+        _e.transition -= 1;
+        return;
+    }
+    var _phase = _e.hp > floor(_e.max_hp * .69) ? 0 : (_e.hp > floor(_e.max_hp * .34) ? 1 : 2);
     if (_phase != _e.final_phase) {
         _e.final_phase = _phase;
         _e.attack = 0;
         _e.dash = 0;
         _e.echo = 0;
-        _e.tell = 54;
+        _e.tell = 0;
+        _e.transition = _phase == 1 ? 30 : 46;
         _e.cool = 41;
         _e.angle = lk_lead(_e, 3.4);
-        banner = _phase == 1 ? "THE CROWN CRACKS" : "THE CROWN SHATTERS";
+        banner = _phase == 1 ? "BREAK FURNACE ANCHORS" : "THE CROWN SHATTERS";
         banner_time = 98;
         lk_ring(_e.px, _e.py, _phase == 1 ? C_GOLD : C_PINK, 96, 37);
         lk_sound(snd_gate, _phase == 1 ? .73 : .59);
         shaking = 10;
-        if (_phase == 1) lk_spawn(LK_ENEMY.Monk, 87, 191);
-        if (_phase == 2) lk_spawn(LK_ENEMY.Prism, 392, 93);
+        if (_phase == 1) {
+            lk_spawn(LK_ENEMY.FurnaceAnchor, 92, 141, false, true);
+            lk_spawn(LK_ENEMY.FurnaceAnchor, 388, 145, false, true);
+        } else {
+            for (var _i = 0; _i < array_length(enemies); _i++) {
+                var _anchor = enemies[_i];
+                if (_anchor.kind != LK_ENEMY.FurnaceAnchor || !_anchor.alive) continue;
+                _anchor.alive = false;
+                var _end_y = _anchor.px < 240 ? 192 : 94;
+                var _end_x = _anchor.px < 240 ? 412 : 68;
+                lk_lane(_anchor.px, _anchor.py, _end_x, _end_y, 11, 45, 36, 2, C_PINK);
+                lk_sparks(_anchor.px, _anchor.py - 7, C_GOLD, 20, 2);
+            }
+            lk_spawn(LK_ENEMY.Prism, 392, 93);
+        }
         return;
     }
     if (_e.dash > 0) {
@@ -327,6 +713,8 @@ function lk_tide_step() {
         _e.slow = max(_e.slow, 106);
         var _a = point_direction(player.px, player.py, _e.px, _e.py);
         lk_enemy_damage(_e, ceil(7 * player.damage_scale), _a, true);
-        if (_e.kind != LK_ENEMY.Boss) lk_move(_e, lengthdir_x(19, _a), lengthdir_y(19, _a), _e.radius);
+        if (_e.kind != LK_ENEMY.Boss && !lk_stationary_enemy(_e.kind)) {
+            lk_move(_e, lengthdir_x(19, _a), lengthdir_y(19, _a), _e.radius);
+        }
     }
 }

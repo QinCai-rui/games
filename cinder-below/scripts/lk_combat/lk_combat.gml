@@ -73,14 +73,15 @@ function lk_later_fight() {
     return cell.kind == LK_ROOM.Fight && (depth_no > 0 || cell_index > 1);
 }
 
-function lk_spawn(_kind, _x = -1, _y = -1, _elite = false) {
+function lk_spawn(_kind, _x = -1, _y = -1, _elite = false, _summoned = false) {
     var _boss_hp = depth_no mod 2 == 0 ? 148 + depth_no * 35 : 184 + depth_no * 61;
     if (floor_no >= 3) _boss_hp = 380 + (floor_no - 3) * 109;
     var _boss_scale = lk_rootbound_standard() ? 1.2 : 1.6;
-    var _hp = [9, 11, 17, 10, ceil(_boss_hp * _boss_scale), 13, 10, 23, 15, 13, 21];
-    var _r = [7, 8, 9, 7, 16, 8, 7, 10, 8, 8, 9];
+    var _hp = [9, 11, 17, 10, ceil(_boss_hp * _boss_scale), 13, 10, 23, 15, 13, 21,
+        19, 26, 16, 19, 21, 19, 23];
+    var _r = [7, 8, 9, 7, 16, 8, 7, 10, 8, 8, 9, 10, 13, 9, 10, 9, 9, 11];
     var _colors = [C_MINT, C_GOLD, C_PINK, C_BLUE, lk_theme_tint(floor_no), C_GOLD,
-        C_LILAC, C_PINK, C_TEAL, C_BLUE, C_GOLD];
+        C_LILAC, C_PINK, C_TEAL, C_BLUE, C_GOLD, C_TEAL, C_MINT, C_GOLD, C_PINK, C_LILAC, C_BLUE, C_GOLD];
     if (_x == -1) {
         repeat (50) {
             _x = irandom_range(75, 405);
@@ -94,16 +95,22 @@ function lk_spawn(_kind, _x = -1, _y = -1, _elite = false) {
         }
     }
     var _health = _hp[_kind] + (_kind == LK_ENEMY.Boss ? 0 : depth_no * 2);
+    if (_summoned) _health = max(1, floor(_health * .65));
     var _scale = 1 + min(run_cycle, 7) * .12 + (run_contract == LK_CONTRACT.Iron ? .13 : 0);
     _health = ceil(_health * _scale * (_elite ? 2.25 : 1));
     var _tint = _elite ? C_GOLD : _colors[_kind];
     var _cool = irandom_range(30, 77);
     if (cell.kind == LK_ROOM.Duel) _cool = ceil(_cool / 4);
     else if (lk_later_fight()) _cool -= 12;
+    if (_kind == LK_ENEMY.Bulwark) _cool = 0;
+    if (_kind == LK_ENEMY.BroodHusk) _cool = 108;
+    if (_kind == LK_ENEMY.FurnaceAnchor) _cool = _x < 240 ? 57 : 118;
+    var _aim = _kind == LK_ENEMY.Bulwark ? point_direction(_x, _y, player.px, player.py) : 0;
     array_push(enemies, {px: _x, py: _y, kind: _kind, hp: _health, max_hp: _health,
         radius: _r[_kind] + (_elite ? 2 : 0), color: _tint, emerge: 24, cool: _cool,
-        tell: 0, angle: 0, facing: -1, hit: 0, dash: 0, alive: true, dash_hit: false,
-        slow: 0, attack: 0, echo: 0, enraged: false, phase: irandom(160), elite: _elite, final_phase: 0, tided: false});
+        tell: 0, angle: _aim, facing: -1, hit: 0, dash: 0,
+        alive: true, dash_hit: false, slow: 0, attack: 0, echo: 0, enraged: false, phase: irandom(160),
+        elite: _elite, final_phase: 0, transition: 0, tided: false, summoned: _summoned});
     lk_ring(_x, _y, _tint, _elite ? 27 : 18, 24);
 }
 
@@ -122,6 +129,7 @@ function lk_spawn_wave() {
         lk_sound(snd_gate, .93);
         return;
     }
+    if (cell.kind == LK_ROOM.Fight && lk_spawn_objective_wave()) return;
     var _count = 4 + min(floor_no, 3) + min(wave - 1, 1) + irandom(1) + min(run_cycle, 2);
     var _pools = [
         [LK_ENEMY.Skulk, LK_ENEMY.Skulk, LK_ENEMY.Spitter, LK_ENEMY.Charger, LK_ENEMY.Sentry],
@@ -132,12 +140,12 @@ function lk_spawn_wave() {
     ];
     var _pool = _pools[floor_no];
     var _style = cell.encounter;
-    if (_style == 2) {
+    if (_style == LK_FIGHT.EliteHunt) {
         var _type = [LK_ENEMY.Charger, LK_ENEMY.Bruiser, LK_ENEMY.Leech, LK_ENEMY.Harpoon, LK_ENEMY.Monk][floor_no];
         lk_spawn(_type, 176, 120, true);
         lk_spawn(_type, 304, 167, true);
         _count = 2 + min(floor_no, 2);
-    } else if (_style == 4) {
+    } else if (_style == LK_FIGHT.Swarm) {
         _count += 2;
     }
 
@@ -150,24 +158,24 @@ function lk_spawn_wave() {
         var _elite = _i < min(run_cycle, 2);
         var _px = -1;
         var _py = -1;
-        if (_later && _style == 1 && _i == _count - 1) {
+        if (_later && _style == LK_FIGHT.Crossfire && _i == _count - 1) {
             // One roaming enemy can flush the keeper out of cover between the two firing lines.
             _kind = _front[floor_no];
-        } else if (_style == 1) {
+        } else if (_style == LK_FIGHT.Crossfire) {
             var _left = [LK_ENEMY.Spitter, LK_ENEMY.Sentry, LK_ENEMY.Wisp, LK_ENEMY.Harpoon, LK_ENEMY.Monk];
             var _right = [LK_ENEMY.Sentry, LK_ENEMY.Spitter, LK_ENEMY.Sentry, LK_ENEMY.Prism, LK_ENEMY.Harpoon];
             _kind = _i mod 2 == 0 ? _left[floor_no] : _right[floor_no];
             _px = (_i mod 2 == 0) ? 85 : 395;
             _py = 80 + (floor(_i / 2) mod 5) * 28;
             if (point_distance(player.px, player.py, _px, _py) < 52 || !is_undefined(lk_prop_at(_px, _py, 11))) _px = -1;
-        } else if (_style == 4) {
+        } else if (_style == LK_FIGHT.Swarm) {
             var _rushers = [LK_ENEMY.Skulk, LK_ENEMY.Charger, LK_ENEMY.Leech, LK_ENEMY.Prism, LK_ENEMY.Bruiser];
             _kind = _rushers[floor_no];
         } else if (depth_no == 0 && cell_index == 1 && _i < 2) {
             _kind = LK_ENEMY.Skulk;
-        } else if (_later && (_style == 0 || _style == 3) && _i < 2) {
+        } else if (_later && (_style == LK_FIGHT.Ambush || _style == LK_FIGHT.Rupture) && _i < 2) {
             _kind = _i == 0 ? _front[floor_no] : _back[floor_no];
-        } else if (_later && _style == 2 && _i == 0) {
+        } else if (_later && _style == LK_FIGHT.EliteHunt && _i == 0) {
             _kind = floor_no < 3 ? _back[floor_no] : _front[floor_no];
         }
         lk_spawn(_kind, _px, _py, _elite);
@@ -180,7 +188,7 @@ function lk_spawn_wave() {
 }
 
 function lk_finish_wave() {
-    if (cell.clear || array_length(enemies) > 0 || wave_wait >= 0) return;
+    if (cell.clear || array_length(enemies) > 0 || wave_wait >= 0 || seals_left > 0) return;
     if (wave < wave_count) {
         wave_wait = 50;
         return;
@@ -219,7 +227,7 @@ function lk_finish_wave() {
     } else {
         banner = "ROOM CLEAR";
         if (irandom(5) == 0 || (player.hp <= 2 && irandom(1) == 0)) lk_drop(LK_LOOT.Heart, 240, 145, 2);
-        if (cell.encounter == 2 || irandom(5) == 0) {
+        if (cell.encounter == LK_FIGHT.EliteHunt || irandom(5) == 0) {
             lk_drop(LK_LOOT.Weapon, 240, 152, irandom_range(1, array_length(weapons) - 1));
         }
     }
@@ -294,10 +302,14 @@ function lk_enemy_damage(_enemy, _power, _angle, _quiet = false) {
     if (_enemy.kind == LK_ENEMY.Boss) {
         var _rank = lk_relic_rank(LK_RELIC.Crown);
         if (_rank > 0) _power = ceil(_power * (_rank == 1 ? 1.25 : 1.40));
+        if (floor_no == 4) {
+            _power = lk_crown_damage(_enemy, _power);
+            if (_power <= 0) return;
+        }
     }
     _enemy.hp -= _power;
     _enemy.hit = 7;
-    if (_enemy.kind != LK_ENEMY.Boss) {
+    if (_enemy.kind != LK_ENEMY.Boss && !lk_stationary_enemy(_enemy.kind)) {
         lk_move(_enemy, lengthdir_x(2.3, _angle), lengthdir_y(2.3, _angle), _enemy.radius);
     }
     lk_sparks(_enemy.px, _enemy.py - 6, _enemy.color, 4, 1.5);
@@ -305,9 +317,12 @@ function lk_enemy_damage(_enemy, _power, _angle, _quiet = false) {
     if (!_quiet) lk_sound(snd_hit, random_range(.87, 1.18));
     if (_enemy.hp > 0) return;
     _enemy.alive = false;
-    kills += 1;
-    lk_relic_on_kill(_enemy.px, _enemy.py);
-    if (player.fury > 0 && kills mod 3 == 0) player.hp = min(player.max_hp, player.hp + 1);
+    if (_enemy.kind == LK_ENEMY.Fractureling) lk_fracture(_enemy, _angle);
+    if (!_enemy.summoned) {
+        kills += 1;
+        lk_relic_on_kill(_enemy.px, _enemy.py);
+        if (player.fury > 0 && kills mod 3 == 0) player.hp = min(player.max_hp, player.hp + 1);
+    }
     var _collapse = _enemy.kind == LK_ENEMY.Boss ? 33 : 18;
     array_push(particles, {px: _enemy.px, py: _enemy.py, dx: 0, dy: 0, life: _collapse,
         max_life: _collapse, color: _enemy.color, size: 0, kind: 5, angle: _enemy.facing, foe: _enemy.kind});
@@ -316,6 +331,7 @@ function lk_enemy_damage(_enemy, _power, _angle, _quiet = false) {
     lk_ring(_enemy.px, _enemy.py, _enemy.color, _enemy.kind == LK_ENEMY.Boss ? 64 : 15, 20);
     shaking = max(shaking, _enemy.kind == LK_ENEMY.Boss ? 12 : 3);
     lk_sparks(_enemy.px, _enemy.py - 5, _enemy.color, _enemy.kind == LK_ENEMY.Boss ? 58 : 14, 2.7);
+    if (_enemy.summoned) return;
     var _gold = _enemy.kind == LK_ENEMY.Boss ? 14 + lk_relic_rank(LK_RELIC.Due) * 6 : (_enemy.elite ? 5 : irandom_range(1, 2));
     lk_drop(LK_LOOT.Coin, _enemy.px, _enemy.py, _gold);
     if (irandom(3) == 0) lk_drop(LK_LOOT.Energy, _enemy.px + 8, _enemy.py - 4, 9);
@@ -689,6 +705,22 @@ function lk_enemy_step(_e) {
     }
     if (_e.kind == LK_ENEMY.Boss) {
         lk_boss_step(_e, _toward, _range);
+    } else if (_e.kind == LK_ENEMY.BroodHusk) {
+        lk_brood_step(_e);
+        if (_range < _e.radius + 5) lk_player_hurt(1);
+        return;
+    } else if (_e.kind == LK_ENEMY.Bulwark) {
+        lk_bulwark_step(_e, _toward, _range);
+        if (point_distance(_e.px, _e.py, player.px, player.py) < _e.radius + 5) {
+            lk_player_hurt(_e.dash > 0 ? 2 : 1);
+        }
+        return;
+    } else if (_e.kind == LK_ENEMY.FurnaceAnchor) {
+        lk_anchor_step(_e);
+    } else if (_e.kind == LK_ENEMY.Bellkeeper || _e.kind == LK_ENEMY.Cauteriser || _e.kind == LK_ENEMY.Threadbinder) {
+        lk_support_step(_e, _toward, _range);
+    } else if (_e.kind == LK_ENEMY.Fractureling && _e.dash == 0 && _e.tell == 0) {
+        lk_enemy_walk(_e, 1.35, _toward + dsin(world_tick * 8 + _e.phase) * 35);
     } else if (_e.dash > 0) {
         lk_enemy_walk(_e, _e.kind == LK_ENEMY.Leech ? 3.65 : (_e.kind == LK_ENEMY.Skulk ? 2.65 : 3.1), _e.angle);
         _e.dash -= 1;
@@ -854,7 +886,7 @@ function lk_enemy_step(_e) {
     if (_range < _e.radius + 5) lk_player_hurt(_e.dash > 0 || _e.kind == LK_ENEMY.Boss || _e.kind == LK_ENEMY.Bruiser ? 2 : 1);
 
     // Soft separation prevents moving enemies from collapsing into one sprite.
-    if (_e.kind != LK_ENEMY.Boss && _e.dash == 0) {
+    if (_e.kind != LK_ENEMY.Boss && !lk_stationary_enemy(_e.kind) && _e.dash == 0) {
         for (var _j = 0; _j < array_length(enemies); _j++) {
             var _other = enemies[_j];
             if (_other == _e || !_other.alive) continue;
@@ -955,6 +987,15 @@ function lk_shot_step(_b) {
                 if (point_distance(_b.px, _b.py, _e.px, _e.py) >= _e.radius + _b.radius) continue;
                 if (_b.kind == LK_SHOT.Blast || _b.kind == LK_SHOT.Vial || _b.kind == LK_SHOT.Mortar) {
                     lk_shot_impact(_b);
+                    return false;
+                }
+                if (lk_bulwark_blocks(_e, _b)) {
+                    lk_sparks(_b.px, _b.py - 4, C_TEAL, 5, 1.2);
+                    lk_sound(snd_shield, 1.16);
+                    if (_disc && !_b.returning) {
+                        lk_disc_turn(_b);
+                        return true;
+                    }
                     return false;
                 }
                 lk_enemy_damage(_e, _b.damage, _b.angle);
@@ -1084,6 +1125,7 @@ function lk_play_step() {
         lk_interact(lk_interaction());
         if (mode != LK_MODE.Play) return;
     }
+    lk_seals_step();
     for (var _i = array_length(enemies) - 1; _i >= 0; _i--) {
         if (enemies[_i].alive) lk_enemy_step(enemies[_i]);
         else array_delete(enemies, _i, 1);
