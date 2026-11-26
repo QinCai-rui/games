@@ -539,7 +539,7 @@ function lk_player_hurt(_power) {
     }
     player.hp = max(0, player.hp - _power);
     lk_armor_timer(lk_combat_armor_enabled() ? LK_ARMOR_FIRST_REPAIR : 150);
-    player.hurt = 40;
+    player.hurt = 32;
     flash_screen = 9;
     shaking = 7;
     lk_sparks(player.px, player.py - 8, C_PINK, 12, 2.0);
