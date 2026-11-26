@@ -145,55 +145,196 @@ function lk_meter(_label, _x, _y, _width, _amount, _limit, _color, _segments, _r
     }
 }
 
-function lk_minimap() {
-    var _bx = 420;
-    var _by = 16;
-    var _min_x = 0;
-    var _max_x = 0;
-    var _min_y = 0;
-    var _max_y = 0;
+#macro LK_MAP_LEFT 350
+#macro LK_MAP_RIGHT 474
+#macro LK_MAP_BOTTOM 49
+
+function lk_map_key() {
+    return keyboard_check_pressed(ord("G")) || (pad >= 0 && gamepad_button_check_pressed(pad, gp_select));
+}
+
+function lk_minimap_hover() {
+    return pointer_inside && pointer_x >= LK_MAP_LEFT && pointer_x <= LK_MAP_RIGHT
+        && pointer_y >= 2 && pointer_y <= LK_MAP_BOTTOM;
+}
+
+function lk_map_close_hover() {
+    return pointer_inside && pointer_x >= 359 && pointer_x <= 451 && pointer_y >= 18 && pointer_y <= 42;
+}
+
+function lk_map_visible_rooms() {
+    var _visible = array_create(array_length(dungeon), false);
     for (var _i = 0; _i < array_length(dungeon); _i++) {
-        var _node = dungeon[_i];
-        _min_x = min(_min_x, _node.gx);
-        _max_x = max(_max_x, _node.gx);
-        _min_y = min(_min_y, _node.gy);
-        _max_y = max(_max_y, _node.gy);
+        var _room = dungeon[_i];
+        if (!_room.visited && _i != cell_index) continue;
+        _visible[_i] = true;
+        for (var _dir = 0; _dir < 4; _dir++) {
+            var _next = _room.exits[_dir];
+            if (_next >= 0) _visible[_next] = true;
+        }
     }
-    var _step = min(9, floor(23 / max(1, _max_y - _min_y)), floor(96 / max(1, _max_x - _min_x)));
-    var _radius = min(2, floor((_step - 1) * .5));
-    _bx -= (_min_x + _max_x) * _step * .5;
-    _by -= (_min_y + _max_y) * _step * .5;
+    return _visible;
+}
+
+function lk_map_bounds(_visible) {
+    var _bounds = {left: cell.gx, right: cell.gx, top: cell.gy, bottom: cell.gy};
     for (var _i = 0; _i < array_length(dungeon); _i++) {
-        var _node = dungeon[_i];
-        if (!_node.visited) continue;
-        var _x = round(_bx + _node.gx * _step);
-        var _y = round(_by + _node.gy * _step);
-        for (var _j = 0; _j < 4; _j++) {
-            var _target = _node.exits[_j];
-            if (_target < 0) continue;
-            var _n = dungeon[_target];
-            var _tx = round(_bx + _n.gx * _step);
-            var _ty = round(_by + _n.gy * _step);
-            lk_line(_x, _y, _tx, _ty, C_EDGE);
-            if (!_n.visited) {
-                var _hint = _n.kind != LK_ROOM.Fight || lk_route_role(_n) != LK_ROUTE_ROOM.None ? lk_route_room_color(_n) : C_EDGE;
-                var _size = min(1, _radius);
-                lk_rect(_tx - _size, _ty - _size, _tx + _size, _ty + _size, _hint);
-            }
+        if (!_visible[_i]) continue;
+        var _room = dungeon[_i];
+        _bounds.left = min(_bounds.left, _room.gx);
+        _bounds.right = max(_bounds.right, _room.gx);
+        _bounds.top = min(_bounds.top, _room.gy);
+        _bounds.bottom = max(_bounds.bottom, _room.gy);
+    }
+    return _bounds;
+}
+
+function lk_map_pitch(_bounds, _width, _height, _room_space) {
+    return floor(min(_width / max(1, _bounds.right - _bounds.left + _room_space),
+        _height / max(1, _bounds.bottom - _bounds.top + _room_space)));
+}
+
+function lk_map_layout(_x1, _y1, _x2, _y2, _full) {
+    var _visible = lk_map_visible_rooms();
+    var _padding = _full ? 2 : 5;
+    var _width = _x2 - _x1 - _padding * 2;
+    var _height = _y2 - _y1 - _padding * 2;
+    var _bounds = lk_map_bounds(_visible);
+    // The full view reserves a fraction of a grid cell for the outer rooms.
+    var _pitch = lk_map_pitch(_bounds, _width, _height, _full ? .75 : 0);
+    // Keep a corridor gap at HUD size. The stage map always fits every visible room.
+    if (!_full && _pitch < 10) {
+        var _columns = floor(_width / 20);
+        var _rows = floor(_height / 20);
+        for (var _i = 0; _i < array_length(dungeon); _i++) {
+            var _room = dungeon[_i];
+            _visible[_i] = _visible[_i] && abs(_room.gx - cell.gx) <= _columns && abs(_room.gy - cell.gy) <= _rows;
+        }
+        _bounds = lk_map_bounds(_visible);
+        _pitch = lk_map_pitch(_bounds, _width, _height, 0);
+    }
+    _pitch = min(_full ? 38 : 14, max(1, _pitch));
+    return {
+        visible: _visible,
+        pitch: _pitch,
+        radius: min(_full ? 10 : 4, floor(_pitch * .35)),
+        x: round((_x1 + _x2 - (_bounds.left + _bounds.right) * _pitch) * .5),
+        y: round((_y1 + _y2 - (_bounds.top + _bounds.bottom) * _pitch) * .5)
+    };
+}
+
+function lk_map_room_mark(_room) {
+    var _role = lk_route_role(_room);
+    if (_role == LK_ROUTE_ROOM.Trial || _role == LK_ROUTE_ROOM.High) return "!";
+    switch (_room.kind) {
+        case LK_ROOM.Boss: return "B";
+        case LK_ROOM.Cache:
+        case LK_ROOM.Armory:
+        case LK_ROOM.SupplyPost: return "C";
+        case LK_ROOM.Shop: return "$";
+        case LK_ROOM.Shrine:
+        case LK_ROOM.SparkShrine: return "+";
+        case LK_ROOM.Forge:
+        case LK_ROOM.TemperRelay: return "F";
+        case LK_ROOM.Relic: return "R";
+        case LK_ROOM.Gauntlet:
+        case LK_ROOM.Duel: return "!";
+    }
+    return "";
+}
+
+function lk_map_room_tile(_x, _y, _r, _color, _visited, _current, _mark = "") {
+    lk_rect(_x - _r, _y - _r, _x + _r, _y + _r, _visited ? merge_color(C_DEEP, _color, .48) : C_INK);
+    lk_border(_x - _r, _y - _r, _x + _r, _y + _r, _current ? C_TEAL : _color);
+    if (_current) lk_diamond(_x, _y, _r >= 6 ? 3 : 2, C_PAPER);
+    else if (_mark != "") lk_text_center(_mark, _x, _y - 5, _visited ? C_PAPER : _color);
+}
+
+function lk_map_corridor(_x, _y, _tx, _ty, _thickness, _color, _locked) {
+    var _left = min(_x, _tx);
+    var _top = min(_y, _ty);
+    var _right = max(_x, _tx) + (_x == _tx ? _thickness - 1 : 0);
+    var _bottom = max(_y, _ty) + (_y == _ty ? _thickness - 1 : 0);
+    var _offset = floor((_thickness - 1) * .5);
+    if (_x == _tx) { _left -= _offset; _right -= _offset; }
+    if (_y == _ty) { _top -= _offset; _bottom -= _offset; }
+    lk_rect(_left, _top, _right, _bottom, _color);
+    if (_locked) {
+        var _mid_x = round((_x + _tx) * .5);
+        var _mid_y = round((_y + _ty) * .5);
+        var _dx = _x == _tx ? 1 : 0;
+        var _dy = 1 - _dx;
+        lk_rect(_mid_x - _dx * 2, _mid_y - _dy * 2, _mid_x + _dx * 2, _mid_y + _dy * 2, C_GOLD);
+    }
+}
+
+function lk_draw_map_graph(_layout, _full) {
+    for (var _i = 0; _i < array_length(dungeon); _i++) {
+        if (!_layout.visible[_i]) continue;
+        var _room = dungeon[_i];
+        var _x = _layout.x + _room.gx * _layout.pitch;
+        var _y = _layout.y + _room.gy * _layout.pitch;
+        for (var _dir = 0; _dir < 4; _dir++) {
+            var _next = _room.exits[_dir];
+            if (_next <= _i || !_layout.visible[_next]) continue;
+            var _target = dungeon[_next];
+            var _locked = !lk_route_entry_available(_room) || !lk_route_entry_available(_target);
+            var _active = _i == cell_index || _next == cell_index;
+            var _tint = !_locked && _active ? C_TEAL : C_MUTED;
+            lk_map_corridor(_x, _y, _layout.x + _target.gx * _layout.pitch, _layout.y + _target.gy * _layout.pitch,
+                _full ? 3 : 2, _tint, _locked);
         }
     }
     for (var _i = 0; _i < array_length(dungeon); _i++) {
-        var _n = dungeon[_i];
-        if (!_n.visited) continue;
-        var _x = round(_bx + _n.gx * _step);
-        var _y = round(_by + _n.gy * _step);
-        var _color = _n.kind == LK_ROOM.Fight || _n.kind == LK_ROOM.Landing
-            ? (!_n.clear ? C_PINK : C_MUTED) : lk_room_color(_n.kind);
-        if (lk_route_role(_n) != LK_ROUTE_ROOM.None) _color = lk_route_room_color(_n);
-        if (_i == cell_index) _color = C_TEAL;
-        lk_rect(_x - _radius, _y - _radius, _x + _radius, _y + _radius, _color);
-        if (_i == cell_index) lk_rect(_x, _y, _x, _y, C_PAPER);
+        if (!_layout.visible[_i]) continue;
+        var _room = dungeon[_i];
+        var _x = _layout.x + _room.gx * _layout.pitch;
+        var _y = _layout.y + _room.gy * _layout.pitch;
+        var _plain = lk_route_role(_room) == LK_ROUTE_ROOM.None && (_room.kind == LK_ROOM.Fight || _room.kind == LK_ROOM.Landing);
+        var _color = _plain ? (_room.visited && !_room.clear ? C_PINK : C_MUTED) : lk_route_room_color(_room);
+        var _mark = _full && _layout.radius >= 5 ? lk_map_room_mark(_room) : "";
+        lk_map_room_tile(_x, _y, _layout.radius, _color, _room.visited, _i == cell_index, _mark);
     }
+}
+
+function lk_minimap() {
+    var _hot = lk_minimap_hover();
+    lk_rect(LK_MAP_LEFT, 2, LK_MAP_RIGHT, LK_MAP_BOTTOM, C_INK);
+    lk_border(LK_MAP_LEFT, 2, LK_MAP_RIGHT, LK_MAP_BOTTOM, _hot ? C_TEAL : C_EDGE);
+    lk_line(381, 6, 381, 45, C_EDGE);
+    lk_text_center("MAP", 366, 10, C_PAPER);
+    lk_text_center(pad >= 0 ? "VIEW" : "G", 366, 27, C_TEAL);
+    lk_draw_map_graph(lk_map_layout(385, 6, 469, 45, false), false);
+}
+
+function lk_draw_stage_map() {
+    var _accent = lk_route_tint();
+    lk_panel(15, 10, 464, 257, true, _accent);
+    lk_text("STAGE MAP", 27, 17, _accent);
+    lk_text(lk_route_stage_name(), 27, 29, C_PAPER, true);
+    lk_button(pad >= 0 ? "VIEW CLOSE" : "G CLOSE", 359, 18, 451, lk_map_close_hover());
+
+    lk_rect(26, 51, 348, 221, C_INK);
+    lk_border(26, 51, 348, 221, C_EDGE);
+    lk_draw_map_graph(lk_map_layout(29, 54, 345, 218, true), true);
+
+    var _marks = ["B", "!", "C", "$", "+", "F", "R"];
+    var _labels = ["GUARDIAN", "ELITE / TRIAL", "SUPPLIES", "SHOP", "SHRINE", "FORGE", "RELIQUARY"];
+    var _colors = [C_PINK, C_PINK, C_GOLD, C_BLUE, C_LILAC, C_GOLD, C_LILAC];
+    for (var _i = 0; _i < array_length(_marks); _i++) {
+        var _y = 62 + _i * 23;
+        lk_map_room_tile(368, _y, 6, _colors[_i], false, false, _marks[_i]);
+        lk_text(_labels[_i], 382, _y - 5, C_PAPER);
+    }
+
+    lk_map_room_tile(34, 239, 4, C_TEAL, true, true);
+    lk_text("YOU", 44, 234, C_PAPER);
+    lk_map_room_tile(90, 239, 4, C_MUTED, true, false);
+    lk_text("VISITED", 100, 234, C_PAPER);
+    lk_map_room_tile(167, 239, 4, C_MUTED, false, false);
+    lk_text("UNVISITED", 177, 234, C_PAPER);
+    lk_map_corridor(253, 239, 272, 239, 3, C_MUTED, true);
+    lk_text("LOCKED", 280, 234, C_PAPER);
 }
 
 function lk_draw_hud() {
@@ -278,8 +419,8 @@ function lk_draw_hud() {
         lk_text_center("CLOSE SEALS " + string(array_length(room_seals) - seals_left) + " / 2", 134, 38, C_LILAC);
     } else if (banner_time > 0) {
         draw_set_alpha(min(1, banner_time / 20));
-        var _w = max(104, string_length(banner) * 7 + 20);
-        var _banner_x = _boss_room ? 346 : 134;
+        var _w = _boss_room ? max(92, string_length(banner) * 6 + 6) : max(104, string_length(banner) * 7 + 20);
+        var _banner_x = _boss_room ? 214 + _w / 2 : 134;
         lk_rect(_banner_x - _w / 2, 35, _banner_x + _w / 2, 52, C_INK);
         lk_line(_banner_x - _w / 2, 51, _banner_x + _w / 2, 51, C_EDGE);
         lk_text_center(banner, _banner_x, 38, cell.clear ? C_GOLD : C_PAPER, false);

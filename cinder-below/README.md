@@ -13,6 +13,7 @@ Cinder Below is a single-player pixel-art dungeon shooter for Linux. Clear each 
 | Pick up, interact, or confirm | E or Enter in menus | A |
 | Swap weapons | Tab or scroll. Press 1 or 2 for a slot. | X |
 | Pause | Esc | Start |
+| Open or close the stage map | G, or click the map | View or Select |
 | Toggle fullscreen | F11 | |
 | Switch between fit and whole-pixel scaling | F10 | |
 | Mute | M | |
@@ -45,6 +46,8 @@ Destroy the Crown of Cinders' Furnace Anchors to remove its damage resistance. A
 Sword doors lead to elites and a weapon reward. Arrow doors mark the lower-danger route. Get close to a door for a short label. On stages 4, 6, and 8, spend 7 gold to skip the elite fight. Optional trials loop back into the main route and lead to a reliquary starting in Mossvault.
 
 New players start with a guided tour. Prompts appear as you learn the controls and reach rooms with new mechanics. Press **H** or **Y** to skip during a run. To replay the tour, turn it on from the keeper selection screen before descending.
+
+Open the stage map to pause and see all visited rooms, rooms visible through known doors, and the corridors between them. The HUD map zooms in around your room when the stage map is too large to read in the corner.
 
 Examine three inscriptions in Root Gates to open the Buried Archive for 9 gold after Mossvault. Take the spindle from the optional Sluice Machinery fight in Veil Tunnels to open the Drowned Furnace after the Hollow. These routes replace Emberworks and Glassfen for the run. Briar Matron and the Split Regent can also appear in regular stages.
 

@@ -74,11 +74,13 @@ function lk_build_route_choices(_forward, _side) {
 
 function lk_route_door_available(_dir) {
     var _next = cell.exits[_dir];
-    if (_next < 0) return false;
-    var _target = dungeon[_next];
-    switch (lk_route_role(_target)) {
-        case LK_ROUTE_ROOM.Toll: return _target.toll_paid;
-        case LK_ROUTE_ROOM.CircuitReward: return dungeon[_target.route_trial].clear;
+    return _next >= 0 && lk_route_entry_available(dungeon[_next]);
+}
+
+function lk_route_entry_available(_room) {
+    switch (lk_route_role(_room)) {
+        case LK_ROUTE_ROOM.Toll: return _room.toll_paid;
+        case LK_ROUTE_ROOM.CircuitReward: return dungeon[_room.route_trial].clear;
     }
     return true;
 }
