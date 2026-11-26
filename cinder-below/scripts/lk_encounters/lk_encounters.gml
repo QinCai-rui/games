@@ -14,9 +14,9 @@ function lk_waystation_offer(_index) {
     var _offer = {kind: "waystation", index: _index, px: 181 + _index * 118, py: 137,
         label: "", detail: "", caption: "", tint: C_GOLD, icon: LK_LOOT.Coin, value: 10};
     if (cell.kind == LK_ROOM.Armory) {
-        var _pool = array_length(weapons) - 2;
-        var _offset = _index == 0 ? 0 : 1 + cell.seed mod (_pool - 1);
-        var _weapon = 2 + (cell.stock - 2 + _offset) mod _pool;
+        var _first = cell.stock;
+        var _weapon = _index == 0 ? _first :
+            lk_weapon_stock(LK_STOCK.Cache, cell.seed * 13, _first, lk_armory_group(_first));
         var _rank = cell.stock_temper;
         _offer.icon = LK_LOOT.Weapon;
         _offer.value = _weapon;
@@ -52,10 +52,9 @@ function lk_claim_waystation(_index) {
     var _offer = lk_waystation_offer(_index);
     var _slot = player.slot;
     if (cell.kind == LK_ROOM.Armory) {
-        lk_drop(LK_LOOT.Weapon, _offer.px, _offer.py + 13, player.arms[_slot], player.temper[_slot]);
-        player.arms[_slot] = _offer.value;
-        player.temper[_slot] = cell.stock_temper;
-        lk_remember_weapon(_offer.value);
+        lk_drop(LK_LOOT.Weapon, _offer.px, _offer.py + 13, player.arms[_slot],
+            player.temper[_slot], player.attachments[_slot]);
+        lk_equip_weapon(_slot, _offer.value, cell.stock_temper);
     } else if (cell.kind == LK_ROOM.TemperRelay && _index == 0) {
         var _source = 1 - _slot;
         if (player.temper[_source] == 0 || player.temper[_slot] >= 3) return false;
@@ -68,6 +67,7 @@ function lk_claim_waystation(_index) {
         player.coins += _offer.value;
     }
     cell.opened = true;
+    lk_unstable_roll();
     lk_sparks(_offer.px, _offer.py - 8, _offer.tint, 22, 1.6);
     return true;
 }
@@ -76,16 +76,47 @@ function lk_rupture_room() {
     return cell.kind == LK_ROOM.Fight && cell.encounter == LK_FIGHT.Rupture;
 }
 
+function lk_deal_alternate_encounters(_variant) {
+    var _first = _variant == 1 ? LK_FIGHT.IndexGuard : LK_FIGHT.IntakeWatch;
+    var _high = 4 + irandom(1);
+    var _low = irandom(1);
+    var _bag = [];
+    for (var _i = 0; _i < 6; _i++) {
+        if (_i != _high && _i != _low) array_push(_bag, _i);
+    }
+    for (var _i = 1; _i < array_length(dungeon); _i++) {
+        var _room = dungeon[_i];
+        if (_room.kind != LK_ROOM.Fight) continue;
+        switch (lk_route_role(_room)) {
+            case LK_ROUTE_ROOM.High: _room.encounter = _first + _high; break;
+            case LK_ROUTE_ROOM.Low: _room.encounter = _first + _low; break;
+            default:
+                // Longer contracts can use every template before the deck repeats.
+                if (array_length(_bag) == 0) _bag = [0, 1, 2, 3, 4, 5];
+                var _deal = irandom(array_length(_bag) - 1);
+                _room.encounter = _first + _bag[_deal];
+                array_delete(_bag, _deal, 1);
+                break;
+        }
+    }
+}
+
 function lk_deal_encounters() {
+    var _variant = lk_route_variant();
+    if (_variant > 0) {
+        lk_deal_alternate_encounters(_variant);
+        return;
+    }
     var _bag = [];
     var _layouts = [];
     var _first_depth = [0, 1, 1, 1, 1, 0, 0, 1, 2, 3, 4, 6, 6];
     for (var _id = 0; _id < array_length(_first_depth); _id++) {
-        if (depth_no >= _first_depth[_id]) array_push(_bag, _id);
+        if (depth_no >= _first_depth[_id] && _id != LK_FIGHT.EliteHunt
+            && _id != LK_FIGHT.Swarm) array_push(_bag, _id);
         if (_id < 10) array_push(_layouts, _id);
     }
     var _showcase = [
-        [LK_FIGHT.Ambush, LK_FIGHT.ShieldLine, LK_FIGHT.BroodNest],
+        [LK_FIGHT.Ambush, LK_FIGHT.ShieldLine],
         [LK_FIGHT.TwinSeals], [LK_FIGHT.RelayGuard], [LK_FIGHT.HeatWorks],
         [LK_FIGHT.ThreadedCrossing], [],
         [LK_FIGHT.ShatteredColonnade, LK_FIGHT.ThreadedCrossing, LK_FIGHT.FloodPulse],
@@ -99,6 +130,11 @@ function lk_deal_encounters() {
     for (var _i = 1; _i < array_length(dungeon); _i++) {
         var _room = dungeon[_i];
         if (_room.kind != LK_ROOM.Fight) continue;
+        var _role = lk_route_role(_room);
+        if (_role == LK_ROUTE_ROOM.High || _role == LK_ROUTE_ROOM.Low) {
+            _room.encounter = _role == LK_ROUTE_ROOM.High ? LK_FIGHT.EliteHunt : LK_FIGHT.Swarm;
+            continue;
+        }
         var _deal = 0;
         if (_index < array_length(_showcase)) {
             while (_bag[_deal] != _showcase[_index]) _deal += 1;
@@ -126,6 +162,37 @@ function lk_deal_encounters() {
 }
 
 function lk_furnish_objective_room(_room) {
+    if (_room.encounter >= LK_FIGHT.IndexGuard) {
+        var _pattern = (_room.encounter - LK_FIGHT.IndexGuard) mod 2;
+        if (_room.encounter < LK_FIGHT.IntakeWatch) {
+            if (_pattern == 0) {
+                // Parallel shelves give ranged enemies cover on both sides of the aisle.
+                for (var _i = 0; _i < 3; _i++) {
+                    lk_add_prop(_room, 184 + _i * 56, 112, _i == 1 ? 2 : 1);
+                    lk_add_prop(_room, 184 + _i * 56, 174, _i == 1 ? 1 : 2);
+                }
+            } else {
+                // The central wall can be breached at either end.
+                lk_add_prop(_room, 240, 104, 2);
+                lk_add_prop(_room, 240, 127, 1);
+                lk_add_prop(_room, 240, 159, 1);
+                lk_add_prop(_room, 240, 182, 2);
+                lk_add_prop(_room, 150, 111, 2);
+                lk_add_prop(_room, 330, 175, 2);
+            }
+        } else if (_pattern == 0) {
+            lk_add_prop(_room, 141, 141, 1);
+            lk_add_prop(_room, 339, 141, 1);
+            lk_add_prop(_room, 186, 111, 0);
+            lk_add_prop(_room, 294, 175, 0);
+        } else {
+            lk_add_prop(_room, 201, 106, 1);
+            lk_add_prop(_room, 279, 180, 1);
+            lk_add_prop(_room, 172, 180, 2);
+            lk_add_prop(_room, 308, 106, 2);
+        }
+        return true;
+    }
     switch (_room.encounter) {
         case LK_FIGHT.ShieldLine:
             lk_add_prop(_room, 240, 97, 1);
@@ -205,7 +272,41 @@ function lk_seals_step() {
     lk_ring(_seal.px, _seal.py, C_LILAC, 26, 24);
 }
 
+function lk_spawn_alternate_wave() {
+    var _lineups = [
+        [LK_ENEMY.Bulwark, LK_ENEMY.Sentry, LK_ENEMY.Charger, LK_ENEMY.Spitter],
+        [LK_ENEMY.Sentry, LK_ENEMY.Spitter, LK_ENEMY.BroodHusk, LK_ENEMY.Skulk],
+        [LK_ENEMY.BroodHusk, LK_ENEMY.Bulwark, LK_ENEMY.Skulk, LK_ENEMY.Skulk, LK_ENEMY.Wisp],
+        [LK_ENEMY.Charger, LK_ENEMY.Sentry, LK_ENEMY.Bellkeeper, LK_ENEMY.Bulwark, LK_ENEMY.Charger],
+        [LK_ENEMY.Bulwark, LK_ENEMY.Sentry, LK_ENEMY.Cauteriser, LK_ENEMY.Sentry, LK_ENEMY.Bruiser],
+        [LK_ENEMY.Fractureling, LK_ENEMY.Wisp, LK_ENEMY.Threadbinder, LK_ENEMY.Wisp, LK_ENEMY.Charger],
+        [LK_ENEMY.Bruiser, LK_ENEMY.Harpoon, LK_ENEMY.Prism, LK_ENEMY.Harpoon, LK_ENEMY.Leech],
+        [LK_ENEMY.Fractureling, LK_ENEMY.Leech, LK_ENEMY.Prism, LK_ENEMY.Wisp, LK_ENEMY.Prism],
+        [LK_ENEMY.Bulwark, LK_ENEMY.Harpoon, LK_ENEMY.Bellkeeper, LK_ENEMY.Cauteriser, LK_ENEMY.Leech],
+        [LK_ENEMY.Prism, LK_ENEMY.Harpoon, LK_ENEMY.Threadbinder, LK_ENEMY.Prism, LK_ENEMY.Wisp],
+        [LK_ENEMY.Bulwark, LK_ENEMY.Prism, LK_ENEMY.Bellkeeper, LK_ENEMY.Harpoon, LK_ENEMY.Fractureling, LK_ENEMY.Bruiser],
+        [LK_ENEMY.Fractureling, LK_ENEMY.Prism, LK_ENEMY.Cauteriser, LK_ENEMY.Harpoon, LK_ENEMY.Cauteriser, LK_ENEMY.Prism]
+    ];
+    var _index = cell.encounter - LK_FIGHT.IndexGuard;
+    var _enemies = _lineups[_index];
+    var _side = player.px <= 240 ? 1 : -1;
+    var _far_y = player.py < KEEP_MID_Y ? 184 : 100;
+    var _near_y = 284 - _far_y;
+    var _rows = [KEEP_MID_Y, _far_y, _near_y, _near_y, _far_y, KEEP_MID_Y];
+    var _offsets = [61, 131, 128, -105, -103, -38];
+    var _high = lk_route_role(cell) == LK_ROUTE_ROOM.High;
+    for (var _i = 0; _i < array_length(_enemies); _i++) {
+        var _x = 240 + _offsets[_i] * _side;
+        var _y = _rows[_i];
+        if (point_distance(player.px, player.py, _x, _y) < 53 || !is_undefined(lk_prop_at(_x, _y, 15))) _x = -1;
+        lk_spawn(_enemies[_i], _x, _y, (_high && _i == 0) || _i < min(run_cycle, 2));
+    }
+    lk_sound(snd_gate, 1.12);
+    return true;
+}
+
 function lk_spawn_objective_wave() {
+    if (cell.encounter >= LK_FIGHT.IndexGuard) return lk_spawn_alternate_wave();
     var _ranged = [LK_ENEMY.Spitter, LK_ENEMY.Sentry, LK_ENEMY.Wisp, LK_ENEMY.Prism, LK_ENEMY.Harpoon][floor_no];
     var _pursuer = [LK_ENEMY.Skulk, LK_ENEMY.Charger, LK_ENEMY.Leech, LK_ENEMY.Prism, LK_ENEMY.Bruiser][floor_no];
     var _side = player.px <= 240 ? 1 : -1;
@@ -410,10 +511,46 @@ function lk_rupture_vent(_side) {
     return _side == 0 ? {px: 153, py: 174} : {px: 327, py: 112};
 }
 
+function lk_alternate_room_hazards(_archive, _pattern) {
+    if (_archive && _pattern == 0) {
+        var _x = hazard_side == 0 ? 151 : 329;
+        lk_field(_x, 112, 1, 42, 1, 26, C_LILAC, true);
+        lk_field(480 - _x, 174, 1, 42, 1, 26, C_LILAC, true);
+    } else if (_archive) {
+        var _x = hazard_side == 0 ? 192 : 288;
+        lk_lane(_x, KEEP_TOP, _x, KEEP_BOTTOM, 8, 44, 27, 1, C_LILAC);
+    } else if (_pattern == 0) {
+        for (var _i = hazard_side; _i < 3; _i += 2) {
+            var _y = 87 + _i * 56;
+            lk_lane(KEEP_LEFT, _y, KEEP_RIGHT, _y, 16, 51, 42, 2, C_BLUE);
+        }
+    } else {
+        for (var _i = hazard_side; _i < 4; _i += 2) {
+            var _x = 109 + _i * 87;
+            lk_lane(_x, KEEP_TOP, _x, KEEP_BOTTOM, 9, 36 + _i * 9, 43, 2, C_TEAL);
+        }
+    }
+    hazard_side = 1 - hazard_side;
+    hazard_wait = _archive ? 157 : 133;
+}
+
 function lk_room_hazard_step() {
+    if (cell.clear) return;
+    var _alternate = cell.kind == LK_ROOM.Fight && cell.encounter >= LK_FIGHT.IndexGuard;
+    var _machinery = cell.kind == LK_ROOM.Gauntlet && depth_no == 4 && lk_route_mark_id() == 3;
+    if (_alternate || _machinery) {
+        if (wave > 0) {
+            hazard_wait -= 1;
+            if (hazard_wait <= 0) {
+                var _pattern = _machinery ? wave mod 2 : (cell.encounter - LK_FIGHT.IndexGuard) mod 2;
+                lk_alternate_room_hazards(_alternate && cell.encounter < LK_FIGHT.IntakeWatch, _pattern);
+            }
+        }
+        return;
+    }
     var _rupture = lk_rupture_room();
     var _flood = cell.kind == LK_ROOM.Fight && cell.encounter == LK_FIGHT.FloodPulse && wave > 0;
-    if (cell.clear || (!_rupture && !_flood && cell.kind != LK_ROOM.Gauntlet)) return;
+    if (!_rupture && !_flood && cell.kind != LK_ROOM.Gauntlet) return;
     hazard_wait -= 1;
     if (hazard_wait > 0) return;
     if (_rupture) {
@@ -541,6 +678,7 @@ function lk_sanctum_pattern(_e, _phase_two) {
 }
 
 function lk_boss_ability(_e) {
+    if (_e.guardian != LK_GUARDIAN.Original) return lk_guardian_ability(_e);
     if (_e.transition > 0) return _e.final_phase == 1 ? "FURNACE ANCHORS" : "ANCHOR OVERLOAD";
     if (_e.tell <= 0) return "";
     if (floor_no == 4) {

@@ -10,6 +10,13 @@ music_voices = [];
 music_gain = .82;
 music_fade_in = 0;
 weapons = lk_weapons();
+fittings = lk_fittings();
+fusion_recipes = lk_fusion_recipes();
+discovery_catalog = lk_discovery_catalog();
+discoveries = array_create(array_length(discovery_catalog), false);
+modifier_catalog = lk_modifier_catalog();
+chosen_modifier = LK_OMEN.None;
+use_alt_loadout = false;
 heroes = [
     {name: "WARDEN", hp: 6, armor: 5, speed: 1.86, arms: [0, 1], skill: "TWIN FLAME", recharge: 420,
         note: "FIRE AN EXTRA SHOT FOR 4 SECONDS.", tint: C_TEAL},
@@ -36,7 +43,7 @@ boss_titles = ["WARDEN OF THE ROOT GATES", "HEART OF THE MOSSVAULT", "SIEGE ENGI
 boons = [
     {name: "IRON BARK", short: "BARK", note: "+2 MAX ARMOR. REFILL ARMOR.", max_rank: 3, tint: C_TEAL},
     {name: "BLOODROOT", short: "BLOOD", note: "+2 MAX HEALTH. HEAL 3.", max_rank: 3, tint: C_PINK},
-    {name: "COAL HEART", short: "COAL", note: "+25% WEAPON DAMAGE.", max_rank: 3, tint: C_GOLD},
+    {name: "COAL HEART", short: "COAL", note: "+20% WEAPON DAMAGE.", max_rank: 3, tint: C_GOLD},
     {name: "QUICKEN", short: "QUICK", note: "SHOOT AND RECAST SKILLS FASTER.", max_rank: 3, tint: C_LILAC},
     {name: "DEEP CELL", short: "CELL", note: "+30 MAX ENERGY. REFILL ENERGY.", max_rank: 3, tint: C_BLUE},
     {name: "FLEETFOOT", short: "FLEET", note: "+15% MOVEMENT SPEED.", max_rank: 3, tint: C_MINT},
@@ -52,7 +59,15 @@ boons = [
     {name: "STILL WICK", short: "WICK", note: "KEEPER SKILL COOLDOWN IS 12% SHORTER.",
         upgrade: "KEEPER SKILL COOLDOWN IS 24% SHORTER.", max_rank: 2, tint: C_TEAL},
     {name: "SALVAGER", short: "SALV", note: "GAIN 2 GOLD PER COMBAT CLEAR.",
-        upgrade: "GAIN 4 GOLD PER COMBAT CLEAR.", max_rank: 2, tint: C_GOLD}
+        upgrade: "GAIN 4 GOLD PER COMBAT CLEAR.", max_rank: 2, tint: C_GOLD},
+    {name: "AFTERSTROKE", short: "AFTER", note: "A MELEE HIT BOOSTS YOUR NEXT RANGED ATTACK.", max_rank: 1, tint: C_PINK},
+    {name: "KINDLED STEP", short: "STEP", note: "MOVEMENT IN COMBAT CHARGES YOUR NEXT ATTACK.", max_rank: 1, tint: C_GOLD},
+    {name: "CROSSDRAFT", short: "DRAFT", note: "SHOTS FROM THE SIDE OR REAR PUSH ENEMIES FARTHER.", max_rank: 1, tint: C_TEAL},
+    {name: "LAST EMBER", short: "LAST", note: "YOUR LAST AFFORDABLE PAID ATTACK HITS HARDER.", max_rank: 1, tint: C_PINK},
+    {name: "COLD CONDUCTOR", short: "COLD", note: "LIGHTNING ON A SLOWED ENEMY CAN ARC TO ANOTHER.", max_rank: 1, tint: C_BLUE},
+    {name: "STILLHAND", short: "STILL", note: "STAND STILL TO BOOST NAIL DRIVER AND WHITE EMBER.", max_rank: 1, tint: C_LILAC},
+    {name: "GUARDFALL", short: "GUARD", note: "CUT PROJECTILES TO BOOST YOUR NEXT ATTACK.", max_rank: 1, tint: C_MINT},
+    {name: "PILGRIM'S WICK", short: "WICK", note: "THE FIRST NEW FIGHT EACH STAGE RESTORES 12 ENERGY.", max_rank: 1, tint: C_BLUE}
 ];
 selected = 0;
 relic_catalog = lk_relic_catalog();
@@ -90,6 +105,9 @@ for (var _i = 0; _i < array_length(weapon_found); _i++) {
 }
 for (var _i = 0; _i < array_length(relic_found); _i++) {
     relic_found[_i] = ini_read_real("relics", string(_i), 0) > 0;
+}
+for (var _i = 0; _i < array_length(discoveries); _i++) {
+    discoveries[_i] = ini_read_real("discoveries", string(_i), 0) > 0;
 }
 ini_close();
 lk_display_start();

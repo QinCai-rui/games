@@ -30,6 +30,7 @@ function lk_contract_setup() {
     run_cycle = 0;
     run_seed = run_contract == LK_CONTRACT.Daily ? lk_date_seed() : irandom_range(1000, 1800000000);
     if (run_contract == LK_CONTRACT.Daily) random_set_seed(run_seed);
+    if (lk_has_modifier(LK_OMEN.EmptyStores)) player.energy = 65;
     if (run_contract == LK_CONTRACT.Iron) {
         player.max_armor = max(1, ceil(player.max_armor * .50));
         player.armor = player.max_armor;
@@ -52,13 +53,11 @@ function lk_contract_record() {
 function lk_contract_loot() {
     if (run_contract != LK_CONTRACT.Arsenal) return;
     var _tier = clamp(floor(depth_no / 3), 0, 3);
-    player.arms[0] = irandom(array_length(weapons) - 1);
-    player.arms[1] = (player.arms[0] + irandom_range(1, array_length(weapons) - 1)) mod array_length(weapons);
-    player.temper[0] = _tier;
-    player.temper[1] = _tier;
+    var _first = lk_weapon_stock(LK_STOCK.Drop, -1, player.arms[0]);
+    var _second = lk_weapon_stock(LK_STOCK.Drop, -1, _first, lk_armory_group(_first), player.arms[1]);
+    lk_equip_weapon(0, _first, _tier);
+    lk_equip_weapon(1, _second, _tier);
     player.energy = min(player.max_energy, player.energy + 17);
-    weapon_found[player.arms[0]] = true;
-    weapon_found[player.arms[1]] = true;
     lk_save();
     lk_floater(player.px, player.py - 24, "ARSENAL ROTATED", C_TEAL);
 }
@@ -82,9 +81,13 @@ function lk_contract_step() {
     var _count = array_length(contracts);
     if (menu_left || menu_up) contract_cursor = (contract_cursor + _count - 1) mod _count;
     if (menu_right || menu_down) contract_cursor = (contract_cursor + 1) mod _count;
-    if (pointer_click && pointer_x >= 49 && pointer_x <= 432) {
+    if (contract_cursor != LK_CONTRACT.Daily &&
+        (swap_pressed || (pointer_click && pointer_x >= 49 && pointer_x <= 432 && pointer_y >= 204 && pointer_y <= 222))) {
+        chosen_modifier = lk_cycle_modifier(chosen_modifier);
+        lk_sound(snd_click);
+    } else if (pointer_click && pointer_x >= 49 && pointer_x <= 432) {
         if (pointer_y >= 57 && pointer_y < 203) contract_cursor = clamp(floor((pointer_y - 57) / 29), 0, _count - 1);
-        else if (pointer_x >= 168 && pointer_x <= 312 && pointer_y >= 219 && pointer_y <= 243) accept_pressed = true;
+        else if (pointer_x >= 168 && pointer_x <= 312 && pointer_y >= 229 && pointer_y <= 253) accept_pressed = true;
     }
     if (!accept_pressed) return;
     if (!lk_contract_available(contract_cursor)) {
@@ -118,9 +121,14 @@ function lk_draw_contracts() {
         lk_text(_unlocked ? _card.note : "CLEAR THE KEEP TO UNLOCK.", 68, _cy + 14, C_PAPER);
     }
     var _locked = !lk_contract_available(contract_cursor);
-    lk_button(_locked ? "LOCKED" : "CHOOSE KEEPER", 168, 219, 312, !_locked);
-    lk_text("ESC BACK", 49, 226, C_MUTED);
-    lk_text_right("W/S SELECT", 432, 226, C_MUTED);
+    var _modifier = modifier_catalog[lk_modifier_choice(contract_cursor, chosen_modifier)];
+    lk_panel(49, 203, 432, 223, false, C_EDGE);
+    var _key = contract_cursor == LK_CONTRACT.Daily ? "DAILY " : (pad >= 0 ? "X " : "TAB ");
+    lk_text(_key + _modifier[0], 56, 204, C_GOLD);
+    lk_text(_modifier[1], 56, 213, C_MUTED);
+    lk_button(_locked ? "LOCKED" : "CHOOSE KEEPER", 168, 229, 312, !_locked);
+    lk_text("ESC BACK", 49, 235, C_MUTED);
+    lk_text_right("W/S SELECT", 432, 235, C_MUTED);
 }
 
 function lk_save_checkpoint() {
@@ -200,8 +208,8 @@ function lk_load_checkpoint() {
     dungeon = _saved.grid;
     player = _saved.body;
     if (!variable_struct_exists(player, "move_pace")) player.move_pace = variable_struct_get(player, "speed");
-    // The HTML5 runner omitted the old "power" field from checkpoint JSON.
-    if (!variable_struct_exists(player, "damage_scale")) player.damage_scale = power(1.25, lk_boon_rank(LK_BOON.Damage));
+    // Coal Heart ranks are the source of damage_scale, including in older checkpoints.
+    player.damage_scale = power(LK_COAL_HEART_SCALE, lk_boon_rank(LK_BOON.Damage));
     // Rank values and the three new relic slots share the existing checkpoint format.
     while (array_length(player.relics) < array_length(relic_catalog)) array_push(player.relics, 0);
     player.target = undefined;

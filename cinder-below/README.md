@@ -24,27 +24,33 @@ Cinder Below is a single-player pixel-art dungeon shooter for Linux. Clear each 
 
 Drag a window edge or use the desktop maximize button to change the window size. Fit mode keeps the game at 16:9 and fills the available space. Whole-pixel scaling uses the largest integer zoom that fits and falls back to fit in smaller windows. The game remembers your scaling mode.
 
-Armor recovers faster after you clear a room. In Main Delve, Arsenal Run, and Daily Contract, the first point of armor repairs after three seconds without taking damage. Each additional point takes another five seconds during combat. A thin line inside the armor bar shows progress toward the next point.
+Armor recovers faster after you clear a room. With combat repair enabled, the first point repairs after four seconds without taking damage. Each additional point takes another five seconds during combat. The line in the armor bar shows progress.
 
 In those contracts, shrines on the first two stages offer Bloodroot or Iron Bark unless you have both at max rank. Each rank of Bloodroot adds two max HP. Each rank of Iron Bark adds two max armor.
 
 The keeper uses a backup pistol when the selected weapon runs out of energy. Visit gauntlets, shops, and shrines to equip a stronger build for the late stages.
 
-Every stage has a Shrine of Ash and a forge. Forges temper weapons for gold, up to three times per weapon. Starting on stage two, look for a Shrine of Sparks for faster skill recharge, weapon perks, and cheaper forging. Shrines and reliquaries can offer a new reward or upgrade one you already own. Pause and hover over a weapon, relic, or boon to see its effect and current rank.
+Open a supply cache and choose one of two weapons. At a forge, spend gold to temper your active weapon, fit an attachment, or combine a compatible pair into one weapon. Attachments and temper stay with a weapon when you drop it. Open the Journal from the title screen to see the six fusion recipes. Hold fire to charge Nail Driver or White Ember, then release to fire.
+
+Shrines and reliquaries offer new rewards and upgrades. Some boons reward switching between melee and ranged attacks, moving during fights, or cutting shots with a blade. Pause and hover over gear, relics, and boons for their effects.
 
 Guardian intros end on their own. Press E or A to skip once the guardian appears. During the fight, the name of an incoming ability appears beneath the guardian's health bar.
 
 Bomb circles fill before they detonate. In Rupture rooms, two vents take turns erupting. In Flood Pulse, dashed lines warn you which lanes will flood.
 
-Flank the Bulwark in Shield Line, destroy the nest before it summons more enemies in Brood Nest, and close both seals before leaving Twin Seals. Later rooms introduce Bellkeepers that rally nearby enemies, Cauterisers that set the floor on fire, and Threadbinders that link allies with a damaging beam. A stage never repeats a regular encounter type.
+Flank the Bulwark in Shield Line, destroy the nest before it summons more enemies in Brood Nest, and close both seals before leaving Twin Seals. Later rooms introduce Bellkeepers that rally nearby enemies, Cauterisers that set the floor on fire, and Threadbinders that link allies with a damaging beam.
 
 Destroy the Crown of Cinders' Furnace Anchors to remove its damage resistance. Anchors left alive at the last phase overload before disappearing.
 
-Main Delve, Arsenal Run, and Daily Contract have 34 required fights and eight guardians. From stage three on, each stage also has a safe stop. Pick a weapon at the Salvage Rack, take energy or gold at the Keeper's Stores, or move one temper rank between weapons at the Temper Relay. Some optional gauntlets give way to an Elite Duel, a single fight with a weapon reward.
+Approach a marked door to see its danger and reward. Take the lower-danger route or fight the elites for a weapon. On stages 4, 6, and 8, spend 7 gold to skip that elite fight. Optional trials loop back into the main route and lead to a reliquary starting in Mossvault.
+
+Examine three inscriptions in Root Gates to open the Buried Archive for 9 gold after Mossvault. Take the spindle from the optional Sluice Machinery fight in Veil Tunnels to open the Drowned Furnace after the Hollow. These routes replace Emberworks and Glassfen for the run. Briar Matron and the Split Regent can also appear in regular stages.
 
 ## Choose a contract
 
 The main delve has eight stages across five biomes. Choose Iron Trial for faster enemies, less armor, and lasting wounds. Arsenal Run deals a fresh weapon pair after combat. Daily Contract uses a new dungeon seed each day. Beat the main delve or another finite contract to unlock Endless Keep, where each cycle adds pressure and elite enemies.
+
+Press **Tab** or **X** on the contract screen to cycle available modifiers. Daily Contract sets its own modifier. The Journal tracks secrets, fusions, and guardian feats. Discoveries can add alternate starting kits, shop blueprints, or new modifiers for future runs.
 
 The game saves the run when you start a stage, clear a room, or collect rewards in a cleared room. After reloading, choose **Continue run**. If you reload during a fight, you return to the last safe room. Web saves stay in the browser and on the site where you started the run.
 

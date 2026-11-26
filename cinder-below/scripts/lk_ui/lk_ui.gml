@@ -106,9 +106,14 @@ function lk_draw_menu() {
         lk_text("PACE " + string_format(_hero.speed, 0, 1), _x + 32, _y + 46, C_MUTED);
     }
     var _keeper = heroes[hero_id];
+    var _arms = lk_keeper_arms(hero_id, use_alt_loadout);
+    var _alternative = lk_keeper_arms(hero_id, true);
     lk_text_center(_keeper.note, 240, 199, C_PAPER);
-    lk_text_center(weapons[_keeper.arms[0]].name + "  /  " + weapons[_keeper.arms[1]].name, 240, 211, C_MUTED);
+    lk_text_center(weapons[_arms[0]].name + "  /  " + weapons[_arms[1]].name, 240, 211, C_MUTED);
     lk_button("DESCEND", 167, 232, 313, true);
+    if (_alternative[0] != _keeper.arms[0]) {
+        lk_button((pad >= 0 ? "X " : "TAB ") + (use_alt_loadout ? "ORIGINAL KIT" : "ALTERNATE KIT"), 321, 232, 445, true);
+    }
     if (checkpoint_available) lk_text_center("STARTING OVER REPLACES YOUR SAVE", 240, 257, C_GOLD);
     lk_text("ESC BACK", 36, 239, C_MUTED);
     lk_text("R CONTRACT", 36, 251, C_MUTED);
@@ -152,7 +157,8 @@ function lk_minimap() {
         _min_y = min(_min_y, _node.gy);
         _max_y = max(_max_y, _node.gy);
     }
-    var _step = min(9, floor(23 / max(1, _max_y - _min_y)));
+    var _step = min(9, floor(23 / max(1, _max_y - _min_y)), floor(96 / max(1, _max_x - _min_x)));
+    var _radius = min(2, floor((_step - 1) * .5));
     _bx -= (_min_x + _max_x) * _step * .5;
     _by -= (_min_y + _max_y) * _step * .5;
     for (var _i = 0; _i < array_length(dungeon); _i++) {
@@ -168,8 +174,9 @@ function lk_minimap() {
             var _ty = round(_by + _n.gy * _step);
             lk_line(_x, _y, _tx, _ty, C_EDGE);
             if (!_n.visited) {
-                var _hint = lk_is_waystation(_n.kind) || _n.kind == LK_ROOM.Duel ? lk_room_color(_n.kind) : C_EDGE;
-                lk_rect(_tx - 1, _ty - 1, _tx + 1, _ty + 1, _hint);
+                var _hint = _n.kind != LK_ROOM.Fight || lk_route_role(_n) != LK_ROUTE_ROOM.None ? lk_route_room_color(_n) : C_EDGE;
+                var _size = min(1, _radius);
+                lk_rect(_tx - _size, _ty - _size, _tx + _size, _ty + _size, _hint);
             }
         }
     }
@@ -180,8 +187,9 @@ function lk_minimap() {
         var _y = round(_by + _n.gy * _step);
         var _color = _n.kind == LK_ROOM.Fight || _n.kind == LK_ROOM.Landing
             ? (!_n.clear ? C_PINK : C_MUTED) : lk_room_color(_n.kind);
+        if (lk_route_role(_n) != LK_ROUTE_ROOM.None) _color = lk_route_room_color(_n);
         if (_i == cell_index) _color = C_TEAL;
-        lk_rect(_x - 2, _y - 2, _x + 2, _y + 2, _color);
+        lk_rect(_x - _radius, _y - _radius, _x + _radius, _y + _radius, _color);
         if (_i == cell_index) lk_rect(_x, _y, _x, _y, C_PAPER);
     }
 }
@@ -196,7 +204,7 @@ function lk_draw_hud() {
     lk_meter("EN", 102, 5, 41, player.energy, player.max_energy, C_BLUE, false);
     lk_loot_icon(LK_LOOT.Coin, 106, 18, 0);
     lk_text(string(player.coins), 115, 13, C_GOLD);
-    lk_text_center(stage_names[depth_no], 250, 3, C_PAPER, true);
+    lk_text_center(lk_route_stage_name(), 250, 3, C_PAPER, true);
     var _depth = run_contract == LK_CONTRACT.Endless ? "DEPTH " + string(lk_run_depth()) : "DEPTH "
         + string(depth_no + 1) + " / " + string(array_length(stage_names));
     lk_text_center(_depth, 250, 19, C_MUTED);
@@ -212,7 +220,9 @@ function lk_draw_hud() {
         if (_active) lk_line(_x, 250, _x + 101, 250, _w.color);
         lk_text(string(_i + 1), _x + 3, 253, _active ? _w.color : C_MUTED);
         var _backup = _active && lk_active_weapon() != player.arms[_i];
-        lk_text(_backup ? "BACKUP PISTOL" : _w.name, _x + 12, 252, _backup ? C_GOLD : (_active ? C_PAPER : C_MUTED));
+        var _name = string_length(_w.name) <= 14 ? _w.name : string_copy(_w.name, 1, 13) + ".";
+        lk_text(_backup ? "BACKUP PISTOL" : _name, _x + 12, 252, _backup ? C_GOLD : (_active ? C_PAPER : C_MUTED));
+        if (player.attachments[_i] > 0) lk_rect(_x + 12, 263, _x + 20, 263, fittings[player.attachments[_i]].tint);
         for (var _j = 0; _j < player.temper[_i]; _j++) lk_diamond(_x + 91 - _j * 6, 263, 2, C_GOLD);
     }
     var _skill = heroes[hero_id].skill;
@@ -230,9 +240,9 @@ function lk_draw_hud() {
         lk_panel(100, 148, 380, 213, true, _tint);
         lk_text_center("GUARDIAN " + string(depth_no + 1) + " / " + string(array_length(boss_names)),
             240, 153, _tint);
-        lk_text_center(boss_names[depth_no], 240, 167, C_PAPER, true);
+        lk_text_center(lk_guardian_name(cell), 240, 167, C_PAPER, true);
         lk_ornament(130, 184, 350, _tint);
-        lk_text_center(boss_titles[depth_no], 240, 190, C_PAPER);
+        lk_text_center(lk_guardian_title(cell), 240, 190, C_PAPER);
         if (boss_intro <= LK_BOSS_INTRO - 24) {
             lk_text_center(pad >= 0 ? "A TO SKIP" : "E TO SKIP", 240, 218, C_MUTED);
         }
@@ -244,7 +254,7 @@ function lk_draw_hud() {
             var _boss = enemies[_i];
             if (_boss.kind != LK_ENEMY.Boss || !_boss.alive) continue;
             lk_rect(55, 35, 210, 54, C_INK);
-            lk_text_center(boss_names[depth_no], 132, 36, _boss.color);
+            lk_text_center(lk_guardian_name(cell), 132, 36, _boss.color);
             lk_rect(60, 48, 204, 51, C_PANEL);
             lk_rect(60, 48, 60 + floor(144 * max(0, _boss.hp / _boss.max_hp)), 50, _boss.color);
             var _ability = lk_boss_ability(_boss);
@@ -298,12 +308,32 @@ function lk_draw_hud() {
         lk_rect(_x - _w / 2, _y, _x + _w / 2, _y + _height, C_INK);
         lk_text_center(_text, _x, _y + 1, C_GOLD);
         if (_detail != "") lk_text_center(_detail, _x, _y + 12, C_PAPER);
-    }
+    } else if (cell.clear) lk_draw_route_hint();
     if (cell.kind == LK_ROOM.Landing && depth_no == 0 && world_tick < 520) {
         var _tip = pad >= 0 ? "LEFT STICK MOVE   RT FIRE   LB SKILL   X SWAP"
             : "WASD MOVE   SPACE AUTO-AIM   LMB AIM/FIRE   TAB SWAP";
         lk_text_center(_tip, 240, 198, C_PAPER);
     }
+}
+
+function lk_draw_route_hint() {
+    var _near = undefined;
+    var _distance = 74;
+    for (var _dir = 0; _dir < 4; _dir++) {
+        var _hint = lk_route_door_hint(_dir);
+        if (is_undefined(_hint)) continue;
+        var _x = [426, 240, 54, 240][_dir];
+        var _y = [143, 222, 143, 65][_dir];
+        var _range = point_distance(player.px, player.py, _x, _y);
+        if (_range >= _distance) continue;
+        _distance = _range;
+        _near = _hint;
+    }
+    if (is_undefined(_near)) return;
+    var _w = max(string_length(_near.label), string_length(_near.detail)) * 6 + 20;
+    lk_panel(240 - _w / 2, 204, 240 + _w / 2, 229, !_near.locked, C_TEAL);
+    lk_text_center(_near.label, 240, 205, C_PAPER);
+    lk_text_center(_near.detail, 240, 217, _near.locked ? C_MUTED : C_GOLD);
 }
 
 function lk_pause_inventory(_relic, _top) {
@@ -358,13 +388,21 @@ function lk_draw_pause() {
         var _active = pointer_inside && pointer_x >= 54 && pointer_x <= 177
             && pointer_y >= _y && pointer_y <= _y + 14;
         lk_panel(54, _y, 177, _y + 14, _active, _weapon.color);
-        lk_text(string(_i + 1) + " " + _weapon.name, 57, _y + 2, _weapon.color);
+        var _name = string_length(_weapon.name) <= 15 ? _weapon.name : string_copy(_weapon.name, 1, 14) + ".";
+        lk_text(string(_i + 1) + " " + _name, 57, _y + 2, _weapon.color);
         if (_rank > 0) lk_text_right("+" + string(_rank), 174, _y + 2, C_GOLD);
+        var _fit = player.attachments[_i];
+        if (_fit > 0) lk_rect(56, _y + 13, 72, _y + 13, fittings[_fit].tint);
         if (_active) {
-            _hover = {label: _weapon.name + " / TEMPER " + string(_rank) + " OF 3",
-                note: lk_weapon_details(_id, _rank, true) + ". FORGES ADD 20% BASE DAMAGE PER LEVEL.",
+            _hover = {label: _weapon.name + (_fit > 0 ? " / " + fittings[_fit].name : " / TEMPER " + string(_rank)),
+                note: _fit > 0 ? fittings[_fit].note : lk_weapon_details(_id, _rank, true) + ".",
                 tint: _weapon.color};
         }
+    }
+    var _fuse = lk_fusion_index();
+    if (_fuse >= 0) {
+        lk_text("FORGE RECIPE READY", 55, 197, C_LILAC);
+        lk_text(weapons[LK_FUSION_FIRST + _fuse].name, 55, 209, C_PAPER);
     }
     lk_text("F11 SCREEN   F10 " + (integer_scaling ? "INT" : "FIT"), 55, 208, C_MUTED);
     lk_text(LK_VERSION, 55, 221, C_MUTED);
@@ -432,28 +470,86 @@ function lk_text_wrap(_note, _x, _y, _limit, _color) {
     lk_text_center(_line, _x, _y, _color);
 }
 
+function lk_journal_count() {
+    switch (journal_tab) {
+        case 0: return array_length(weapons);
+        case 1: return array_length(relic_catalog);
+        case 2: return array_length(fusion_recipes);
+        case 3: return array_length(discoveries);
+    }
+    return 1;
+}
+
 function lk_journal_step() {
     if (back_pressed || keyboard_check_pressed(ord("J"))) {
         mode = LK_MODE.Title;
         return;
     }
     if (swap_pressed || menu_vert) {
-        journal_tab = (journal_tab + 1) mod 3;
+        journal_tab = (journal_tab + (menu_up ? 4 : 1)) mod 5;
         journal_item = 0;
         lk_sound(snd_click);
     }
     if (pointer_click && pointer_y >= 59 && pointer_y < 79 && pointer_x >= 47 && pointer_x < 434) {
-        journal_tab = clamp(floor((pointer_x - 47) / 129), 0, 2);
+        journal_tab = clamp(floor((pointer_x - 47) / 77), 0, 4);
         journal_item = 0;
         lk_sound(snd_click);
     }
-    var _limit = journal_tab == 0 ? array_length(weapons) : array_length(relic_catalog);
+    var _limit = lk_journal_count();
     if (menu_left || menu_right) journal_item = (journal_item + (menu_left ? _limit - 1 : 1)) mod _limit;
-    if (journal_tab < 2 && pointer_click && pointer_y >= 88 && pointer_y < 193
-        && pointer_x >= 49 && pointer_x < 433) {
-        var _item = 6 * floor((pointer_y - 88) / 26) + floor((pointer_x - 49) / 64);
+    if (!pointer_click || pointer_x < 49 || pointer_x >= 431 || journal_tab == 4) return;
+    if (journal_tab == 0 && pointer_y >= 167 && pointer_y <= 188) {
+        if (pointer_x >= 172 && pointer_x <= 308) journal_item = journal_item < 21 ? 21 : 0;
+    } else if (journal_tab <= 1 && pointer_y >= 88 && pointer_y < 166) {
+        var _item = 21 * floor(journal_item / 21) + 7 * floor((pointer_y - 88) / 26)
+            + min(6, floor((pointer_x - 49) / 54));
         if (_item < _limit) journal_item = _item;
+    } else if (journal_tab == 2 && pointer_y >= 88 && pointer_y < 193) {
+        journal_item = 2 * floor((pointer_y - 88) / 35) + (pointer_x >= 240);
+    } else if (journal_tab == 3 && pointer_y >= 88 && pointer_y < 167) {
+        journal_item = 4 * floor((pointer_y - 88) / 20) + min(3, floor((pointer_x - 49) / 95));
     }
+}
+
+function lk_draw_journal_recipes() {
+    for (var _i = 0; _i < array_length(fusion_recipes); _i++) {
+        var _x = 49 + 193 * (_i mod 2);
+        var _y = 88 + 35 * floor(_i / 2);
+        var _result = LK_FUSION_FIRST + _i;
+        var _tint = weapons[_result].color;
+        var _pair = fusion_recipes[_i];
+        lk_panel(_x, _y, _x + 187, _y + 31, _i == journal_item, _tint);
+        lk_weapon_draw(_result, _x + 12, _y + 17, 18, .80);
+        lk_text(weapons[_result].name, _x + 36, _y + 3, _tint);
+        lk_text(weapons[_pair[0]].name, _x + 36, _y + 13, C_MUTED);
+        lk_text("+ " + weapons[_pair[1]].name, _x + 36, _y + 22, C_MUTED);
+    }
+    var _found = discoveries[6 + journal_item];
+    lk_text_center(lk_weapon_details(LK_FUSION_FIRST + journal_item), 240, 198, C_PAPER);
+    lk_text_center("HOLD BOTH AT A FORGE. FUSE FOR 9G.", 240, 210, _found ? C_GOLD : C_MUTED);
+}
+
+function lk_draw_journal_discoveries() {
+    for (var _i = 0; _i < array_length(discoveries); _i++) {
+        var _x = 49 + 95 * (_i mod 4);
+        var _y = 88 + floor(_i / 4) * 20;
+        var _found = discoveries[_i];
+        var _tint = _i >= 12 ? C_GOLD : (_i >= 6 ? C_LILAC : C_TEAL);
+        lk_panel(_x, _y, _x + 91, _y + 16, _i == journal_item, _found ? _tint : C_MUTED);
+        lk_diamond(_x + 11, _y + 8, 3, _found ? _tint : C_EDGE);
+        lk_text(_i >= 12 ? "MASTERY" : (_i >= 6 ? "FUSION" : "ROUTE"), _x + 21, _y + 3, _found ? _tint : C_MUTED);
+    }
+    var _entry = discovery_catalog[journal_item];
+    lk_text_center(_entry[0], 240, 174, discoveries[journal_item] ? C_GOLD : C_MUTED);
+    lk_text_center(_entry[1], 240, 187, C_PAPER);
+    var _unlock = [
+        "NAIL DRIVER BLUEPRINT", "", "HOLLOW BELL BLUEPRINT", "",
+        "CINDER THREAD BLUEPRINT / ALCHEMIST KIT", "GRAVEHOOK BLUEPRINT / TIDECALLER KIT",
+        "FRUGAL FORGE MODIFIER", "SEEP FLASK BLUEPRINT / UNSTABLE ARSENAL MODIFIER", "",
+        "COPPER KITE BLUEPRINT", "", "", "WARDEN KIT / BRITTLE WARD MODIFIER",
+        "SPLIT LANTERN BLUEPRINT / OUTRIDER KIT / DEEP OMEN MODIFIER", "SILTCASTER BLUEPRINT", ""
+    ][journal_item];
+    if (_unlock != "") lk_text_center(_unlock, 240, 203, discoveries[journal_item] ? C_GOLD : C_MUTED);
 }
 
 function lk_draw_journal() {
@@ -463,40 +559,49 @@ function lk_draw_journal() {
     draw_set_alpha(1);
     lk_panel(35, 18, 445, 250, true);
     lk_text_center("KEEPER'S JOURNAL", 240, 29, C_PAPER, true);
-    var _tabs = ["ARMORY", "RELICS", "RECORDS"];
-    for (var _i = 0; _i < 3; _i++) {
-        var _x = 47 + _i * 129;
-        lk_panel(_x, 58, _x + 124, 79, _i == journal_tab, C_GOLD);
-        lk_text_center(_tabs[_i], _x + 62, 63, _i == journal_tab ? C_GOLD : C_MUTED);
+    var _tabs = ["ARMORY", "RELICS", "RECIPES", "SECRETS", "RECORDS"];
+    for (var _i = 0; _i < array_length(_tabs); _i++) {
+        var _x = 47 + _i * 77;
+        lk_panel(_x, 58, _x + 74, 79, _i == journal_tab, C_GOLD);
+        lk_text_center(_tabs[_i], _x + 37, 63, _i == journal_tab ? C_GOLD : C_MUTED);
     }
     if (journal_tab < 2) {
         var _arms = journal_tab == 0;
         var _flags = _arms ? weapon_found : relic_found;
+        var _page = floor(journal_item / 21);
+        var _start = _page * 21;
         var _count = 0;
-        for (var _i = 0; _i < array_length(_flags); _i++) {
-            var _x = 49 + (_i mod 6) * 64;
-            var _y = 88 + floor(_i / 6) * 26;
+        for (var _i = 0; _i < array_length(_flags); _i++) if (_flags[_i]) _count += 1;
+        for (var _i = _start; _i < min(_start + 21, array_length(_flags)); _i++) {
+            var _local = _i - _start;
+            var _x = 49 + (_local mod 7) * 54;
+            var _y = 88 + floor(_local / 7) * 26;
             var _tint = _arms ? weapons[_i].color : relic_catalog[_i].tint;
-            lk_panel(_x, _y, _x + 59, _y + 22, _i == journal_item, _flags[_i] ? _tint : C_MUTED);
+            lk_panel(_x, _y, _x + 49, _y + 22, _i == journal_item, _flags[_i] ? _tint : C_MUTED);
             if (_flags[_i]) {
-                _count += 1;
-                if (_arms) lk_weapon_draw(_i, _x + 24, _y + 12, 15, 1);
+                if (_arms) lk_weapon_draw(_i, _x + 19, _y + 12, 15, 1);
                 else {
-                    lk_diamond(_x + 30, _y + 11, 5, _tint);
-                    lk_diamond(_x + 30, _y + 11, 2, C_PAPER);
+                    lk_diamond(_x + 24, _y + 11, 5, _tint);
+                    lk_diamond(_x + 24, _y + 11, 2, C_PAPER);
                 }
             } else {
-                lk_diamond(_x + 30, _y + 11, 3, C_EDGE);
+                lk_diamond(_x + 24, _y + 11, 3, C_EDGE);
             }
         }
         var _label = _flags[journal_item] ? (_arms ? weapons[journal_item].name : relic_catalog[journal_item].name)
             : "UNDISCOVERED";
-        var _note = _flags[journal_item] ? (_arms ? lk_weapon_details(journal_item) : relic_catalog[journal_item].note)
-            : "LOOK FOR IT IN THE KEEP.";
+        var _hint = _arms && journal_item >= LK_FUSION_FIRST ? "COMBINE ITS INGREDIENTS AT A FORGE." : "LOOK FOR IT IN THE KEEP.";
+        var _note = _flags[journal_item] ? (_arms ? lk_weapon_details(journal_item) : relic_catalog[journal_item].note) : _hint;
+        if (_arms) {
+            lk_panel(172, 167, 308, 188, false, C_EDGE);
+            lk_text_center("<  PAGE " + string(_page + 1) + " / 2  >", 240, 172, C_GOLD);
+        }
         lk_text_center(_label, 240, 199, C_PAPER);
         lk_text_center(_note, 240, 212, C_MUTED);
         lk_text_right(string(_count) + " / " + string(array_length(_flags)), 429, 232, C_GOLD);
-    } else {
+    } else if (journal_tab == 2) lk_draw_journal_recipes();
+    else if (journal_tab == 3) lk_draw_journal_discoveries();
+    else {
         lk_text_center("RUNS STARTED   " + string(runs_started), 240, 100, C_PAPER);
         lk_text_center("DEEPEST STAGE  " + string(best_floor), 240, 126, C_PAPER);
         lk_text_center("CLEARS         " + string(wins), 240, 152, C_GOLD);

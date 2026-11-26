@@ -10,6 +10,7 @@ function lk_light(_x, _y, _radius, _color, _strength, _height = 1) {
 
 function lk_draw_room_lighting(_xx, _yy) {
     var _accent = [C_GOLD, C_PINK, C_LILAC, C_BLUE, C_GOLD][floor_no];
+    if (lk_route_variant() > 0) _accent = lk_route_tint();
     gpu_set_blendmode(bm_add);
     for (var _i = 0; _i < 4; _i++) {
         var _x = [80, 150, 330, 400][_i] + _xx;
@@ -113,8 +114,20 @@ function lk_room_color(_kind) {
         case LK_ROOM.Armory: return C_MINT;
         case LK_ROOM.SupplyPost: return C_MINT;
         case LK_ROOM.TemperRelay: return C_MINT;
+        case LK_ROOM.Passage: return C_BLUE;
     }
     return C_TEAL;
+}
+
+function lk_route_room_color(_room) {
+    switch (lk_route_role(_room)) {
+        case LK_ROUTE_ROOM.High:
+        case LK_ROUTE_ROOM.Trial: return C_PINK;
+        case LK_ROUTE_ROOM.Low: return C_MINT;
+        case LK_ROUTE_ROOM.Toll:
+        case LK_ROUTE_ROOM.Shortcut: return C_GOLD;
+    }
+    return lk_room_color(_room.kind);
 }
 
 function lk_gate_release() {

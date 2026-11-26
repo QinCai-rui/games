@@ -1,9 +1,16 @@
-function lk_field(_x, _y, _kind, _wait, _power, _radius, _color, _hostile = false, _angle = 0) {
-    var _duration = [142, 22, 185, 6][_kind];
+function lk_field(_x, _y, _kind, _wait, _power, _radius, _color, _hostile = false, _angle = 0, _weapon_id = -1) {
+    var _duration = [142, 22, 185, 6, 0, 16, 150, 2, 117][_kind];
+    if (_weapon_id == LK_ARM.Kite) _duration = 154;
+    if (_weapon_id == LK_ARM.Spark) _duration = 151;
     if (_hostile && _kind == 1) _wait += 6;
-    array_push(fields, {px: clamp(_x, KEEP_LEFT + 8, KEEP_RIGHT - 8), py: clamp(_y, KEEP_TOP + 8, KEEP_BOTTOM - 8),
-        kind: _kind, life: _duration + _wait, duration: _duration, radius: _radius,
-        power: _power, color: _color, hostile: _hostile, shot_angle: _angle, windup: _wait});
+    var _field = {px: clamp(_x, KEEP_LEFT + 8, KEEP_RIGHT - 8), py: clamp(_y, KEEP_TOP + 8, KEEP_BOTTOM - 8),
+        kind: _kind, life: _duration + _wait, duration: _duration, radius: _radius, reach: _radius,
+        power: _power, color: _color, hostile: _hostile, shot_angle: _angle, windup: _wait, weapon_id: _weapon_id,
+        cadence: _weapon_id == LK_ARM.Kite ? 15 : (_weapon_id == LK_ARM.Spark ? 36 : 28),
+        stacks: 1, tick: 0, hit_list: []};
+    lk_armory_field(_field);
+    array_push(fields, _field);
+    return _field;
 }
 
 function lk_lane(_x, _y, _end_x, _end_y, _width, _wait, _duration, _power, _color,
@@ -41,8 +48,9 @@ function lk_field_step(_field) {
     var _age = _field.duration - _field.life;
     if (_field.kind == 4) return lk_lane_step(_field, _age);
     if (_age < 0) return true;
+    if (_field.kind >= LK_FORGED_FIELD.Ring) return lk_forged_field_step(_field, _age);
     if (_field.kind == 2) {
-        if (_age mod 28 == 0) lk_beacon_tick(_field);
+        if (_age mod _field.cadence == 0 && !lk_forged_beacon_tick(_field)) lk_beacon_tick(_field);
         return true;
     }
     if (_field.kind == 3) {
@@ -99,6 +107,7 @@ function lk_field_draw(_field, _xx, _yy) {
     var _y = round(_field.py + _yy);
     var _age = _field.duration - _field.life;
     if (_field.kind == 4) { lk_lane_draw(_field, _xx, _yy, _age); return; }
+    if (lk_forged_field_draw(_field, _x, _y, _age)) return;
     var _r = _field.radius;
     var _edge = _field.hostile ? _r + 3 : _r;
     var _height = _field.hostile ? _edge : _r * .64;
@@ -233,6 +242,10 @@ function lk_disc_turn(_b) {
     _b.returning = true;
     _b.hit_list = [];
     _b.speed = max(5, _b.speed + .45);
+    if (lk_armory_attachment_is(LK_FIT.Return)) {
+        _b.speed *= 1.24;
+        _b.damage = ceil(_b.damage * 1.3);
+    }
 }
 
 function lk_lead(_enemy, _speed) {

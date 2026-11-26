@@ -106,6 +106,36 @@
     },
     {
       "id": {
+        "name": "lk_armory",
+        "path": "scripts/lk_armory/lk_armory.yy"
+      }
+    },
+    {
+      "id": {
+        "name": "lk_forged_weapons",
+        "path": "scripts/lk_forged_weapons/lk_forged_weapons.yy"
+      }
+    },
+    {
+      "id": {
+        "name": "lk_discoveries",
+        "path": "scripts/lk_discoveries/lk_discoveries.yy"
+      }
+    },
+    {
+      "id": {
+        "name": "lk_routes",
+        "path": "scripts/lk_routes/lk_routes.yy"
+      }
+    },
+    {
+      "id": {
+        "name": "lk_alt_guardians",
+        "path": "scripts/lk_alt_guardians/lk_alt_guardians.yy"
+      }
+    },
+    {
+      "id": {
         "name": "spr_actors",
         "path": "sprites/spr_actors/spr_actors.yy"
       }

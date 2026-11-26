@@ -1,5 +1,8 @@
 enum LK_RELIC { Breaker, Mirror, Ember, Knot, Siphon, LowLight, Crown, Vigor, Canteen, Gateward, Due }
-enum LK_BOON { Armor, Health, Damage, Haste, Energy, Speed, Warm, Edge, Volley, Focus, Medic, Smith, StillWick, Salvager }
+enum LK_BOON {
+    Armor, Health, Damage, Haste, Energy, Speed, Warm, Edge, Volley, Focus, Medic, Smith, StillWick, Salvager,
+    Afterstroke, KindledStep, Crossdraft, LastEmber, ColdConductor, Stillhand, Guardfall, Pilgrim
+}
 
 function lk_relic_catalog() {
     return [
@@ -67,7 +70,8 @@ function lk_reward_pair(_primary, _new, _upgrades) {
 function lk_reward_choices(_relic, _sparks = false) {
     var _catalog = _relic ? relic_catalog : boons;
     var _spark_pool = [LK_BOON.Haste, LK_BOON.Warm, LK_BOON.Edge, LK_BOON.Volley, LK_BOON.Focus,
-        LK_BOON.Smith, LK_BOON.StillWick, LK_BOON.Salvager];
+        LK_BOON.Smith, LK_BOON.StillWick, LK_BOON.Salvager, LK_BOON.Afterstroke, LK_BOON.KindledStep,
+        LK_BOON.ColdConductor, LK_BOON.Stillhand, LK_BOON.Guardfall, LK_BOON.LastEmber];
     var _new = [];
     var _upgrades = [];
     for (var _i = 0; _i < array_length(_catalog); _i++) {
@@ -167,14 +171,17 @@ function lk_remember_weapon(_id) {
     lk_save();
 }
 
-function lk_weapon_details(_id, _temper = 0, _in_run = false) {
+function lk_weapon_details(_id, _temper = 0, _in_run = false, _fit = LK_FIT.None) {
     var _weapon = weapons[_id];
     var _types = ["SHOT", "MELEE", "PIERCE", "BLAST", "BOUNCE", "CLOSE RANGE", "CHAIN", "RETURN",
-        "POISON", "SHARD", "MORTAR", "ECHO", "ORBIT", "TURRET", "PHASE"];
+        "POISON", "SHARD", "MORTAR", "ECHO", "ORBIT", "TURRET", "PHASE", "CHARGE BOLT", "SHOCK RING",
+        "BEAM", "PULL", "STACKING POISON", "BURST", "WALL SPLIT", "CHARGE BEAM", "SLOW TRAIL",
+        "REFRACT", "RETURN + BOLT", "ECHO PELLETS", "POISON BLADE", "ORBIT BLADE"];
     var _damage = ceil(_weapon.damage * (1 + _temper * .2));
     var _multiple = _weapon.count > 1 ? "X" + string(_weapon.count) : "";
-    var _cost = _in_run ? lk_weapon_cost(_id) : _weapon.cost;
-    return string(_damage) + _multiple + " DMG  " + string(_cost) + " EN  " + _types[_weapon.kind];
+    var _cost = _in_run && _weapon.cost > 0 ? max(1, _weapon.cost - lk_boon_rank(LK_BOON.Focus)) : _weapon.cost;
+    return string(_damage) + _multiple + " DMG  " + string(_cost) + " EN  " + _types[_weapon.kind]
+        + (_fit == LK_FIT.None ? "" : " / " + fittings[_fit].name);
 }
 
 function lk_sfx_for_weapon(_id, _heavy) {

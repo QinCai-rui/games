@@ -37,6 +37,10 @@ switch (mode) {
             mode = LK_MODE.Title;
             break;
         }
+        if (swap_pressed || (pointer_click && pointer_y >= 231 && pointer_y <= 254 && pointer_x >= 324)) {
+            use_alt_loadout = !use_alt_loadout;
+            lk_sound(snd_click);
+        }
         if (menu_left || menu_right) {
             hero_id = (hero_id + (menu_left ? array_length(heroes) - 1 : 1)) mod array_length(heroes);
             lk_sound(snd_click);
