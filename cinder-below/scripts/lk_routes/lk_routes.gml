@@ -53,6 +53,7 @@ function lk_build_route_choices(_forward, _side) {
     if (_priced) dungeon[_middle].toll_paid = false;
 
     if (depth_no == 0) {
+        if (run_contract == LK_CONTRACT.Delve) dungeon[1].forge_leads = lk_root_forge_leads();
         for (var _i = 0; _i < 3; _i++) dungeon[_i + 1].route_mark = _i;
         // Both sides of the fork carry the same inscription.
         dungeon[_middle].route_mark = 1;
@@ -91,6 +92,8 @@ function lk_route_door_hint(_dir) {
     var _target = dungeon[_next];
     switch (lk_route_role(_target)) {
         case LK_ROUTE_ROOM.High:
+            if (_target.clear) return "ELITE / CLEARED";
+            if (variable_struct_exists(_target, "hunt_weapon")) return "ELITE / " + weapons[_target.hunt_weapon].name;
             var _variant = lk_route_variant();
             var _reward = _variant == 1 ? "FITTED WEAPON" : (_variant == 2 ? "+2 WEAPON" : "WEAPON");
             return "ELITE / " + _reward;

@@ -386,6 +386,17 @@ function lk_draw_loot(_xx, _yy) {
         lk_shadow(_x, _y, _l.kind == LK_LOOT.Weapon ? 9 : 3);
         var _bob = round(dsin(world_tick * 5 + _l.phase) * 2) + 4 + round(_l.wait / 5);
         lk_loot_icon(_l.kind, _x, _y - _bob, _l.value);
+        if (_l.kind == LK_LOOT.Weapon) {
+            if (variable_struct_exists(_l, "lead_recipe") && _l.choice && !dungeon[2].clear) {
+                var _result = weapons[LK_FUSION_FIRST + _l.lead_recipe];
+                lk_text_center(_result.name, _x, _y + 3, _result.color);
+            } else if (lk_ground_fusion(_l.value) >= 0) {
+                // Linked diamonds mark a loose weapon that fits one of the keeper's two slots.
+                lk_line(_x - 3, _y - _bob - 11, _x + 3, _y - _bob - 11, C_LILAC);
+                lk_diamond(_x - 4, _y - _bob - 11, 2, C_LILAC);
+                lk_diamond(_x + 4, _y - _bob - 11, 2, C_PAPER);
+            }
+        }
         if (_l.kind == LK_LOOT.Weapon && variable_struct_exists(_l, "fit") && _l.fit > 0) {
             lk_diamond(_x + 7, _y - _bob + 5, 2, fittings[_l.fit].tint);
         }

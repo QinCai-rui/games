@@ -271,7 +271,10 @@ function lk_finish_wave() {
     } else {
         banner = "ROOM CLEAR";
         if (irandom(5) == 0 || (player.hp <= 2 && irandom(1) == 0)) lk_drop(LK_LOOT.Heart, 240, 145, 2);
-        if (cell.encounter == LK_FIGHT.EliteHunt) lk_trial_weapon();
+        if (variable_struct_exists(cell, "forge_leads")) {
+            lk_drop_forge_leads();
+            banner = "CHOOSE A FORGE TRAIL";
+        } else if (cell.encounter == LK_FIGHT.EliteHunt) lk_trial_weapon();
         else if (irandom(5) == 0) lk_drop(LK_LOOT.Weapon, 240, 152, lk_weapon_stock(LK_STOCK.Drop));
         lk_route_clear_reward();
     }

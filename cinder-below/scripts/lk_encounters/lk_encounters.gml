@@ -422,7 +422,7 @@ function lk_bulwark_facing(_enemy) {
 
 function lk_bulwark_blocks(_enemy, _shot) {
     if (_enemy.kind != LK_ENEMY.Bulwark || !lk_bulwark_guarding(_enemy) || _shot.kind == LK_SHOT.Wraith) return false;
-    if (_shot.kind == LK_SHOT.Pierce && !variable_struct_exists(_enemy, "hunt_facing")) return false;
+    if (_shot.kind == LK_SHOT.Pierce) return false;
     return abs(angle_difference(lk_bulwark_facing(_enemy), _shot.angle + 180)) <= 64;
 }
 

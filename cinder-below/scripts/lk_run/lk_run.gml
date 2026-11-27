@@ -31,7 +31,7 @@ enum LK_FIGHT {
 #macro KEEP_BOTTOM 227
 #macro KEEP_MID_Y 143
 #macro LK_BOSS_INTRO 90
-#macro LK_VERSION "1.6.0+dev"
+#macro LK_VERSION "1.7.0+dev"
 
 function lk_input() {
     pad = -1;
@@ -572,11 +572,7 @@ function lk_interaction() {
         var _range = point_distance(player.px, player.py, _loot.px, _loot.py);
         if (_range < _distance) {
             _distance = _range;
-            var _quality = _loot.temper > 0 ? " +" + string(_loot.temper) : "";
-            var _fit = variable_struct_exists(_loot, "fit") ? _loot.fit : LK_FIT.None;
-            var _choice = variable_struct_exists(_loot, "choice") && _loot.choice;
-            _near = {kind: "weapon", target: _loot, label: (_choice ? "CHOOSE " : "TAKE ") + weapons[_loot.value].name + _quality,
-                detail: lk_weapon_details(_loot.value, _loot.temper, true, _fit)};
+            _near = lk_weapon_pickup(_loot);
         }
     }
     if (cell.kind == LK_ROOM.Cache && !cell.opened && point_distance(player.px, player.py, 240, 137) < _reach) {
@@ -637,6 +633,9 @@ function lk_interact(_action) {
             lk_equip_weapon(player.slot, _loot.value, _loot.temper,
                 variable_struct_exists(_loot, "fit") ? _loot.fit : LK_FIT.None);
             if (variable_struct_exists(_loot, "choice") && _loot.choice) {
+                if (variable_struct_exists(_loot, "lead_recipe") && !dungeon[2].clear) {
+                    dungeon[2].hunt_weapon = fusion_recipes[_loot.lead_recipe][1];
+                }
                 for (var _i = array_length(cell.loot) - 1; _i >= 0; _i--) {
                     var _other = cell.loot[_i];
                     if (_other != _loot && variable_struct_exists(_other, "choice") && _other.choice) array_delete(cell.loot, _i, 1);

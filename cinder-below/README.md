@@ -48,6 +48,8 @@ New players start with a guided tour. Prompts appear as you learn the controls a
 
 Root Gates opens with Ambush for a new player. Return to Main Delve and the first fight changes. Both paths through the fork still have the middle inscription.
 
+The first Main Delve fight drops two weapons. The name beneath each shows what you can forge with it. Walk up to see what the finished weapon does. Choose one and the sword door names the other ingredient. Win that fight, collect the gold, and bring both weapons to the forge. Two linked diamonds above a loose weapon mean it pairs with one you carry. You can also leave both offers and keep your starting kit.
+
 The minimap uses solid tiles for visited rooms and outlines for rooms you can see through known doors. A bright dot marks your room. On large floors, the map focuses on nearby rooms so the corridors stay visible.
 
 Examine three inscriptions in Root Gates to open the Buried Archive for 9 gold after Mossvault. Take the spindle from the optional Sluice Machinery fight in Veil Tunnels to open the Drowned Furnace after the Hollow. These routes replace Emberworks and Glassfen for the run. Briar Matron and the Split Regent can also appear in regular stages.

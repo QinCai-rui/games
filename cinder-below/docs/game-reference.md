@@ -133,6 +133,8 @@ Gold, energy, and hearts are proximity pickups. Weapons require interaction and 
 
 Each forge lets you temper, fit, or fuse once. Tempering costs 9 gold + 7 × current temper + (stage − 1) − 3 × Smith's Favor rank. A fitting costs 7 gold + half the number of completed stages, rounded down. Fusing costs 9 gold. It consumes both ingredients and gives the result their average temper rounded down, plus an Ember Pistol in the spare slot.
 
+On a new Main Delve, the first Root Gates fight offers a choice of two recipe ingredients. The offers exclude recipes that use a starting weapon. Taking either ingredient before the Elite Hunt sets the Hunt's weapon reward to its matching ingredient. Passing both offers keeps the usual random Hunt reward. Outside these offers, linked diamonds mark a loose weapon that pairs with either carried weapon.
+
 Supply caches offer two weapons with different roles. Picking one removes the other. Trial rewards favor rarer weapons and arrive pre-tempered.
 
 | Attachment | Effect |
@@ -155,7 +157,7 @@ Supply caches offer two weapons with different roles. Picking one removes the ot
 | Landing | Safe entry room at the start of each stage. |
 | Ambush | Mixes a pursuer and a ranged enemy with foes drawn from the biome's pool. When Ambush opens Root Gates, at least two Skulks spawn. |
 | Crossfire | Sets up enemies along the left and right sides of the arena and adds one roaming enemy. If a spawn is blocked or too close to you, it falls back to a random position. |
-| Elite Hunt | One wave with two guaranteed elites plus regular enemies. On the sword route, one elite is a Bulwark beside a pillar. Its gold shield blocks even piercing shots from the front. Its aim line locks before it fires a blade-cuttable bolt for 2 damage. Flank it or shoot while the shield drops after firing. Clearing the room guarantees a weapon. |
+| Elite Hunt | One wave with two guaranteed elites plus regular enemies. On the sword route, one elite is a Bulwark beside a pillar. Glass Needle and Frost Rail shoot through its gold shield. Its aim line locks before it fires a blade-cuttable bolt for 2 damage. Other guns can flank the shield or fire during recoil. Clearing the room guarantees a weapon. |
 | Rupture | Alternates eruptions between two fixed vents. Has two clusters of pillars. |
 | Swarm | One wave of the biome's designated rusher type, with two extra enemies. |
 | Shield Line | A Bulwark screens two ranged enemies while two pursuers circle. Flank its shield, attack during its recovery, or use piercing shots, blasts, or melee. |
