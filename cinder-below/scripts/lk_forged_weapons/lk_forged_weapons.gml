@@ -153,7 +153,7 @@ function lk_forged_field_step(_f, _age) {
             if (array_contains(_f.hit_list, _e) || !lk_line_clear(_f.px, _f.py, _e.px, _e.py)) continue;
             array_push(_f.hit_list, _e);
         } else {
-            _e.slow = max(_e.slow, _seep ? 32 : 12);
+            lk_slow_enemy(_e, _seep ? 32 : 12);
         }
         if (_f.power > 0) {
             var _power = _seep ? ceil(_f.power * (1 + (_f.stacks - 1) * .5)) : _f.power;

@@ -340,20 +340,6 @@ function lk_draw_hud() {
         lk_rect(_banner_x - _w / 2, 35, _banner_x + _w / 2, 52, C_INK);
         lk_line(_banner_x - _w / 2, 51, _banner_x + _w / 2, 51, C_EDGE);
         lk_text_center(banner, _banner_x, 38, cell.clear ? C_GOLD : C_PAPER, false);
-        if (!cell.clear && cell.kind == LK_ROOM.Fight) {
-            var _hint = "";
-            if (cell.encounter == LK_FIGHT.ShieldLine) _hint = "FLANK THE BULWARK";
-            if (cell.encounter == LK_FIGHT.BroodNest) _hint = "DESTROY THE BROOD HUSK";
-            if (cell.encounter == LK_FIGHT.RelayGuard) _hint = "STOP THE BELLKEEPER";
-            if (cell.encounter == LK_FIGHT.HeatWorks) _hint = "KEEP CLEAR OF HOT GROUND";
-            if (cell.encounter == LK_FIGHT.ThreadedCrossing) _hint = "BREAK THE LINKS";
-            if (cell.encounter == LK_FIGHT.FloodPulse) _hint = "MOVE BETWEEN THE LANES";
-            if (_hint != "") {
-                var _tip_width = string_length(_hint) * 6 + 12;
-                lk_rect(134 - _tip_width / 2, 52, 134 + _tip_width / 2, 64, C_INK);
-                lk_text_center(_hint, 134, 53, C_MUTED);
-            }
-        }
         draw_set_alpha(1);
     }
     var _tour = lk_tour_prompt();

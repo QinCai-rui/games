@@ -2,6 +2,7 @@ enum LK_OMEN { None, EmptyStores, Restless, Frugal, Unstable, Brittle, Deep }
 
 #macro LK_UNTOUCHED_ROOTS 12
 #macro LK_NAIL_DRIVER 24
+#macro LK_QUICK_HAND_SECONDS 60
 
 function lk_discovery_catalog() {
     return [
@@ -19,7 +20,7 @@ function lk_discovery_catalog() {
         ["CROWN OF EMBERS", "FUSE CROWN CHISEL AND WICK SPIRE."],
         ["UNTOUCHED ROOTS", "FELL MOSSJAW WITHOUT TAKING A HIT."],
         ["STRANGE FLAME", "FELL ONE OF THE FOUR ALTERNATE GUARDIANS."],
-        ["QUICK HAND", "CLEAR A STAGE 4 OR LATER GUARDIAN IN 35 SECONDS."],
+        ["QUICK HAND", "CLEAR A STAGE 4 OR LATER GUARDIAN IN " + string(LK_QUICK_HAND_SECONDS) + " SECONDS."],
         ["LAST LIGHT", "FELL THE CROWN OF CINDERS WITH AT MOST ONE HIT."]
     ];
 }
@@ -48,7 +49,7 @@ function lk_guardian_mastery() {
     var _guardian = lk_guardian_id(cell);
     if (depth_no == 0 && _guardian == LK_GUARDIAN.Original && guardian_hits == 0) lk_unlock_warden_kit();
     if (_guardian != LK_GUARDIAN.Original) lk_discover(13);
-    if (depth_no >= 3 && world_tick - guardian_started_at <= 2100) lk_discover(14);
+    if (depth_no >= 3 && world_tick - guardian_started_at <= LK_QUICK_HAND_SECONDS * 60) lk_discover(14);
     if (depth_no == 7 && guardian_hits <= 1) lk_discover(15);
 }
 

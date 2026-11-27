@@ -1,6 +1,6 @@
 # Cinder Below game reference
 
-This covers Cinder Below 1.4. It lists 42 weapons, 8 keepers, 22 boons, 11 relics, 16 regular enemies, 12 guardians, and 5 contracts.
+This reference lists 42 weapons, 8 keepers, 22 boons, 11 relics, 16 regular enemies, 12 guardians, and 5 contracts.
 
 Times assume 60 game steps per second. Combat pauses and hit stop can make elapsed time longer. Thumbnails come from the game atlases or reproduce its drawn icons. Relics and boons share the game's colored-diamond design.
 
@@ -27,7 +27,7 @@ Damage is the base amount per projectile, swing, or first hit. The weapon's effe
 | ![venom flask](reference-art/venom-flask.png) | Venom Flask | 3 | 2 | 25 | Lobs a flask that leaves a poison pool. The pool repeatedly damages and slows enemies. |
 | ![starshard](reference-art/starshard.png) | Starshard | 7 | 3 | 19 | Fast shard that can pierce and hit up to five enemies. |
 | ![ashen mortar](reference-art/ashen-mortar.png) | Ashen Mortar | 12 | 4 | 34 | Short-range mortar that creates a delayed blast at impact or at the end of its flight. |
-| ![glass needle](reference-art/glass-needle.png) | Glass Needle | 3 × 2 | 1 | 9 | Fires two closely spaced piercing, slowing needles. |
+| ![glass needle](reference-art/glass-needle.png) | Glass Needle | 3 × 2 | 2 | 16 | Fires two closely spaced piercing, slowing needles. |
 | ![echo rifle](reference-art/echo-rifle.png) | Echo Rifle | 6 | 3 | 23 | Fires the main shot immediately, then two angled follow-up shots from the same spot. |
 | ![floodgate](reference-art/floodgate.png) | Floodgate | 4 × 3 | 3 | 23 | Fires three widely spaced shots. Each can bounce twice off walls or pillars. |
 | ![crown chisel](reference-art/crown-chisel.png) | Crown Chisel | 12 | 1 | 39 | Long melee swing that cuts bullets and sends a short-range projectile for 40% of the swing's damage, rounded up. |
@@ -133,8 +133,6 @@ Gold, energy, and hearts are proximity pickups. Weapons require interaction and 
 
 Each forge lets you temper, fit, or fuse once. Tempering costs 9 gold + 7 × current temper + (stage − 1) − 3 × Smith's Favor rank. A fitting costs 7 gold + half the number of completed stages, rounded down. Fusing costs 9 gold. It consumes both ingredients and gives the result their average temper rounded down, plus an Ember Pistol in the spare slot.
 
-On a new Main Delve, the first Root Gates fight offers a choice of two recipe ingredients. The offers exclude recipes that use a starting weapon. Taking either ingredient before the Elite Hunt sets the Hunt's weapon reward to its matching ingredient. Passing both offers keeps the usual random Hunt reward. Outside these offers, linked diamonds mark a loose weapon that pairs with either carried weapon.
-
 Supply caches offer two weapons with different roles. Picking one removes the other. Trial rewards favor rarer weapons and arrive pre-tempered.
 
 | Attachment | Effect |
@@ -155,11 +153,11 @@ Supply caches offer two weapons with different roles. Picking one removes the ot
 | Room or object | What it does |
 | --- | --- |
 | Landing | Safe entry room at the start of each stage. |
-| Ambush | Mixes a pursuer and a ranged enemy with foes drawn from the biome's pool. When Ambush opens Root Gates, at least two Skulks spawn. |
+| Ambush | Mixes a pursuer and a ranged enemy with foes drawn from the biome's pool. The Root Gates opener fields a Sentry, Spitter, Charger, and Skulk. |
 | Crossfire | Sets up enemies along the left and right sides of the arena and adds one roaming enemy. If a spawn is blocked or too close to you, it falls back to a random position. |
-| Elite Hunt | One wave with two guaranteed elites plus regular enemies. On the sword route, one elite is a Bulwark beside a pillar. Glass Needle and Frost Rail shoot through its gold shield. Its aim line locks before it fires a blade-cuttable bolt for 2 damage. Other guns can flank the shield or fire during recoil. Clearing the room guarantees a weapon. |
+| Elite Hunt | Opens with two elites plus regular enemies. On the sword route, one elite is a Bulwark beside a pillar. Glass Needle and Frost Rail shoot through its gold shield. Its aim line locks before it fires a blade-cuttable bolt for 2 damage. Other guns can flank the shield or fire during recoil. Clearing the room guarantees a weapon. |
 | Rupture | Alternates eruptions between two fixed vents. Has two clusters of pillars. |
-| Swarm | One wave of the biome's designated rusher type, with two extra enemies. |
+| Swarm | Opens with the biome's designated rusher type, with two extra enemies. |
 | Shield Line | A Bulwark screens two ranged enemies while two pursuers circle. Flank its shield, attack during its recovery, or use piercing shots, blasts, or melee. |
 | Brood Nest | A stationary Brood Husk can summon up to three reinforcements while its defenders keep you occupied. Destroy it to stop the next spawn. |
 | Twin Seals | Close both seals with Interact and defeat all enemies to open the doors. Open seals can summon up to four reinforcements total. |
@@ -212,22 +210,22 @@ Base HP is the value before stage, contract, cycle, and elite scaling. The names
 
 | Art | Enemy | Base HP | Behavior |
 | --- | --- | --- | --- |
-| ![Skulk](reference-art/skulk.png) | Skulk | 9 | Chases and lunges a short distance after a quick tell. |
-| ![Spitter](reference-art/spitter.png) | Spitter | 11 | Leads its aim and fires a spread of three shots in moss rooms or five later. Backs away up close. |
-| ![Charger](reference-art/charger.png) | Charger | 17 | Winds up a longer, targeted dash. |
-| ![Wisp](reference-art/wisp.png) | Wisp | 10 | Circles you and fires eight shots in a ring. |
-| ![Sentry](reference-art/sentry.png) | Sentry | 13 | Seeks line of sight, then fires three spaced shots along a fixed, leading aim. |
-| ![Leech](reference-art/leech.png) | Leech | 10 | Zigzags as it approaches, then lunges faster and farther than a Skulk. |
-| ![Bruiser](reference-art/bruiser.png) | Bruiser | 23 | Fires five large shots, sets a nearby floor blast, and deals 2 contact damage. |
-| ![Harpoon](reference-art/harpoon.png) | Harpoon | 15 | Creates distance, telegraphs a long aim line, and fires one fast shot. |
-| ![Prism](reference-art/prism.png) | Prism | 13 | Flanks you and fires five shots that can bounce off cover and walls. |
-| ![Monk](reference-art/monk.png) | Monk | 21 | Marks the floor under you and to one side, then detonates both spots in sequence. |
-|  | Bulwark | 19 | Blocks frontal projectiles while its shield is raised. It commits to a direction before charging and leaves its shield down during recovery. |
-|  | Brood Husk | 26 | Stationary nest that warns before releasing a Skulk, or a Leech in Veil and deeper biomes. It can release up to three and cannot be pushed by ordinary hits. |
-|  | Bellkeeper | 16 | Rings a warning bell and shortens the cooldowns of nearby ordinary allies. |
-|  | Cauteriser | 19 | Predicts your movement and marks a spot that burns for more than two seconds. |
-|  | Threadbinder | 21 | Connects allies with a damaging beam that tracks their positions. When alone, it fires a three-shot fan. |
-|  | Fractureling | 19 | Pursues you and splits into up to two fragile, fast shards on death. Shards yield no loot. |
+| ![Skulk](reference-art/skulk.png) | Skulk | 9 | Some chase directly; others cut across your path. Lunges after a short tell. |
+| ![Spitter](reference-art/spitter.png) | Spitter | 18 | Fires a fan of five shots, or seven if elite. Backs away up close. |
+| ![Charger](reference-art/charger.png) | Charger | 30 | Marks a straight charge ahead of you. Stops at cover or a wall. |
+| ![Wisp](reference-art/wisp.png) | Wisp | 18 | Alternates splitting stars with an eight-shot ring. Cut a star or put cover in its path before it splits into three. |
+| ![Sentry](reference-art/sentry.png) | Sentry | 22 | Marks an intercept line and fires three shots along it for 2 damage each. Elites fire five. The burst breaks crates. |
+| ![Leech](reference-art/leech.png) | Leech | 12 | Zigzags as it approaches, then lunges faster and farther than a Skulk. |
+| ![Bruiser](reference-art/bruiser.png) | Bruiser | 38 | Fires three large shots, sets a nearby floor blast, and deals 2 contact damage. |
+| ![Harpoon](reference-art/harpoon.png) | Harpoon | 22 | Creates distance, telegraphs a long aim line, and fires one fast shot. |
+| ![Prism](reference-art/prism.png) | Prism | 24 | Flanks you and fires five shots that can bounce off pillars and walls. |
+| ![Monk](reference-art/monk.png) | Monk | 34 | Marks the floor under you and to one side, then detonates both spots in sequence. |
+|  | Bulwark | 32 | Blocks frontal projectiles while its shield is raised. It commits to a direction before charging and leaves its shield down during recovery. |
+|  | Brood Husk | 36 | Stationary nest that warns before releasing a Skulk, or a Leech in Veil and deeper biomes. It can release up to three and cannot be pushed by ordinary hits. |
+|  | Bellkeeper | 19 | Rings a warning bell and shortens the cooldowns of nearby ordinary allies. |
+|  | Cauteriser | 26 | Predicts your movement and marks a spot that burns for more than two seconds. |
+|  | Threadbinder | 28 | Connects allies with a damaging beam that tracks their positions. When alone, it fires a three-shot fan. |
+|  | Fractureling | 22 | Pursues you and splits into up to two fragile, fast shards on death. Shards yield no loot. |
 |  | Elite variant | ×2.25 HP | Gold-marked regular enemy with 9% faster movement and a larger collision radius. Drops 5 gold. |
 
 | Biome | Standard spawn pool | Elite Hunt type | Swarm type |
@@ -242,17 +240,19 @@ Base HP is the value before stage, contract, cycle, and elite scaling. The names
 
 HP below is for the first circuit of Main Delve, Arsenal Run, or Daily Contract. Iron Trial and Endless Keep apply the rules in the difficulty table.
 
+All twelve guardians brace under sustained fire. Gold marks beside the guardian show the guard closing. A burst deals more damage after you spend a few seconds dodging or attacking an escort. Guardians need at least 30 seconds of active combat to defeat. The intro, pauses, and hit-stop do not count. Quick Hand allows 60 seconds to clear a guardian room on stage 4 or later.
+
 | Art | Guardian | Stage | HP | Named moves and changes during the fight |
 | --- | --- | --- | --- | --- |
-| ![Mossjaw](reference-art/mossjaw.png) | Mossjaw | 1 | 237 | **Moss Charge** dashes and ends in a bullet ring. **Thorn Fan** fires a spread. **Root Trap** marks three floor blasts. At 51% HP, the fan adds rear shots and **Root Ring** adds six eruptions around Mossjaw. |
-| ![The Rootbound](reference-art/the-rootbound.png) | The Rootbound | 2 | 294 | **Seed Halo** fires a ring with a gap. **Thorn Salvo** fires two angled spreads. **Root Eruption** marks a trail of three blasts. Below 53% HP it summons one Skulk in standard contracts or two in Iron or Endless, and adds delayed rings. Iron and Endless also add four shots to attacks in this phase. |
-| ![The Tin Ram](reference-art/the-tin-ram.png) | The Tin Ram | 3 | 349 | **Rivet Mines** marks a trail of four blasts. **Shrapnel Ring** fires a ring with a gap. **Tin Volley** fires two three-shot bursts in succession, with less time between them below 51% HP. |
-| ![The Bell Forge](reference-art/the-bell-forge.png) | The Bell Forge | 4 | 588 | **Furnace Halo** fires a ring with a gap. **Coal Seams** marks four floor blasts. **Bellfire** fires two opposing spreads. Below 53% HP it summons two Sentries and adds delayed rings. |
-| ![Veil Harrow](reference-art/veil-harrow.png) | Veil Harrow | 5 | 461 | **Veil Step** tries to teleport past you and fires. **Prism Bounce** fires nine bouncing shots. **Veil Sigils** marks four blasts around you. At 51% HP, the blasts grow and attacks come faster. |
-| ![The Pale Regent](reference-art/the-pale-regent.png) | The Pale Regent | 6 | 783 | **Pale Halo** fires a ring with a gap. **Regent's Step** tries to teleport to your flank and fires. **Hollow Sigil** combines bouncing shots with a targeted blast. Below 53% HP it summons two Leeches and adds aimed shots and delayed rings. |
-| ![The Gilded Eel](reference-art/the-gilded-eel.png) | The Gilded Eel | 7 | 608 | **Glass Surge** dashes, leaves shots behind, and ends in a delayed blast. **Fen Quakes** marks four blasts. **Gilded Crossfire** fires opposing spreads. **Shatter Ring** fires a ring and a delayed second ring. At 48% HP it summons two Prisms. |
-| ![Crown of Cinders](reference-art/crown-of-cinders.png) | Crown of Cinders | 8 | 783 | **Golden Rupture** marks three blasts initially and four in later phases. **Cinder Halo** fires two rings with gaps in sequence. **Royal Volley** fires opposing spreads. At 69% HP, two Furnace Anchors activate, cut damage to the Crown by 45% before rounding, and fire warning beams. The Crown adds **Crown Prism**, a sweep of bouncing shots. At 34%, surviving anchors overload, a Prism joins the fight, and the Crown adds **Sovereign Charge**, a dash that fires sideways and ends in a ring. |
-| | Briar Matron | 2 alternative | Scales with contract | Regrows pods that warn and hatch sprouts if they survive. |
+| ![Mossjaw](reference-art/mossjaw.png) | Mossjaw | 1 | 350 | **Moss Charge** ends in a bullet ring on open ground. A collision with cover or a wall cancels the ring and staggers Mossjaw for 0.9 seconds. **Thorn Fan** fires a spread while roots mark your path. **Root Trap** marks three floor blasts. At 51% HP, **Root Ring** adds six eruptions around Mossjaw. |
+| ![The Rootbound](reference-art/the-rootbound.png) | The Rootbound | 2 | 510 | **Seed Halo** leaves a gap off to one side. **Thorn Salvo** sends a seed across the room that sheds thorns on both sides. Pillars and blades stop the seed. **Root Eruption** marks three blasts. Below 53% HP, a Sentry and a Charger join the fight. |
+| ![The Tin Ram](reference-art/the-tin-ram.png) | The Tin Ram | 3 | 540 | **Rivet Mines** marks four blasts. During **Shrapnel Ring**, a gold shell absorbs hits. Each of the first three hits adds two pellets to the ring. The gap stays open. **Tin Volley** fires two three-shot bursts. |
+| ![The Bell Forge](reference-art/the-bell-forge.png) | The Bell Forge | 4 | 630 | **Furnace Halo** fires a ring with a gap. **Coal Seams** marks four floor blasts. **Bellfire** fires two opposing spreads. Below 53% HP it summons two Sentries and adds delayed rings. |
+| ![Veil Harrow](reference-art/veil-harrow.png) | Veil Harrow | 5 | 690 | **Veil Step** tries to teleport past you and fires. **Prism Bounce** fires nine bouncing shots. **Veil Sigils** marks four blasts around you. At 51% HP, the blasts grow and attacks come faster. |
+| ![The Pale Regent](reference-art/the-pale-regent.png) | The Pale Regent | 6 | 810 | **Pale Halo** fires a ring with a gap. **Regent's Step** tries to teleport to your flank and fires. **Hollow Sigil** combines bouncing shots with a targeted blast. Below 53% HP it summons two Leeches and adds aimed shots and delayed rings. |
+| ![The Gilded Eel](reference-art/the-gilded-eel.png) | The Gilded Eel | 7 | 840 | **Glass Surge** dashes, leaves shots behind, and ends in a delayed blast. **Fen Quakes** marks four blasts. **Gilded Crossfire** fires opposing spreads. **Shatter Ring** fires a ring and a delayed second ring. At 48% HP it summons two Prisms. |
+| ![Crown of Cinders](reference-art/crown-of-cinders.png) | Crown of Cinders | 8 | 960 | **Golden Rupture** marks three blasts initially and four in later phases. **Cinder Halo** fires two rings with gaps in sequence. **Royal Volley** fires opposing spreads. At 69% HP, two Furnace Anchors activate, cut damage to the Crown by 45% before rounding, and fire warning beams. The Crown adds **Crown Prism**, a sweep of bouncing shots. At 34%, surviving anchors overload, a Prism joins the fight, and the Crown adds **Sovereign Charge**, a dash that fires sideways and ends in a ring. |
+| | Briar Matron | 2 alternative | 510 | The left pod hatches a Sentry and the right hatches a Charger. Cutting a pod also kills its sprout. The Matron regrows one missing pod every four seconds. Its roots mark your path. Below 53% HP, a ring follows the eruptions. |
 | | The Indexer | Buried Archive | Scales with contract | Breakable panels each reduce damage dealt to the guardian by 32%. |
 | | The Split Regent | 6 alternative | Scales with contract | A reflected double telegraphs attacks. The Regent then shows the real attack direction. |
 | | Sluice Sovereign | Drowned Furnace | Scales with contract | Alternating water lanes leave different safe corridors during attacks. |
@@ -273,12 +273,11 @@ The Keeper's Journal lists six recipes and tracks 16 discoveries across routes, 
 
 | What changes difficulty | Current value |
 | --- | --- |
-| Enemy HP by stage | Regular enemies gain 2 HP per completed stage before contract, cycle, and elite multipliers. After the opening fight, ordinary Chargers, Bruisers, and Bulwarks gain another 2 HP plus 2 per stage after stage 2. |
-| Guardian HP by stage | For stages 1–6, the pre-multiplier HP is `148 + 35 × (stage − 1)` on odd stages or `184 + 61 × (stage − 1)` on even stages. Stages 7 and 8 use 380 and 489. Multiply by 1.6, or 1.2 for the standard-contract Rootbound, then round up. Apply the remaining contract and cycle scaling afterward. |
-| Iron and Endless HP scaling | Multiply by `1 + 0.12 × min(cycle, 7)`. Add 0.13 to the multiplier in Iron Trial. The first circuit is cycle 0. Endless HP scaling caps at +84%. The Rootbound has 392 HP in Endless cycle 0 and 443 HP in Iron Trial. |
+| Enemy HP by stage | Regular enemies gain 3 HP per completed stage before contract, cycle, and elite multipliers. After the opening fight, ordinary Chargers, Bruisers, and Bulwarks gain another 2 HP plus 2 per stage after stage 2. |
+| Iron and Endless HP scaling | Multiply by `1 + 0.12 × min(cycle, 7)`. Add 0.13 to the multiplier in Iron Trial. The first circuit is cycle 0. Endless HP scaling caps at +84%. |
 | Count per ordinary wave | Base count = 4 + biome index (0–4, capped at 3) + 1 from wave 2 onward + a random 0 or 1 + up to 2 from the Endless cycle. Swarm adds 2. Elite Hunt instead starts with 2 elites and adds 2–4 more enemies depending on biome. |
 | Endless elites | From cycle 1, the first eligible regular spawn in each wave is elite. From cycle 2, the first two are elite. Elite Hunt still spawns its two guaranteed elites. |
-| Waves and time between fights | Ambush, Crossfire, and Rupture can have 2 waves. Other regular encounters have 1. Gauntlets have 3. Regular rooms wait 48 steps before the first wave, then 50 between waves. Enemies emerge over 24 steps. |
+| Waves and time between fights | Main-path fights in Root Gates and Mossvault have 2 waves. Reinforcements start emerging 18 steps after at most one foe remains and any seals are closed. The low route has 1 wave. Later Ambush, Crossfire, and Rupture rooms can have 2 waves, with 50 steps between groups. Gauntlets have 3 waves. Enemies emerge over 24 steps. |
 | Reinforcements | Summoned enemies have 65% of their usual base-plus-stage HP, rounded down before contract and cycle scaling. They do not drop loot or trigger kill rewards. |
 | Hit damage | Most enemy shots and contact hits deal 1. Dashing enemies, guardians, and Bruisers can deal 2 on contact. Most floor blasts deal 2. Armor absorbs as much damage as it can and leftover damage reaches HP. |
 | Hit protection | 32 steps after taking damage, about 0.53 seconds. Room entry grants at least 22 steps. Soul Knot grants 240 steps on revive. |
@@ -287,9 +286,9 @@ The Keeper's Journal lists six recipes and tracks 16 discoveries across routes, 
 | Between-room and portal recovery | Main Delve clears grant 6 energy above half capacity or 11 at or below half. Other contracts grant 11. Empty Stores grants 7. Portals restore 30 energy and refill armor, and heal 2 HP in Arsenal, Daily, and Endless. |
 | Health and loot safety | At 2 HP or less, ordinary room clears increase the heart-drop chance to 7 in 12. The free Ember Pistol fires when the selected weapon would cost more energy than you have. |
 | Periodic hazard cadence | Rupture first marks a vent after 108–143 steps, then alternates vents every 160 steps. Gauntlets first mark blasts after 145–212 steps, then trigger every 190 steps minus 11 per biome index (capped at three) and 6 per Endless cycle (capped at four). |
-| Guardian timing | Intros last up to 90 steps and can be skipped once the guardian appears. In Iron and Endless, guardian cooldowns tick down 25% faster. Iron adds its own multiplier. The standard Rootbound's recovery is 47 steps before enrage and 42 afterward. Its enraged windup is 32 steps. |
+| Guardian timing | Intros last up to 90 steps and can be skipped once the guardian appears. In Iron and Endless, guardian cooldowns tick down 25% faster. Iron adds its own multiplier. The Rootbound's recovery is 39 steps before enrage and 29 afterward. Its enraged windup is 25 steps. |
 | Regular-room pursuit | After the opening fight, regular-room foes begin with 12 fewer cooldown steps and take 30–36% less recovery time after attacking. Outside of dashes, pursuers move 40% faster and other foes 24% faster in those rooms. Duel rivals tick down cooldowns 55% faster. |
-| Attack and movement penalties | A weapon's attack delay is its base delay divided by haste, rounded with a floor of 4 steps. Swapping slots imposes at least 6 steps before firing. Slowed enemies move at 53% of their normal pace. |
+| Attack and movement penalties | A weapon's attack delay is its base delay divided by haste, rounded with a floor of 4 steps. Swapping slots imposes at least 6 steps before firing. Slowed enemies move at 53% pace. Elites and guardians halve the slow's duration, or shorten it to one fifth for guardians at half HP or below. They resist new slows until 30 steps after the effect ends. |
 | Cover and room size | Combat takes place inside a 384 × 168 pixel rectangle. Cover layout is randomized from ten layouts for ordinary fights, with fixed pillar patterns for Elite Hunt, Rupture, and guardian rooms. |
 
 Source files for the tables include [keeper and boon definitions](../objects/obj_keep/Create_0.gml), [weapons and combat](../scripts/lk_combat/lk_combat.gml), [room generation and loot](../scripts/lk_run/lk_run.gml), [relics and reward selection](../scripts/lk_relics/lk_relics.gml), [contracts and checkpoints](../scripts/lk_contracts/lk_contracts.gml), [guardian attacks and hazards](../scripts/lk_encounters/lk_encounters.gml), [champions and special projectiles](../scripts/lk_expansion/lk_expansion.gml), and [the Gilded Eel and late weapon behavior](../scripts/lk_late_combat/lk_late_combat.gml).

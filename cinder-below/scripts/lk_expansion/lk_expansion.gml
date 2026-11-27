@@ -74,7 +74,7 @@ function lk_field_step(_field) {
     for (var _i = 0; _i < array_length(enemies); _i++) {
         var _enemy = enemies[_i];
         if (point_distance(_enemy.px, _enemy.py, _field.px, _field.py) >= _field.radius + _enemy.radius) continue;
-        if (_field.kind == 0) _enemy.slow = max(_enemy.slow, 38);
+        if (_field.kind == 0) lk_slow_enemy(_enemy, 38);
         var _direction = point_direction(_field.px, _field.py, _enemy.px, _enemy.py);
         lk_enemy_damage(_enemy, _field.power, _direction, true);
     }
@@ -254,11 +254,54 @@ function lk_lead(_enemy, _speed) {
         player.py + move_y * player.move_pace * _time * .50);
 }
 
+// Commit to one intercept before the warning. A turn or stop after the lock spoils it.
+function lk_lock_ahead(_enemy, _speed, _windup) {
+    var _x = player.px;
+    var _y = player.py;
+    repeat (3) {
+        var _travel = max(0, point_distance(_enemy.px, _enemy.py, _x, _y) - _enemy.radius) / _speed;
+        _x = clamp(player.px + keeper_dx * (_windup + _travel), KEEP_LEFT + 5, KEEP_RIGHT - 5);
+        _y = clamp(player.py + keeper_dy * (_windup + _travel), KEEP_TOP + 5, KEEP_BOTTOM - 5);
+    }
+    return point_direction(_enemy.px, _enemy.py, _x, _y);
+}
+
+function lk_charge_step(_e) {
+    var _speed = lk_enemy_pace(_e, LK_CHARGE_SPEED) * (_e.slow > 0 ? .53 : 1);
+    var _x = _e.px + lengthdir_x(_speed, _e.angle);
+    var _y = _e.py + lengthdir_y(_speed, _e.angle);
+    if (!lk_keep_bounds(_x, _y, _e.radius, false) || !is_undefined(lk_prop_at(_x, _y, _e.radius))) {
+        _e.dash = 0;
+        lk_ring(_e.px, _e.py, _e.color, _e.radius + 9, 12);
+        return true;
+    }
+    _e.px = _x;
+    _e.py = _y;
+    _e.dash -= 1;
+    return false;
+}
+
+function lk_ram_shell(_e) {
+    return depth_no == 2 && _e.guardian == LK_GUARDIAN.Original && _e.tell > 0 && _e.attack mod 3 == 1;
+}
+
 function lk_champion_step(_e, _toward, _range) {
     var _enraged = _e.enraged;
+    if (_e.transition > 0) { _e.transition -= 1; return; }
     if (_e.dash > 0) {
-        lk_enemy_walk(_e, 3.25 + floor_no * .26, _e.angle);
-        _e.dash -= 1;
+        if (depth_no == 0) {
+            if (lk_charge_step(_e)) {
+                // Bait Mossjaw into cover to cancel the ring and get a safe melee opening.
+                _e.transition = 54;
+                _e.cool = 74;
+                lk_sparks(_e.px, _e.py - 5, C_GOLD, 16, 1.8);
+                lk_sound(snd_blast, .73);
+                return;
+            }
+        } else {
+            lk_enemy_walk(_e, 3.25 + floor_no * .26, _e.angle);
+            _e.dash -= 1;
+        }
         if (_e.dash mod 3 == 0) lk_sparks(_e.px, _e.py - 4, _e.color, 3, 1.35);
         if (_e.dash == 0) {
             lk_enemy_burst(_e, 8 + floor_no * 2, _e.angle, 360 / (8 + floor_no * 2), 2.46, C_PINK);
@@ -281,11 +324,10 @@ function lk_champion_step(_e, _toward, _range) {
         switch (floor_no) {
             case 0:
                 if (_move == 0) {
-                    _e.dash = 20;
+                    _e.dash = LK_CHARGE_STEPS;
                     lk_sound(snd_dash, .72);
                 } else if (_move == 1) {
                     lk_enemy_burst(_e, 7, _e.angle, 15, 2.61, C_PINK);
-                    if (_enraged) lk_enemy_burst(_e, 7, _e.angle + 180, 13, 2.26, C_MINT);
                 } else if (_move == 2) {
                     lk_bomb_trail(_e.angle, 3, 18, C_TEAL);
                 } else {
@@ -301,7 +343,10 @@ function lk_champion_step(_e, _toward, _range) {
                 if (_move == 0) {
                     lk_bomb_trail(_e.angle + 90, 4, 17, C_GOLD);
                 } else if (_move == 1) {
-                    lk_enemy_open_ring(_e, 12, _e.angle, 2.28, C_PINK, LK_SHOT.Blast);
+                    // Hits on the closed shell load extra shrapnel. Keep the same escape gap.
+                    var _count = 12 + _e.shell_hits * 2;
+                    lk_enemy_burst(_e, _count, _e.angle + 180, (360 * 11 / 14) / (_count - 1), 2.28, C_PINK, LK_SHOT.Blast);
+                    _e.shell_hits = 0;
                     lk_sound(snd_mortar);
                 } else {
                     lk_enemy_burst(_e, 3, _e.angle - 24, 11, 2.95, C_GOLD);
@@ -343,6 +388,15 @@ function lk_champion_step(_e, _toward, _range) {
         _e.enraged = _e.hp <= _e.max_hp * .51;
         _e.angle = lk_lead(_e, 3.1);
         _e.tell = _e.enraged ? 22 : 29;
+        if (depth_no == 0) {
+            var _move = _e.attack mod lk_boss_rotation(_e);
+            if (_move == 0) _e.angle = lk_lock_ahead(_e, lk_enemy_pace(_e, LK_CHARGE_SPEED), _e.tell);
+            if (_move == 1) {
+                // The thorns fan toward the old position as roots erupt in the running lane.
+                var _wait = _e.tell + (_e.enraged ? 11 : 19);
+                lk_field(player.px + keeper_dx * _wait, player.py + keeper_dy * _wait, 1, _wait - 6, 2, 23, C_TEAL, true);
+            }
+        }
         lk_charge_sound(_e);
         lk_ring(_e.px, _e.py, _e.color, 25, _e.tell);
     } else if (_range > 45) {

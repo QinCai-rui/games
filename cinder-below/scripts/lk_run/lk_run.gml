@@ -31,7 +31,7 @@ enum LK_FIGHT {
 #macro KEEP_BOTTOM 227
 #macro KEEP_MID_Y 143
 #macro LK_BOSS_INTRO 90
-#macro LK_VERSION "1.7.0+dev"
+#macro LK_VERSION "1.8.0+dev"
 
 function lk_input() {
     pad = -1;
@@ -390,6 +390,8 @@ function lk_furnish(_cell) {
 function lk_enter_room(_index, _entry) {
     cell_index = _index;
     cell = dungeon[_index];
+    keeper_dx = 0;
+    keeper_dy = 0;
     enemies = [];
     shots = [];
     fields = [];
@@ -402,6 +404,7 @@ function lk_enter_room(_index, _entry) {
     if (cell.kind == LK_ROOM.Fight && (lk_route_role(cell) == LK_ROUTE_ROOM.Low
         || cell.encounter == LK_FIGHT.EliteHunt || cell.encounter == LK_FIGHT.Swarm
         || cell.encounter >= LK_FIGHT.ShieldLine)) wave_count = 1;
+    if (lk_moss_reinforcements()) wave_count = 2;
     lk_reset_room_objective();
     hazard_wait = lk_rupture_room() ? 108 + cell.seed mod 36 : 145 + cell.seed mod 68;
     if (cell.kind == LK_ROOM.Fight && cell.encounter == LK_FIGHT.FloodPulse) hazard_wait = 78;
@@ -633,6 +636,7 @@ function lk_interact(_action) {
             lk_equip_weapon(player.slot, _loot.value, _loot.temper,
                 variable_struct_exists(_loot, "fit") ? _loot.fit : LK_FIT.None);
             if (variable_struct_exists(_loot, "choice") && _loot.choice) {
+                // Honor a weapon pair already offered in a 1.7 checkpoint.
                 if (variable_struct_exists(_loot, "lead_recipe") && !dungeon[2].clear) {
                     dungeon[2].hunt_weapon = fusion_recipes[_loot.lead_recipe][1];
                 }

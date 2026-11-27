@@ -318,6 +318,29 @@ function lk_spawn_alternate_wave() {
 }
 
 function lk_spawn_objective_wave() {
+    if (wave == 2 && lk_moss_reinforcements()) {
+        // Fresh firing angles after the first group breaks. The low route stays a single fight.
+        var _line = (cell.seed mod 2 == 0) ? 1 : -1;
+        var _support = depth_no == 0 ? LK_ENEMY.Spitter : LK_ENEMY.Wisp;
+        var _group = [LK_ENEMY.Sentry, _support, LK_ENEMY.Charger, LK_ENEMY.Skulk];
+        if (cell.encounter == LK_FIGHT.Crossfire || cell.encounter == LK_FIGHT.ShieldLine) {
+            _group = [LK_ENEMY.Spitter, LK_ENEMY.Charger, _support, LK_ENEMY.Charger];
+        } else if (cell.encounter == LK_FIGHT.EliteHunt || cell.encounter == LK_FIGHT.BroodNest) {
+            _group = [LK_ENEMY.Wisp, LK_ENEMY.Spitter, LK_ENEMY.Skulk, depth_no == 0 ? LK_ENEMY.Charger : LK_ENEMY.Bruiser];
+        }
+        var _col = [112, 368, 190, 290];
+        var _row = [-52, 52, 35, -35];
+        for (var _i = 0; _i < array_length(_group); _i++) {
+            var _x = _col[_i];
+            var _y = KEEP_MID_Y + _row[_i] * _line;
+            if (point_distance(_x, _y, player.px, player.py) < 70 || !is_undefined(lk_prop_at(_x, _y, 14))) _x = -1;
+            var _elite = _i < min(run_cycle, 2) || (lk_has_modifier(LK_OMEN.Deep) && depth_no > 0 && _i == 0);
+            var _foe = lk_spawn(_group[_i], _x, _y, _elite);
+            _foe.cool = 12 + _i * 7;
+        }
+        lk_sound(snd_gate, 1.12);
+        return true;
+    }
     if (cell.encounter >= LK_FIGHT.IndexGuard) return lk_spawn_alternate_wave();
     var _ranged = [LK_ENEMY.Spitter, LK_ENEMY.Sentry, LK_ENEMY.Wisp, LK_ENEMY.Prism, LK_ENEMY.Harpoon][floor_no];
     var _pursuer = [LK_ENEMY.Skulk, LK_ENEMY.Charger, LK_ENEMY.Leech, LK_ENEMY.Prism, LK_ENEMY.Bruiser][floor_no];
@@ -426,7 +449,7 @@ function lk_bulwark_blocks(_enemy, _shot) {
     return abs(angle_difference(lk_bulwark_facing(_enemy), _shot.angle + 180)) <= 64;
 }
 
-function lk_hunt_bulwark_step(_guard, _toward) {
+function lk_hunt_bulwark_step(_guard) {
     if (_guard.tell > 0) {
         _guard.tell -= 1;
         if (_guard.tell == 0) {
@@ -438,8 +461,8 @@ function lk_hunt_bulwark_step(_guard, _toward) {
             lk_sound(snd_harpoon);
         }
     } else if (_guard.cool <= 0 && lk_line_clear(_guard.px, _guard.py, player.px, player.py, 1.5)) {
-        _guard.angle = _toward;
         _guard.tell = 36;
+        _guard.angle = lk_lock_ahead(_guard, lk_enemy_shot_speed(4.5), _guard.tell);
         lk_charge_sound(_guard);
     }
 }
@@ -676,14 +699,13 @@ function lk_sanctum_pattern(_e, _phase_two) {
     switch (floor_no) {
         case 0:
             if (_attack == 0) {
-                lk_enemy_open_ring(_e, 11, _e.angle, 2.13, C_GOLD);
+                lk_enemy_open_ring(_e, 13, _e.angle + (_e.attack mod 2 == 0 ? 63 : -63), 2.35, C_GOLD);
             } else if (_attack == 1) {
-                lk_enemy_burst(_e, 7, _e.angle, 12, 2.71, C_PINK);
-                lk_enemy_burst(_e, 3, _e.angle + 37, 15, 2.28, C_MINT, LK_SHOT.Blast);
+                lk_enemy_burst(_e, 1, _e.angle, 0, 3.4, C_MINT, LK_SHOT.ThornSeed, 2);
+                lk_enemy_burst(_e, 4, _e.angle, 24, 2.6, C_PINK);
             } else {
-                lk_bomb_trail(_e.angle + 90, 3, 18, C_MINT, lk_rootbound_standard() ? 28 : 32);
+                lk_bomb_trail(_e.angle + 90, 3, 18, C_MINT, 28);
             }
-            if (_phase_two && !lk_rootbound_standard()) lk_enemy_burst(_e, 4, _e.angle + 45, 90, 2.80, C_MINT, LK_SHOT.Blast);
             break;
         case 1:
             if (_attack == 0) {
@@ -722,6 +744,7 @@ function lk_sanctum_pattern(_e, _phase_two) {
 
 function lk_boss_ability(_e) {
     if (_e.guardian != LK_GUARDIAN.Original) return lk_guardian_ability(_e);
+    if (depth_no == 0 && _e.transition > 0) return "STAGGERED";
     if (_e.transition > 0) return _e.final_phase == 1 ? "FURNACE ANCHORS" : "ANCHOR OVERLOAD";
     if (_e.tell <= 0) return "";
     if (floor_no == 4) {
@@ -756,7 +779,6 @@ function lk_crown_anchors() {
 }
 
 function lk_crown_damage(_e, _power) {
-    if (_e.final_phase == 1 && lk_crown_anchors() > 0) _power = ceil(_power * .55);
     // Give each threshold its setup step even if several shots land simultaneously.
     var _limit = _e.final_phase == 0 ? floor(_e.max_hp * .69) : floor(_e.max_hp * .34);
     if (_e.final_phase == 2 && _e.transition == 0) return _power;
@@ -891,7 +913,7 @@ function lk_tide_step() {
         if (_e.tided || !_e.alive || _e.emerge > 9
             || point_distance(player.px, player.py, _e.px, _e.py) > _front + _e.radius) continue;
         _e.tided = true;
-        _e.slow = max(_e.slow, 106);
+        lk_slow_enemy(_e, 106);
         var _a = point_direction(player.px, player.py, _e.px, _e.py);
         lk_enemy_damage(_e, ceil(7 * player.damage_scale), _a, true);
         if (_e.kind != LK_ENEMY.Boss && !lk_stationary_enemy(_e.kind)) {

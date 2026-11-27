@@ -46,9 +46,7 @@ Sword doors lead to elites and a weapon reward. In Elite Hunt, a Bulwark aims fr
 
 New players start with a guided tour. Prompts appear as you learn the controls and reach rooms with new mechanics. Press **H** or **Y** to skip during a run. To replay the tour, turn it on from the keeper selection screen before descending.
 
-Root Gates opens with Ambush for a new player. Return to Main Delve and the first fight changes. Both paths through the fork still have the middle inscription.
-
-The first Main Delve fight drops two weapons. The name beneath each shows what you can forge with it. Walk up to see what the finished weapon does. Choose one and the sword door names the other ingredient. Win that fight, collect the gold, and bring both weapons to the forge. Two linked diamonds above a loose weapon mean it pairs with one you carry. You can also leave both offers and keep your starting kit.
+In Root Gates and Mossvault, the second group enters when the first is down to one enemy and any seals are closed. The arrow route stays at one wave. A Sentry's dotted line shows where its burst will go. Change direction once it locks, or get behind a pillar. Crates only stop a couple of shots.
 
 The minimap uses solid tiles for visited rooms and outlines for rooms you can see through known doors. A bright dot marks your room. On large floors, the map focuses on nearby rooms so the corridors stay visible.
 

@@ -79,6 +79,7 @@ function lk_guardian_start(_e) {
             _e.guardian_parts[0].emerge = 0;
             _e.guardian_parts[1].emerge = 0;
             _e.regrow = 240;
+            _e.next_pod = 0;
             break;
         case LK_GUARDIAN.Split:
             _e.color = C_LILAC;
@@ -88,7 +89,7 @@ function lk_guardian_start(_e) {
     }
 }
 
-function lk_guardian_part(_owner, _x, _y, _sprout = undefined) {
+function lk_guardian_part(_owner, _x, _y) {
     var _part = lk_spawn(LK_ENEMY.Sentry, _x, _y, false, true);
     _part.guardian_owner = _owner;
     _part.color = _owner.guardian == LK_GUARDIAN.Indexer ? C_GOLD : C_MINT;
@@ -96,7 +97,7 @@ function lk_guardian_part(_owner, _x, _y, _sprout = undefined) {
     _part.hp = 9 + depth_no * 2;
     _part.max_hp = _part.hp;
     _part.cool = 130;
-    _part.sprout = _sprout;
+    _part.sprout = undefined;
     _part.hatching = false;
     return _part;
 }
@@ -112,7 +113,7 @@ function lk_guardian_part_step(_part) {
     }
     if (_part.cool > 0) return;
     // A living pod hatches one sprout at a time.
-    _part.sprout = lk_spawn(LK_ENEMY.Skulk, _part.px, _part.py + 15, false, true);
+    _part.sprout = lk_spawn(_part.px < 240 ? LK_ENEMY.Sentry : LK_ENEMY.Charger, _part.px, _part.py + 15, false, true);
     _part.cool = 170;
     _part.hatching = false;
     lk_sparks(_part.px, _part.py - 4, C_MINT, 12, 1.55);
@@ -151,9 +152,12 @@ function lk_guardian_step(_e, _toward, _range) {
         _e.regrow -= 1;
         if (_e.regrow <= 0) {
             for (var _i = 0; _i < array_length(_e.guardian_parts); _i++) {
-                var _part = _e.guardian_parts[_i];
+                var _slot = (_e.next_pod + _i) mod array_length(_e.guardian_parts);
+                var _part = _e.guardian_parts[_slot];
                 if (_part.alive) continue;
-                _e.guardian_parts[_i] = lk_guardian_part(_e, _part.px, _part.py, _part.sprout);
+                _e.guardian_parts[_slot] = lk_guardian_part(_e, _part.px, _part.py);
+                _e.next_pod = 1 - _slot;
+                break;
             }
             _e.regrow = 240;
         }
@@ -191,8 +195,10 @@ function lk_guardian_step(_e, _toward, _range) {
             break;
         case LK_GUARDIAN.Matron:
             if (!_even) {
+                _e.enraged = _e.hp < _e.max_hp * .53;
+                if (_e.enraged) lk_ring(_e.px, _e.py, C_PINK, 48, _e.tell);
                 lk_field(player.px, player.py, 1, 37, 2, 25, C_MINT, true);
-                lk_field(player.px + move_x * 39, player.py + move_y * 39, 1, 43, 2, 20, C_MINT, true);
+                lk_field(player.px + keeper_dx * 49, player.py + keeper_dy * 49, 1, 43, 2, 20, C_MINT, true);
             }
             break;
     }
@@ -218,7 +224,8 @@ function lk_guardian_strike(_e, _even) {
             lk_enemy_open_ring(_e, 9, _e.angle, 2.45, C_TEAL);
             break;
         case LK_GUARDIAN.Matron:
-            if (_even) lk_enemy_burst(_e, 7, _e.angle, 16, 3, C_MINT);
+            if (_even) lk_enemy_burst(_e, 7, _e.angle, 16, 3, C_MINT, LK_SHOT.Pellet, 2);
+            else if (_e.enraged) lk_enemy_open_ring(_e, 11, _e.angle + 60, 2.4, C_PINK);
             break;
         case LK_GUARDIAN.Split:
             if (_even) lk_enemy_burst(_e, 3, _e.angle, 11, 4.5, C_LILAC, LK_SHOT.Pierce);

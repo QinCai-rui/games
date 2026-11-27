@@ -75,24 +75,21 @@ function lk_tour_prompt() {
     }
     if (depth_no == 0 && !cell.clear && cell.kind == LK_ROOM.Fight
         && world_tick - tour_room_started < 510 && !lk_tour_seen(LK_TOUR.Skill)) {
-        return pad >= 0 ? "LB USES YOUR KEEPER'S SKILL. KEEP MOVING." : "Q USES YOUR KEEPER'S SKILL. KEEP MOVING.";
+        return pad >= 0 ? "LB: SKILL" : "Q: SKILL";
     }
     if (tour_topic < 0 || world_tick - tour_started >= 510) return "";
     var _second = world_tick - tour_started >= 240;
     switch (tour_topic) {
         case LK_TOUR.Fork: return _second ? "ARROW DOORS LEAD TO THE LOWER-DANGER ROUTE." : "SWORD DOORS LEAD TO ELITES AND A WEAPON REWARD.";
         case LK_TOUR.Inscription: return "READ THE INSCRIPTIONS TO FIND A SECRET ROUTE.";
-        case LK_TOUR.Cache: return "OPEN THE CACHE. CHOOSE ONE WEAPON FOR YOUR ACTIVE SLOT.";
-        case LK_TOUR.Forge:
-            return _second ? "FUSE MATCHING WEAPONS. FIND RECIPES IN THE JOURNAL." : "TEMPER FOR DAMAGE OR ATTACH TO CHANGE YOUR WEAPON.";
+        case LK_TOUR.Cache: return "CHOOSE ONE FOR YOUR ACTIVE SLOT.";
+        case LK_TOUR.Forge: return "ONE UPGRADE PER FORGE.";
         case LK_TOUR.Shrine: return "PICK A BOON. IT STAYS WITH YOU FOR THIS RUN.";
         case LK_TOUR.Shop: return "SPEND GOLD ON HEALTH, ENERGY, OR A WEAPON.";
         case LK_TOUR.Stop: return "CHOOSE ONE OFFER BEFORE YOU LEAVE.";
         case LK_TOUR.Guardian:
             return _second ? "THE JOURNAL RECORDS DISCOVERIES BETWEEN RUNS." : "TAKE THE HEART, THEN USE THE PORTAL TO DESCEND.";
         case LK_TOUR.Secrets: return "THREE INSCRIPTIONS AND 9 GOLD OPEN THE ARCHIVE.";
-        case LK_TOUR.Combat: return _second ? "LOW ENERGY? THE EMBER PISTOL IS YOUR BACKUP." :
-            "AVOID HITS TO GIVE YOUR ARMOR TIME TO REPAIR.";
     }
     return "";
 }

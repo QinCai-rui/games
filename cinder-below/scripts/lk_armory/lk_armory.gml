@@ -24,66 +24,22 @@ function lk_fusion_recipes() {
     return [[3, 9], [7, 14], [12, 5], [22, 11], [4, 18], [20, 21]];
 }
 
-function lk_fusion_effect(_recipe) {
-    return ["BANK SHOTS OFF WALLS", "BLADE HITS LEAVE POISON POOLS", "DISC FIRES A BOLT AS IT TURNS",
-        "TURRET CHAINS LIGHTNING", "A SECOND VOLLEY FOLLOWS YOUR SHOT", "BLADE HITS SUMMON AN ORBITING FLAME"][_recipe];
-}
-
-function lk_fusion_index(_left = player.arms[0], _right = player.arms[1]) {
+function lk_fusion_index() {
     for (var _i = 0; _i < array_length(fusion_recipes); _i++) {
         var _pair = fusion_recipes[_i];
-        if ((_left == _pair[0] && _right == _pair[1]) || (_left == _pair[1] && _right == _pair[0])) return _i;
+        if (array_contains(player.arms, _pair[0]) && array_contains(player.arms, _pair[1])) return _i;
     }
     return -1;
-}
-
-function lk_root_forge_leads() {
-    var _eligible = [];
-    var _count = array_length(fusion_recipes);
-    var _first = (LK_ARM.Winter - LK_FUSION_FIRST + delves_started - 1) mod _count;
-    for (var _i = 0; _i < _count; _i++) {
-        var _recipe = (_first + _i) mod _count;
-        var _pair = fusion_recipes[_recipe];
-        if (!array_contains(player.arms, _pair[0]) && !array_contains(player.arms, _pair[1])) array_push(_eligible, _recipe);
-    }
-    // The lead on the left rotates between Delves; the other comes from this room's seed.
-    return [_eligible[0], _eligible[1 + dungeon[1].seed mod (array_length(_eligible) - 1)]];
-}
-
-function lk_drop_forge_leads() {
-    for (var _i = 0; _i < 2; _i++) {
-        var _recipe = cell.forge_leads[_i];
-        // Below the opener's cover, clear of the inscription and south doorway.
-        var _drop = lk_drop(LK_LOOT.Weapon, 175 + _i * 130, 211, fusion_recipes[_recipe][0]);
-        _drop.choice = true;
-        _drop.lead_recipe = _recipe;
-    }
-}
-
-function lk_ground_fusion(_id) {
-    var _recipe = lk_fusion_index(player.arms[1 - player.slot], _id);
-    if (_recipe >= 0) return _recipe;
-    return lk_fusion_index(player.arms[player.slot], _id);
 }
 
 function lk_weapon_pickup(_loot) {
     var _choice = variable_struct_exists(_loot, "choice") && _loot.choice;
     var _quality = _loot.temper > 0 ? " +" + string(_loot.temper) : "";
-    var _fit = variable_struct_exists(_loot, "fit") ? _loot.fit : LK_FIT.None;
-    var _action = {kind: "weapon", target: _loot, label: (_choice ? "CHOOSE " : "TAKE ") + weapons[_loot.value].name + _quality,
-        detail: lk_weapon_details(_loot.value, _loot.temper, true, _fit)};
-    if (variable_struct_exists(_loot, "lead_recipe") && _loot.choice && !dungeon[2].clear) {
-        var _pair = fusion_recipes[_loot.lead_recipe];
-        _action.label += " / " + weapons[LK_FUSION_FIRST + _loot.lead_recipe].name;
-        _action.detail = "SWORD DOOR: " + weapons[_pair[1]].name + " / " + lk_fusion_effect(_loot.lead_recipe);
-        return _action;
-    }
-    var _recipe = lk_ground_fusion(_loot.value);
-    if (_recipe >= 0) {
-        if (lk_fusion_index(player.arms[1 - player.slot], _loot.value) < 0) {
-            _action.label += pad >= 0 ? " / X: SWAP FIRST" : " / TAB: SWAP FIRST";
-        }
-        _action.detail += " / FORGE " + weapons[LK_FUSION_FIRST + _recipe].name + " 9G";
+    var _action = {kind: "weapon", target: _loot, label: (_choice ? "CHOOSE " : "TAKE ") + weapons[_loot.value].name + _quality};
+    if (_choice && variable_struct_exists(_loot, "lead_recipe") && !dungeon[2].clear) {
+        _action.detail = "HUNT: " + weapons[fusion_recipes[_loot.lead_recipe][1]].name;
+    } else if (_choice) {
+        _action.detail = lk_weapon_details(_loot.value, _loot.temper, true);
     }
     return _action;
 }
@@ -278,7 +234,7 @@ function lk_armory_hit(_enemy, _damage, _angle) {
     var _source = armory_source;
     if (is_undefined(_source) || _damage <= 0) return;
     if (_source.melee && lk_boon_rank(LK_BOON.Afterstroke)) armory_afterstroke = world_tick + 100;
-    if (_source.fit == LK_FIT.Cold) _enemy.slow = max(_enemy.slow, 48);
+    if (_source.fit == LK_FIT.Cold) lk_slow_enemy(_enemy, 48);
     if (_source.fit == LK_FIT.Hot && !_source.hit && _source.slot >= 0
         && _source.generation == armory_generation[_source.slot]) {
         var _slot = _source.slot;
@@ -340,7 +296,7 @@ function lk_forge_offer(_index) {
     }
     var _name = _fuse < 0 ? "NO MATCHING RECIPE" : weapons[LK_FUSION_FIRST + _fuse].name + " / 9G";
     return {kind: "fusion", px: _x, py: 137, label: _name,
-        detail: _fuse < 0 ? "CHECK RECIPES IN THE JOURNAL" : "FUSE BOTH / " + lk_fusion_effect(_fuse), tint: C_LILAC,
+        detail: _fuse < 0 ? "RECIPES IN JOURNAL" : "USES BOTH WEAPONS", tint: C_LILAC,
         usable: _fuse >= 0, sign: "FUSE"};
 }
 

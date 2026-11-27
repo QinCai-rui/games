@@ -1,8 +1,13 @@
 enum LK_SHOT { Pellet, Blade, Pierce, Blast, Ricochet, Buckshot, Chain, Disc, Vial, Star, Mortar, Echo, Orbit, Beacon, Wraith,
-    Nail, Bell, Thread, Hook, Seep, Choir, Split, Ember, Silt, Lens, Winter, Ash, Briar, Crown }
+    Nail, Bell, Thread, Hook, Seep, Choir, Split, Ember, Silt, Lens, Winter, Ash, Briar, Crown, ThornSeed, WispStar }
 
 #macro LK_ARMOR_FIRST_REPAIR 300
 #macro LK_ARMOR_FOLLOWUP 180
+#macro LK_CHARGE_SPEED 5.2
+#macro LK_CHARGE_STEPS 32
+#macro LK_SENTRY_SHOT_SPEED 5.4
+#macro LK_GUARDIAN_MIN_STEPS 1800
+#macro LK_GUARDIAN_OPENING .10
 
 function lk_weapons() {
     return [
@@ -23,7 +28,7 @@ function lk_weapons() {
         {name: "VENOM FLASK", damage: 3, delay: 25, cost: 2, speed: 4.2, count: 1, spread: 0, color: C_MINT, kind: LK_SHOT.Vial},
         {name: "STARSHARD", damage: 7, delay: 19, cost: 3, speed: 9.2, count: 1, spread: 0, color: C_GOLD, kind: LK_SHOT.Star},
         {name: "ASHEN MORTAR", damage: 12, delay: 34, cost: 4, speed: 4.65, count: 1, spread: 0, color: C_PINK, kind: LK_SHOT.Mortar},
-        {name: "GLASS NEEDLE", damage: 3, delay: 9, cost: 1, speed: 10.1, count: 2, spread: 3, color: C_TEAL, kind: LK_SHOT.Pierce},
+        {name: "GLASS NEEDLE", damage: 3, delay: 16, cost: 2, speed: 10.1, count: 2, spread: 3, color: C_TEAL, kind: LK_SHOT.Pierce},
         {name: "ECHO RIFLE", damage: 6, delay: 23, cost: 3, speed: 7.7, count: 1, spread: 0, color: C_LILAC, kind: LK_SHOT.Echo},
         {name: "FLOODGATE", damage: 4, delay: 23, cost: 3, speed: 6.25, count: 3, spread: 22, color: C_BLUE, kind: LK_SHOT.Ricochet},
         {name: "CROWN CHISEL", damage: 12, delay: 39, cost: 1, speed: 0, count: 1, spread: 0, color: C_GOLD, kind: LK_SHOT.Blade},
@@ -93,11 +98,10 @@ function lk_later_fight() {
 }
 
 function lk_spawn(_kind, _x = -1, _y = -1, _elite = false, _summoned = false) {
-    var _boss_hp = depth_no mod 2 == 0 ? 148 + depth_no * 35 : 184 + depth_no * 61;
-    if (floor_no >= 3) _boss_hp = 380 + (floor_no - 3) * 109;
-    var _boss_scale = lk_rootbound_standard() ? 1.2 : 1.6;
-    var _hp = [9, 11, 17, 10, ceil(_boss_hp * _boss_scale), 13, 10, 23, 15, 13, 21,
-        19, 26, 16, 19, 21, 19, 23];
+    var _boss_hp = [350, 510, 540, 630, 690, 810, 840, 960][depth_no];
+    // A rail round drops a Skulk. A shotgunner survives it; a heavy survives a full close-range volley.
+    var _hp = [9, 18, 30, 18, _boss_hp, 22, 12, 38, 22, 24, 34,
+        32, 36, 19, 26, 28, 22, 23];
     var _r = [7, 8, 9, 7, 16, 8, 7, 10, 8, 8, 9, 10, 13, 9, 10, 9, 9, 11];
     var _colors = [C_MINT, C_GOLD, C_PINK, C_BLUE, lk_theme_tint(floor_no), C_GOLD,
         C_LILAC, C_PINK, C_TEAL, C_BLUE, C_GOLD, C_TEAL, C_MINT, C_GOLD, C_PINK, C_LILAC, C_BLUE, C_GOLD];
@@ -113,7 +117,7 @@ function lk_spawn(_kind, _x = -1, _y = -1, _elite = false, _summoned = false) {
             if (_free) break;
         }
     }
-    var _health = _hp[_kind] + (_kind == LK_ENEMY.Boss ? 0 : depth_no * 2);
+    var _health = _hp[_kind] + (_kind == LK_ENEMY.Boss ? 0 : depth_no * 3);
     if (lk_later_fight() && !_summoned) {
         // Frontline enemies buy the ranged enemies time without making the whole room tougher to kill.
         switch (_kind) {
@@ -128,7 +132,7 @@ function lk_spawn(_kind, _x = -1, _y = -1, _elite = false, _summoned = false) {
     var _scale = 1 + min(run_cycle, 7) * .12 + (run_contract == LK_CONTRACT.Iron ? .13 : 0);
     _health = ceil(_health * _scale * (_elite ? 2.25 : 1));
     var _tint = _elite ? C_GOLD : _colors[_kind];
-    var _cool = irandom_range(30, 77);
+    var _cool = irandom_range(18, 48);
     if (cell.kind == LK_ROOM.Duel) _cool = ceil(_cool / 4);
     else if (lk_later_fight()) _cool -= 12;
     if (_kind == LK_ENEMY.Bulwark) _cool = 0;
@@ -137,13 +141,17 @@ function lk_spawn(_kind, _x = -1, _y = -1, _elite = false, _summoned = false) {
     var _aim = _kind == LK_ENEMY.Bulwark ? point_direction(_x, _y, player.px, player.py) : 0;
     var _e = {px: _x, py: _y, kind: _kind, hp: _health, max_hp: _health,
         radius: _r[_kind] + (_elite ? 2 : 0), color: _tint, emerge: 24, cool: _cool,
-        tell: 0, angle: _aim, facing: -1, hit: 0, dash: 0,
-        alive: true, dash_hit: false, slow: 0, attack: 0, echo: 0, enraged: false, phase: irandom(160),
+        tell: 0, angle: _aim, facing: -1, hit: 0, stagger_ready: 0, dash: 0,
+        alive: true, dash_hit: false, slow: 0, slow_ready: 0, slow_applied_at: -1, attack: 0, echo: 0, enraged: false, phase: irandom(160),
         elite: _elite, final_phase: 0, transition: 0, tided: false, summoned: _summoned};
     array_push(enemies, _e);
     lk_ring(_x, _y, _tint, _elite ? 27 : 18, 24);
     if (_kind == LK_ENEMY.Boss) {
         _e.guardian = lk_guardian_id(cell);
+        _e.shell_hits = 0;
+        _e.open_health = _health * LK_GUARDIAN_OPENING;
+        _e.last_impact = world_tick;
+        _e.chip_damage = 0;
         if (_e.guardian != LK_GUARDIAN.Original) lk_guardian_start(_e);
     }
     return _e;
@@ -189,7 +197,6 @@ function lk_spawn_wave() {
         _count += 2;
     }
 
-    // Keep the first fight simple. Later fights use different mixes for each encounter.
     var _later = lk_later_fight();
     var _front = [LK_ENEMY.Skulk, LK_ENEMY.Charger, LK_ENEMY.Leech, LK_ENEMY.Prism, LK_ENEMY.Bruiser];
     var _back = [LK_ENEMY.Spitter, LK_ENEMY.Sentry, LK_ENEMY.Wisp, LK_ENEMY.Harpoon, LK_ENEMY.Monk];
@@ -211,10 +218,18 @@ function lk_spawn_wave() {
         } else if (_style == LK_FIGHT.Swarm) {
             var _rushers = [LK_ENEMY.Skulk, LK_ENEMY.Charger, LK_ENEMY.Leech, LK_ENEMY.Prism, LK_ENEMY.Bruiser];
             _kind = _rushers[floor_no];
-        } else if (depth_no == 0 && cell_index == 1 && _i < 2) {
-            _kind = LK_ENEMY.Skulk;
+        } else if (depth_no == 0 && cell_index == 1 && _style == LK_FIGHT.Ambush && _i < 4) {
+            _kind = [LK_ENEMY.Sentry, LK_ENEMY.Spitter, LK_ENEMY.Charger, LK_ENEMY.Skulk][_i];
+            if (_i < 2) {
+                // Separate the firing angles; mirror the formation with the room seed.
+                _px = _i == 0 ? 122 : 358;
+                _py = (_i + cell.seed) mod 2 == 0 ? 87 : 199;
+                if (point_distance(player.px, player.py, _px, _py) < 60 || !is_undefined(lk_prop_at(_px, _py, 12))) _px = -1;
+            }
         } else if (_later && (_style == LK_FIGHT.Ambush || _style == LK_FIGHT.Rupture) && _i < 2) {
             _kind = _i == 0 ? _front[floor_no] : _back[floor_no];
+        } else if (_style == LK_FIGHT.EliteHunt && depth_no < 2 && _i < 2) {
+            _kind = _i == 0 ? LK_ENEMY.Sentry : _back[floor_no];
         } else if (_later && _style == LK_FIGHT.EliteHunt && _i == 0) {
             _kind = floor_no < 3 ? _back[floor_no] : _front[floor_no];
         }
@@ -228,7 +243,12 @@ function lk_spawn_wave() {
 }
 
 function lk_finish_wave() {
-    if (cell.clear || array_length(enemies) > 0 || wave_wait >= 0 || seals_left > 0) return;
+    if (cell.clear || wave_wait >= 0 || seals_left > 0) return;
+    if (wave == 1 && lk_moss_reinforcements() && array_length(enemies) <= 1) {
+        wave_wait = 18;
+        return;
+    }
+    if (array_length(enemies) > 0) return;
     if (wave < wave_count) {
         wave_wait = 50;
         return;
@@ -271,10 +291,7 @@ function lk_finish_wave() {
     } else {
         banner = "ROOM CLEAR";
         if (irandom(5) == 0 || (player.hp <= 2 && irandom(1) == 0)) lk_drop(LK_LOOT.Heart, 240, 145, 2);
-        if (variable_struct_exists(cell, "forge_leads")) {
-            lk_drop_forge_leads();
-            banner = "CHOOSE A FORGE TRAIL";
-        } else if (cell.encounter == LK_FIGHT.EliteHunt) lk_trial_weapon();
+        if (cell.encounter == LK_FIGHT.EliteHunt) lk_trial_weapon();
         else if (irandom(5) == 0) lk_drop(LK_LOOT.Weapon, 240, 152, lk_weapon_stock(LK_STOCK.Drop));
         lk_route_clear_reward();
     }
@@ -285,14 +302,14 @@ function lk_finish_wave() {
     lk_save_checkpoint();
 }
 
-function lk_line_clear(_x, _y, _to_x, _to_y, _clearance = 1.25) {
+function lk_line_clear(_x, _y, _to_x, _to_y, _clearance = 1.25, _solid_only = false) {
     var _dx = _to_x - _x;
     var _dy = _to_y - _y;
     var _length_squared = _dx * _dx + _dy * _dy;
     if (_length_squared <= .001) return true;
     for (var _i = 0; _i < array_length(cell.props); _i++) {
         var _prop = cell.props[_i];
-        if (!_prop.alive) continue;
+        if (!_prop.alive || (_solid_only && _prop.hp >= 0)) continue;
         var _along = ((_prop.px - _x) * _dx + (_prop.py - _y) * _dy) / _length_squared;
         var _t = clamp(_along, 0, 1);
         var _offset_x = _x + _t * _dx - _prop.px;
@@ -326,7 +343,7 @@ function lk_aim() {
 
 function lk_shot(_friendly, _x, _y, _angle, _speed, _power, _color, _kind = 0) {
     var _wide = _kind == LK_SHOT.Blast || _kind == LK_SHOT.Disc || _kind == LK_SHOT.Mortar
-        || _kind == LK_SHOT.Hook || _kind == LK_SHOT.Winter;
+        || _kind == LK_SHOT.Hook || _kind == LK_SHOT.Winter || _kind == LK_SHOT.ThornSeed;
     var _radius = _wide ? 5 : (_friendly ? 2 : 3);
     var _life = _friendly ? 88 : 186;
     if (_kind == LK_SHOT.Buckshot || _kind == LK_SHOT.Ash) _life = 16;
@@ -352,31 +369,77 @@ function lk_shot(_friendly, _x, _y, _angle, _speed, _power, _color, _kind = 0) {
     return _shot;
 }
 
+// A fresh opening can take a burst. Sustained fire makes the guardian brace;
+// moving to cover or shooting an escort gives the opening time to recover.
+function lk_guardian_open_health(_e) {
+    var _capacity = _e.max_hp * LK_GUARDIAN_OPENING;
+    // The maximum recovery rate is the initially protected HP divided by 30 seconds.
+    var _recovery_steps = LK_GUARDIAN_MIN_STEPS * LK_GUARDIAN_OPENING / (1 - LK_GUARDIAN_OPENING);
+    return _capacity - (_capacity - _e.open_health) * exp(-(world_tick - _e.last_impact) / _recovery_steps);
+}
+
+function lk_guardian_impact(_e, _power) {
+    var _open = lk_guardian_open_health(_e);
+    var _capacity = _e.max_hp * LK_GUARDIAN_OPENING;
+    // Pellets landing together close as much of the opening as one hit of their combined power.
+    _e.open_health = _open * exp(-_power / _capacity);
+    _e.last_impact = world_tick;
+    _e.chip_damage += _open - _e.open_health;
+    var _whole = floor(_e.chip_damage);
+    _e.chip_damage -= _whole;
+    return _whole;
+}
+
 function lk_enemy_damage(_enemy, _power, _angle, _quiet = false) {
     if (!_enemy.alive || _enemy.emerge > 9) return;
+    var _hit_damage = _power;
     if (_enemy.kind == LK_ENEMY.Boss) {
+        if (lk_ram_shell(_enemy)) {
+            _enemy.shell_hits = min(3, _enemy.shell_hits + 1);
+            lk_sparks(_enemy.px, _enemy.py - 9, C_GOLD, 4, 1.25);
+            return;
+        }
         var _rank = lk_relic_rank(LK_RELIC.Crown);
         if (_rank > 0) _power = ceil(_power * (_rank == 1 ? 1.25 : 1.40));
         if (_enemy.guardian == LK_GUARDIAN.Indexer) {
             _power = max(1, ceil(_power * (1 - lk_guardian_ward(_enemy) * .32)));
         }
+        if (floor_no == 4 && _enemy.final_phase == 1 && lk_crown_anchors() > 0) _power = ceil(_power * .55);
+        var _previous_chip = _enemy.chip_damage;
+        _power = lk_guardian_impact(_enemy, _power);
+        // On-hit fittings count this impact, including damage carried over toward the next HP.
+        _hit_damage = _power + (_enemy.chip_damage - _previous_chip);
         if (floor_no == 4) {
             _power = lk_crown_damage(_enemy, _power);
-            if (_power <= 0) return;
+            _hit_damage = lk_crown_damage(_enemy, _hit_damage);
         }
     }
     _enemy.hp -= _power;
-    lk_armory_hit(_enemy, _power, _angle);
+    lk_armory_hit(_enemy, _hit_damage, _angle);
+    if (_enemy.kind == LK_ENEMY.Boss && _power <= 0) {
+        lk_sparks(_enemy.px, _enemy.py - 6, C_GOLD, 2, .9);
+        return;
+    }
     _enemy.hit = 7;
     if (_enemy.kind != LK_ENEMY.Boss && !variable_struct_exists(_enemy, "guardian_owner")
         && !lk_stationary_enemy(_enemy.kind) && !variable_struct_exists(_enemy, "hunt_facing")) {
-        lk_move(_enemy, lengthdir_x(2.3, _angle), lengthdir_y(2.3, _angle), _enemy.radius);
+        // A volley can stagger a target once. Pellet count shouldn't let it push a heavy indefinitely.
+        if (_enemy.stagger_ready <= world_tick) {
+            var _push = _enemy.elite || _enemy.radius >= 9 ? 1 : 2.3;
+            lk_move(_enemy, lengthdir_x(_push, _angle), lengthdir_y(_push, _angle), _enemy.radius);
+            _enemy.stagger_ready = world_tick + 15;
+        }
     }
     lk_sparks(_enemy.px, _enemy.py - 6, _enemy.color, 4, 1.5);
     lk_floater(_enemy.px, _enemy.py - _enemy.radius - 8, string(_power), C_PAPER);
     if (!_quiet) lk_sound(snd_hit, random_range(.87, 1.18));
     if (_enemy.hp > 0) return;
     _enemy.alive = false;
+    if (variable_struct_exists(_enemy, "guardian_owner") && !is_undefined(_enemy.sprout) && _enemy.sprout.alive) {
+        _enemy.sprout.alive = false;
+        lk_arc_fx(_enemy.px, _enemy.py, _enemy.sprout.px, _enemy.sprout.py, C_MINT);
+        lk_sparks(_enemy.sprout.px, _enemy.sprout.py, C_MINT, 10, 1.3);
+    }
     if (_enemy.kind == LK_ENEMY.Boss && _enemy.guardian != LK_GUARDIAN.Original) lk_guardian_cleanup(_enemy);
     if (_enemy.kind == LK_ENEMY.Fractureling) lk_fracture(_enemy, _angle);
     if (!_enemy.summoned) {
@@ -575,7 +638,6 @@ function lk_skill_cooldown() {
 function lk_use_skill() {
     if (player.skill_wait > 0) return;
     lk_tour_record(LK_TOUR.Skill);
-    if (!cell.clear && lk_combat_armor_enabled()) lk_tour_show(LK_TOUR.Combat);
     player.skill_wait = lk_skill_cooldown();
     player.skill_anim = 19;
     if (player.traits[0]) player.charged_shot = true;
@@ -601,7 +663,7 @@ function lk_use_skill() {
         for (var _i = 0; _i < array_length(enemies); _i++) {
             var _e = enemies[_i];
             if (point_distance(player.px, player.py, _e.px, _e.py) <= 86) {
-                _e.slow = 150;
+                lk_slow_enemy(_e, 150);
                 lk_enemy_damage(_e, ceil(10 * player.damage_scale), point_direction(player.px, player.py, _e.px, _e.py), true);
             }
         }
@@ -647,8 +709,8 @@ function lk_combat_armor_enabled() {
     return lk_standard_contract() && !lk_has_modifier(LK_OMEN.Brittle);
 }
 
-function lk_rootbound_standard() {
-    return depth_no == 1 && lk_standard_contract();
+function lk_moss_reinforcements() {
+    return depth_no < 2 && cell.kind == LK_ROOM.Fight && lk_route_role(cell) != LK_ROUTE_ROOM.Low;
 }
 
 function lk_armor_timer(_frames) {
@@ -709,10 +771,27 @@ function lk_player_hurt(_power) {
     return true;
 }
 
-function lk_enemy_walk(_e, _distance, _angle) {
-    if (_e.slow > 0) _distance *= .53;
+function lk_slow_enemy(_e, _duration) {
+    if (_e.kind == LK_ENEMY.Boss || _e.elite) {
+        if (_e.slow_ready > world_tick && _e.slow_applied_at != world_tick) return;
+        var _enraged = _e.kind == LK_ENEMY.Boss && _e.hp <= _e.max_hp * .5;
+        _duration = max(1, ceil(_duration * (_enraged ? .2 : .5)));
+        // On the same step a projectile and its fitting can both slow the target. Keep the stronger one.
+        _e.slow_applied_at = world_tick;
+        _e.slow_ready = max(_e.slow_ready, world_tick + _duration + 30);
+    }
+    _e.slow = max(_e.slow, _duration);
+}
+
+function lk_enemy_pace(_e, _distance, _walking = false) {
     if (run_contract == LK_CONTRACT.Iron) _distance *= 1.13;
-    if (_e.elite) _distance *= (cell.kind == LK_ROOM.Duel && _e.dash == 0) ? 1.22 : 1.09;
+    if (_e.elite) _distance *= (_walking && cell.kind == LK_ROOM.Duel) ? 1.22 : 1.09;
+    return _distance;
+}
+
+function lk_enemy_walk(_e, _distance, _angle) {
+    _distance = lk_enemy_pace(_e, _distance, _e.dash == 0);
+    if (_e.slow > 0) _distance *= .53;
     if (_e.dash == 0 && lk_later_fight()) {
         var _pursuit = _e.kind == LK_ENEMY.Skulk || _e.kind == LK_ENEMY.Charger
             || _e.kind == LK_ENEMY.Leech || _e.kind == LK_ENEMY.Bruiser;
@@ -736,12 +815,12 @@ function lk_enemy_shot_speed(_speed, _kind = LK_SHOT.Pellet) {
     return _kind == LK_SHOT.Blast ? _readable * .85 : _readable;
 }
 
-function lk_enemy_burst(_e, _count, _angle, _gap, _speed, _color, _kind = LK_SHOT.Pellet) {
+function lk_enemy_burst(_e, _count, _angle, _gap, _speed, _color, _kind = LK_SHOT.Pellet, _damage = 1) {
     var _pace = lk_enemy_shot_speed(_speed, _kind);
     for (var _i = 0; _i < _count; _i++) {
         var _a = _angle + (_i - (_count - 1) * .5) * _gap;
         lk_shot(false, _e.px + lengthdir_x(_e.radius, _a), _e.py + lengthdir_y(_e.radius, _a),
-            _a, _pace, 1, _color, _kind);
+            _a, _pace, _damage, _color, _kind);
     }
 }
 
@@ -774,16 +853,20 @@ function lk_boss_step(_e, _toward, _range) {
         return;
     }
     var _phase_two = _e.hp < _e.max_hp * .53;
-    var _rootbound_standard = lk_rootbound_standard();
     if (_phase_two && !_e.enraged) {
         _e.enraged = true;
         lk_ring(_e.px, _e.py, C_PINK, 80, 38);
         lk_sparks(_e.px, _e.py - 10, _e.color, 40, 2.65);
         lk_sound(snd_gate, .64);
         shaking = max(shaking, 10);
-        var _guard = [LK_ENEMY.Skulk, LK_ENEMY.Sentry, LK_ENEMY.Leech][floor_no];
-        lk_spawn(_guard, 88, 192);
-        if (!_rootbound_standard) lk_spawn(_guard, 392, 191);
+        if (depth_no == 1) {
+            lk_spawn(LK_ENEMY.Sentry);
+            lk_spawn(LK_ENEMY.Charger);
+        } else {
+            var _guard = floor_no == 1 ? LK_ENEMY.Sentry : LK_ENEMY.Leech;
+            lk_spawn(_guard, 88, 192);
+            lk_spawn(_guard, 392, 191);
+        }
         banner = "GUARDIAN ENRAGED";
         banner_time = 72;
     }
@@ -800,15 +883,16 @@ function lk_boss_step(_e, _toward, _range) {
         _e.attack += 1;
         if (_phase_two && (!lk_standard_contract() || (_e.attack - 1) mod 3 == 0)) _e.echo = 21;
         _e.cool = (_phase_two ? 36 : 53) - floor_no * 4;
-        if (_rootbound_standard) _e.cool = _phase_two ? 42 : 47;
+        if (depth_no == 1) _e.cool = _phase_two ? 29 : 39;
         shaking = max(shaking, 3);
         lk_sound(snd_heavy, .72 + floor_no * .1);
         return;
     }
     if (_e.cool <= 0) {
-        _e.tell = _phase_two ? (_rootbound_standard ? 32 : 25) : 36;
+        _e.tell = _phase_two ? 25 : 36;
         lk_charge_sound(_e);
         _e.angle = lk_lead(_e, 3.0);
+        if (depth_no == 1 && _e.attack mod 3 == 1) _e.angle = lk_lock_ahead(_e, lk_enemy_shot_speed(3.4), _e.tell);
         lk_ring(_e.px, _e.py, _e.color, 26, _e.tell);
     } else if (_range > 47) {
         lk_enemy_walk(_e, _phase_two ? .95 : .68, _toward + dsin(world_tick * 2) * 43);
@@ -836,7 +920,7 @@ function lk_enemy_step(_e) {
     if (_e.kind == LK_ENEMY.Sentry && _e.echo > 0) {
         _e.echo -= 1;
         if (_e.echo mod 8 == 0) {
-            lk_enemy_burst(_e, 1, _e.angle, 0, 3.35 + depth_no * .12, C_PINK);
+            lk_enemy_burst(_e, 1, _e.angle, 0, LK_SENTRY_SHOT_SPEED, C_PINK, LK_SHOT.Pellet, 2);
             lk_sound(snd_fire, 1.52);
             lk_sparks(_e.px, _e.py - 6, C_PINK, 3, 1.0);
         }
@@ -848,7 +932,7 @@ function lk_enemy_step(_e) {
         if (_range < _e.radius + 5) lk_player_hurt(1);
         return;
     } else if (_e.kind == LK_ENEMY.Bulwark) {
-        if (variable_struct_exists(_e, "hunt_facing")) lk_hunt_bulwark_step(_e, _toward);
+        if (variable_struct_exists(_e, "hunt_facing")) lk_hunt_bulwark_step(_e);
         else lk_bulwark_step(_e, _toward, _range);
         if (point_distance(_e.px, _e.py, player.px, player.py) < _e.radius + 5) {
             lk_player_hurt(_e.dash > 0 ? 2 : 1);
@@ -861,17 +945,20 @@ function lk_enemy_step(_e) {
     } else if (_e.kind == LK_ENEMY.Fractureling && _e.dash == 0 && _e.tell == 0) {
         lk_enemy_walk(_e, 1.35, _toward + dsin(world_tick * 8 + _e.phase) * 35);
     } else if (_e.dash > 0) {
-        lk_enemy_walk(_e, _e.kind == LK_ENEMY.Leech ? 3.65 : (_e.kind == LK_ENEMY.Skulk ? 2.65 : 3.1), _e.angle);
-        _e.dash -= 1;
+        if (_e.kind == LK_ENEMY.Charger) lk_charge_step(_e);
+        else {
+            lk_enemy_walk(_e, _e.kind == LK_ENEMY.Leech ? 3.65 : (_e.kind == LK_ENEMY.Skulk ? 2.65 : 3.1), _e.angle);
+            _e.dash -= 1;
+        }
     } else if (_e.tell > 0) {
         if (_e.tell == 1) {
             switch (_e.kind) {
                 case LK_ENEMY.Spitter:
-                    lk_enemy_burst(_e, floor_no == 0 ? 3 : 5, _e.angle, 14, 2.47 + floor_no * .23, C_PINK);
+                    lk_enemy_burst(_e, _e.elite ? 7 : 5, _e.angle, 17, 2.47 + floor_no * .23, C_PINK);
                     _e.cool = irandom_range(62, 88);
                     break;
                 case LK_ENEMY.Charger:
-                    _e.dash = 22;
+                    _e.dash = LK_CHARGE_STEPS;
                     _e.cool = 76;
                     break;
                 case LK_ENEMY.Skulk:
@@ -880,7 +967,7 @@ function lk_enemy_step(_e) {
                     _e.cool = _e.kind == LK_ENEMY.Leech ? 58 : 64;
                     break;
                 case LK_ENEMY.Sentry:
-                    _e.echo = 17;
+                    _e.echo = _e.elite ? 33 : 17;
                     _e.cool = 72 + irandom(14);
                     break;
                 case LK_ENEMY.Bruiser:
@@ -906,7 +993,9 @@ function lk_enemy_step(_e) {
                     _e.cool = 103;
                     break;
                 case LK_ENEMY.Wisp:
-                    lk_enemy_burst(_e, 8, _e.angle, 45, 2.13, C_LILAC);
+                    if (_e.attack mod 2 == 0) lk_enemy_burst(_e, _e.elite ? 5 : 3, _e.angle, 36, 2.3, C_LILAC, LK_SHOT.WispStar);
+                    else lk_enemy_burst(_e, 8, _e.angle, 45, 2.13, C_LILAC);
+                    _e.attack += 1;
                     _e.cool = irandom_range(86, 125);
                     break;
             }
@@ -923,8 +1012,13 @@ function lk_enemy_step(_e) {
                     _e.angle = lk_lead(_e, _leech ? 3.5 : 2.6);
                     lk_charge_sound(_e);
                 } else {
+                    var _chase = _toward;
+                    if (_range > 63 && _e.phase mod 2 == 0) {
+                        // Cut across a runner's path while the other pursuers follow directly.
+                        _chase = point_direction(_e.px, _e.py, player.px + keeper_dx * 32, player.py + keeper_dy * 32);
+                    }
                     lk_enemy_walk(_e, (_leech ? 1.42 : 1.16) + floor_no * .11,
-                        _toward + (_leech ? dsin(world_tick * 5 + _e.phase) * 36 : 0));
+                        _chase + (_leech ? dsin(world_tick * 5 + _e.phase) * 36 : 0));
                 }
                 break;
             case LK_ENEMY.Harpoon:
@@ -962,11 +1056,11 @@ function lk_enemy_step(_e) {
                 break;
             case LK_ENEMY.Sentry: {
                 if (_e.echo > 0) break;
-                var _clear = lk_line_clear(_e.px, _e.py, player.px, player.py);
+                var _clear = lk_line_clear(_e.px, _e.py, player.px, player.py, 1.5, true);
                 var _side = _e.phase mod 2 == 0 ? 1 : -1;
-                if (_e.cool <= 0 && _range < 210 && _clear) {
-                    _e.tell = 25;
-                    _e.angle = lk_lead(_e, 3.35 + depth_no * .12);
+                if (_e.cool <= 0 && _range < 300 && _clear) {
+                    _e.tell = 28;
+                    _e.angle = lk_lock_ahead(_e, lk_enemy_shot_speed(LK_SENTRY_SHOT_SPEED), _e.tell);
                     lk_charge_sound(_e);
                 } else if (_range > (_later ? 132 : 152) || !_clear) {
                     lk_enemy_walk(_e, .88, _toward + (_later && !_clear ? _side * 45 : 0));
@@ -985,9 +1079,9 @@ function lk_enemy_step(_e) {
                 }
                 break;
             case LK_ENEMY.Spitter: {
-                var _clear = !_later || lk_line_clear(_e.px, _e.py, player.px, player.py);
+                var _clear = lk_line_clear(_e.px, _e.py, player.px, player.py, 1.5, true);
                 var _side = _e.phase mod 2 == 0 ? 1 : -1;
-                if (_e.cool <= 0 && _range < 170 && _clear) {
+                if (_e.cool <= 0 && _range < 216 && _clear) {
                     _e.tell = 27;
                     lk_charge_sound(_e);
                     _e.angle = lk_lead(_e, 2.47 + floor_no * .23);
@@ -1003,7 +1097,7 @@ function lk_enemy_step(_e) {
             case LK_ENEMY.Wisp:
                 if (_e.cool <= 0 && _range < 145) {
                     _e.tell = 30;
-                    _e.angle = _toward + 22.5;
+                    _e.angle = _e.attack mod 2 == 0 ? _toward : _toward + 22.5;
                     lk_charge_sound(_e);
                 } else {
                     var _orbit = clamp(90 - (_range - 86) * 2.7, 0, 156);
@@ -1011,10 +1105,11 @@ function lk_enemy_step(_e) {
                 }
                 break;
             case LK_ENEMY.Charger:
-                if (_e.cool <= 0 && _range < (_later ? 148 : 132)) {
+                var _charge_speed = lk_enemy_pace(_e, LK_CHARGE_SPEED);
+                if (_e.cool <= 0 && _range < _charge_speed * LK_CHARGE_STEPS) {
                     _e.tell = 31;
                     lk_charge_sound(_e);
-                    _e.angle = lk_lead(_e, 3.1);
+                    _e.angle = lk_lock_ahead(_e, _charge_speed, _e.tell);
                 } else if (_range > 38) {
                     lk_enemy_walk(_e, _later ? .87 : .70, _toward);
                 }
@@ -1022,7 +1117,8 @@ function lk_enemy_step(_e) {
         }
     }
     _e.tell = max(0, _e.tell - 1);
-    if (_range < _e.radius + 5) lk_player_hurt(_e.dash > 0 || _e.kind == LK_ENEMY.Boss || _e.kind == LK_ENEMY.Bruiser ? 2 : 1);
+    var _staggered = depth_no == 0 && _e.kind == LK_ENEMY.Boss && _e.transition > 0;
+    if (!_staggered && _range < _e.radius + 5) lk_player_hurt(_e.dash > 0 || _e.kind == LK_ENEMY.Boss || _e.kind == LK_ENEMY.Bruiser ? 2 : 1);
 
     // Keep some space between enemies so an entire wave doesn't bunch into one target.
     if (_e.kind != LK_ENEMY.Boss && !lk_stationary_enemy(_e.kind) && _e.dash == 0) {
@@ -1068,6 +1164,17 @@ function lk_shot_step(_b) {
     var _vial = _b.kind == LK_SHOT.Vial || _b.kind == LK_SHOT.Seep || _b.kind == LK_SHOT.Mortar;
     if (_b.life <= 0) {
         if (_vial) lk_shot_impact(_b);
+        return false;
+    }
+    if (_b.kind == LK_SHOT.ThornSeed && _b.age <= 60 && _b.age mod 12 == 0) {
+        for (var _side = -1; _side <= 1; _side += 2) {
+            lk_shot(_b.friendly, _b.px, _b.py, _b.angle + 90 * _side, 2.75, 2, _b.friendly ? C_BLUE : C_PINK);
+        }
+    }
+    if (_b.kind == LK_SHOT.WispStar && _b.age == 28) {
+        for (var _i = -1; _i <= 1; _i++) {
+            lk_shot(_b.friendly, _b.px, _b.py, _b.angle + _i * 27, 2.85, _b.damage, _b.color);
+        }
         return false;
     }
     if (_b.kind == LK_SHOT.Silt && _b.age mod 6 == 1) {
@@ -1123,7 +1230,7 @@ function lk_shot_step(_b) {
                 lk_sound(snd_ricochet);
                 return true;
             }
-            if (_b.friendly) lk_break_prop(_prop, _b.damage);
+            lk_break_prop(_prop, _b.damage);
             if (_disc) {
                 lk_forged_turn(_b);
                 return true;
@@ -1151,7 +1258,7 @@ function lk_shot_step(_b) {
                     return false;
                 }
                 lk_enemy_damage(_e, _b.damage, _b.angle);
-                if (_b.kind == LK_SHOT.Pierce) _e.slow = max(_e.slow, 55);
+                if (_b.kind == LK_SHOT.Pierce) lk_slow_enemy(_e, 55);
                 if (_b.kind == LK_SHOT.Hook && _b.returning && _e.alive && !_e.elite && _e.radius <= 10
                     && _e.kind != LK_ENEMY.Boss && !lk_stationary_enemy(_e.kind)) {
                     var _pull = point_direction(_e.px, _e.py, player.px, player.py);
@@ -1159,7 +1266,7 @@ function lk_shot_step(_b) {
                         lk_move(_e, lengthdir_x(3, _pull), lengthdir_y(3, _pull), _e.radius);
                     }
                 }
-                if (_b.kind == LK_SHOT.Silt) _e.slow = max(_e.slow, 48);
+                if (_b.kind == LK_SHOT.Silt) lk_slow_enemy(_e, 48);
                 if (!_disc && _b.pierce == 0) return false;
                 _b.pierce -= 1;
                 array_push(_b.hit_list, _e);
@@ -1284,6 +1391,8 @@ function lk_play_step() {
         }
     }
     if (lk_check_door()) return;
+    keeper_dx = player.px - _move_start_x;
+    keeper_dy = player.py - _move_start_y;
     var _moved = point_distance(_move_start_x, _move_start_y, player.px, player.py);
     if (_moved > 0) lk_tour_record(LK_TOUR.Move);
     lk_armory_motion(_moved);
