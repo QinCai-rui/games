@@ -89,8 +89,17 @@ function lk_draw_menu() {
     draw_set_alpha(.78);
     lk_rect(0, 0, 479, 269, C_INK);
     draw_set_alpha(1);
-    lk_ornament(121, 28, 359, C_EDGE);
-    lk_text_center("CHOOSE A KEEPER", 240, 40, C_PAPER, true);
+    var _contract = contracts[chosen_contract];
+    lk_ornament(95, 18, 185, C_EDGE);
+    lk_text_center(_contract.name, 240, 12, _contract.tint);
+    lk_ornament(295, 18, 385, C_EDGE);
+    lk_text_center("CHOOSE A KEEPER", 240, 31, C_PAPER, true);
+    if (hero_id == 0) {
+        var _goal = "FELL MOSSJAW WITHOUT TAKING A HIT TO UNLOCK THE NAIL DRIVER KIT.";
+        if (discoveries[LK_UNTOUCHED_ROOTS]) _goal = chosen_contract == LK_CONTRACT.Daily
+            ? "NAIL DRIVER KIT UNLOCKED. DAILY USES THE ORIGINAL KIT." : "MOSSJAW MASTERY: NAIL DRIVER KIT UNLOCKED.";
+        lk_text_center(_goal, 240, 51, C_GOLD);
+    }
     for (var _i = 0; _i < array_length(heroes); _i++) {
         var _x = 36 + 103 * (_i mod 4);
         var _y = 70 + 64 * floor(_i / 4);
@@ -107,19 +116,18 @@ function lk_draw_menu() {
     }
     var _keeper = heroes[hero_id];
     var _arms = lk_keeper_arms(hero_id, use_alt_loadout);
-    var _alternative = lk_keeper_arms(hero_id, true);
     lk_text_center(_keeper.note, 240, 199, C_PAPER);
     lk_text_center(weapons[_arms[0]].name + "  /  " + weapons[_arms[1]].name, 240, 211, C_MUTED);
     lk_text_center((pad >= 0 ? "Y" : "H") + (tour_next_run ? "  GUIDED TOUR ON" : "  GUIDED TOUR OFF"),
         240, 221, tour_next_run ? C_GOLD : C_MUTED);
     lk_button("DESCEND", 167, 232, 313, true);
-    if (_alternative[0] != _keeper.arms[0]) {
-        lk_button((pad >= 0 ? "X " : "TAB ") + (use_alt_loadout ? "ORIGINAL KIT" : "ALTERNATE KIT"), 321, 232, 445, true);
+    if (lk_keeper_has_alt_kit(hero_id)) {
+        var _kit = use_alt_loadout ? "ORIGINAL KIT" : (hero_id == 0 ? "NAIL DRIVER" : "ALT KIT");
+        lk_button((pad >= 0 ? "X " : "TAB ") + _kit, 321, 232, 445, true);
     }
     if (checkpoint_available) lk_text_center("STARTING OVER REPLACES YOUR SAVE", 240, 257, C_GOLD);
-    lk_text("ESC BACK", 36, 239, C_MUTED);
-    lk_text("R CONTRACT", 36, 251, C_MUTED);
-    lk_text_right(contracts[chosen_contract].name, 445, 240, contracts[chosen_contract].tint);
+    lk_text(pad >= 0 ? "START BACK" : "ESC BACK", 36, 237, C_MUTED);
+    lk_text(pad >= 0 ? "B CONTRACT" : "R CONTRACT", 36, 251, C_MUTED);
 }
 
 function lk_meter(_label, _x, _y, _width, _amount, _limit, _color, _segments, _refill = 0) {
@@ -604,7 +612,7 @@ function lk_draw_journal_discoveries() {
         "NAIL DRIVER BLUEPRINT", "", "HOLLOW BELL BLUEPRINT", "",
         "CINDER THREAD BLUEPRINT / ALCHEMIST KIT", "GRAVEHOOK BLUEPRINT / TIDECALLER KIT",
         "FRUGAL FORGE MODIFIER", "SEEP FLASK BLUEPRINT / UNSTABLE ARSENAL MODIFIER", "",
-        "COPPER KITE BLUEPRINT", "", "", "WARDEN KIT / BRITTLE WARD MODIFIER",
+        "COPPER KITE BLUEPRINT", "", "", "WARDEN'S NAIL DRIVER KIT / BRITTLE WARD MODIFIER",
         "SPLIT LANTERN BLUEPRINT / OUTRIDER KIT / DEEP OMEN MODIFIER", "SILTCASTER BLUEPRINT", ""
     ][journal_item];
     if (_unlock != "") lk_text_center(_unlock, 240, 203, discoveries[journal_item] ? C_GOLD : C_MUTED);

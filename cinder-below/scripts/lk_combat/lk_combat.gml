@@ -177,8 +177,13 @@ function lk_spawn_wave() {
     var _style = cell.encounter;
     if (_style == LK_FIGHT.EliteHunt) {
         var _type = [LK_ENEMY.Charger, LK_ENEMY.Bruiser, LK_ENEMY.Leech, LK_ENEMY.Harpoon, LK_ENEMY.Monk][floor_no];
-        lk_spawn(_type, 176, 120, true);
-        lk_spawn(_type, 304, 167, true);
+        if (lk_route_role(cell) == LK_ROUTE_ROOM.High) {
+            lk_spawn_hunt_bulwark();
+            lk_spawn(_type, -1, -1, true);
+        } else {
+            lk_spawn(_type, 176, 120, true);
+            lk_spawn(_type, 304, 167, true);
+        }
         _count = 2 + min(floor_no, 2);
     } else if (_style == LK_FIGHT.Swarm) {
         _count += 2;
@@ -193,7 +198,7 @@ function lk_spawn_wave() {
         var _elite = _i < min(run_cycle, 2) || (lk_has_modifier(LK_OMEN.Deep) && depth_no > 0 && _i == 0);
         var _px = -1;
         var _py = -1;
-        if (_later && _style == LK_FIGHT.Crossfire && _i == _count - 1) {
+        if (_style == LK_FIGHT.Crossfire && _i == _count - 1) {
             // One roaming enemy can flush the keeper out of cover between the two firing lines.
             _kind = _front[floor_no];
         } else if (_style == LK_FIGHT.Crossfire) {
@@ -361,7 +366,7 @@ function lk_enemy_damage(_enemy, _power, _angle, _quiet = false) {
     lk_armory_hit(_enemy, _power, _angle);
     _enemy.hit = 7;
     if (_enemy.kind != LK_ENEMY.Boss && !variable_struct_exists(_enemy, "guardian_owner")
-        && !lk_stationary_enemy(_enemy.kind)) {
+        && !lk_stationary_enemy(_enemy.kind) && !variable_struct_exists(_enemy, "hunt_facing")) {
         lk_move(_enemy, lengthdir_x(2.3, _angle), lengthdir_y(2.3, _angle), _enemy.radius);
     }
     lk_sparks(_enemy.px, _enemy.py - 6, _enemy.color, 4, 1.5);
@@ -840,7 +845,8 @@ function lk_enemy_step(_e) {
         if (_range < _e.radius + 5) lk_player_hurt(1);
         return;
     } else if (_e.kind == LK_ENEMY.Bulwark) {
-        lk_bulwark_step(_e, _toward, _range);
+        if (variable_struct_exists(_e, "hunt_facing")) lk_hunt_bulwark_step(_e, _toward);
+        else lk_bulwark_step(_e, _toward, _range);
         if (point_distance(_e.px, _e.py, player.px, player.py) < _e.radius + 5) {
             lk_player_hurt(_e.dash > 0 ? 2 : 1);
         }

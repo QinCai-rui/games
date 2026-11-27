@@ -468,14 +468,16 @@ function lk_draw_encounter_actor(_e, _x, _y, _frame, _tint, _alpha, _flinch) {
     var _column = _e.kind - LK_ENEMY.Bulwark;
     var _face = _e.facing;
     if (_e.kind == LK_ENEMY.Bulwark) {
-        _face = dcos(_e.angle) >= 0 ? 1 : -1;
+        var _shield_angle = lk_bulwark_facing(_e);
+        _face = dcos(_shield_angle) >= 0 ? 1 : -1;
         if (lk_bulwark_guarding(_e)) {
             _frame = 3;
             draw_set_alpha(_alpha);
+            var _plate = variable_struct_exists(_e, "hunt_facing") ? C_GOLD : C_TEAL;
             for (var _i = -64; _i < 64; _i += 16) {
-                var _a = _e.angle + _i;
+                var _a = _shield_angle + _i;
                 lk_line(_x + lengthdir_x(17, _a), _y + lengthdir_y(17, _a),
-                    _x + lengthdir_x(17, _a + 16), _y + lengthdir_y(17, _a + 16), C_TEAL);
+                    _x + lengthdir_x(17, _a + 16), _y + lengthdir_y(17, _a + 16), _plate);
             }
             draw_set_alpha(1);
         } else if (_e.dash > 0) {
@@ -572,10 +574,10 @@ function lk_draw_enemy(_e, _x, _y) {
     if (_e.tell > 0 && (!_boss || _e.guardian == LK_GUARDIAN.Original
         || ((_e.guardian == LK_GUARDIAN.Indexer || _e.guardian == LK_GUARDIAN.Matron) && _e.attack mod 2 == 0))) {
         var _aim = _e.angle;
-        var _sniper = _e.kind == LK_ENEMY.Harpoon;
+        var _sniper = _e.kind == LK_ENEMY.Harpoon || variable_struct_exists(_e, "hunt_facing");
         var _length = _sniper ? 420 : (_boss ? 45 : (_e.kind == LK_ENEMY.Charger ? 68 : 31));
         if (_e.kind == LK_ENEMY.Monk || _e.kind == LK_ENEMY.Wisp || _e.kind >= LK_ENEMY.BroodHusk) _length = 0;
-        if (_e.kind == LK_ENEMY.Bulwark) _length = 55;
+        if (_e.kind == LK_ENEMY.Bulwark && !_sniper) _length = 55;
         if (_e.kind == LK_ENEMY.Threadbinder && _e.attack == 1) _length = 43;
         var _heat = 1 - clamp(_e.tell / 35, 0, 1);
         var _flare = .34 + _heat * .32;

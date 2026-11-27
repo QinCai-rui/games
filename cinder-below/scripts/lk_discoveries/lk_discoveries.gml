@@ -1,5 +1,8 @@
 enum LK_OMEN { None, EmptyStores, Restless, Frugal, Unstable, Brittle, Deep }
 
+#macro LK_UNTOUCHED_ROOTS 12
+#macro LK_NAIL_DRIVER 24
+
 function lk_discovery_catalog() {
     return [
         ["ROOT INSCRIPTION", "EXAMINE THE MARK IN ROOT GATES."],
@@ -21,23 +24,36 @@ function lk_discovery_catalog() {
     ];
 }
 
-function lk_discover(_index) {
+function lk_discover(_index, _show_record = true) {
     if (discoveries[_index]) return false;
     discoveries[_index] = true;
     lk_save();
-    lk_floater(player.px, player.py - 28, discovery_catalog[_index][0] + " RECORDED", C_GOLD, 100);
+    if (_show_record) lk_floater(player.px, player.py - 28, discovery_catalog[_index][0] + " RECORDED", C_GOLD, 100);
     return true;
 }
 
+function lk_unlock_warden_kit() {
+    if (!lk_discover(LK_UNTOUCHED_ROOTS, false)) return;
+    lk_floater(240, 143, "WARDEN'S NAIL DRIVER KIT UNLOCKED", C_GOLD, 155);
+    if (run_contract == LK_CONTRACT.Daily) {
+        lk_floater(240, 156, "CHOOSE IT OUTSIDE DAILY", C_PAPER, 155);
+    } else {
+        // A normal pickup keeps the replaced weapon, its temper and its fitting in the room.
+        lk_drop(LK_LOOT.Weapon, 240, 166, LK_NAIL_DRIVER, 0);
+        lk_floater(240, 156, "TAKE IT IN EITHER SLOT OR LEAVE IT HERE", C_PAPER, 155);
+    }
+}
+
 function lk_guardian_mastery() {
-    if (depth_no == 0 && guardian_hits == 0) lk_discover(12);
-    if (lk_guardian_id(cell) != LK_GUARDIAN.Original) lk_discover(13);
+    var _guardian = lk_guardian_id(cell);
+    if (depth_no == 0 && _guardian == LK_GUARDIAN.Original && guardian_hits == 0) lk_unlock_warden_kit();
+    if (_guardian != LK_GUARDIAN.Original) lk_discover(13);
     if (depth_no >= 3 && world_tick - guardian_started_at <= 2100) lk_discover(14);
     if (depth_no == 7 && guardian_hits <= 1) lk_discover(15);
 }
 
 function lk_blueprint_available(_id) {
-    var _catalog = [24, 25, 26, 27, 29, 31, 32, 35];
+    var _catalog = [LK_NAIL_DRIVER, 25, 26, 27, 29, 31, 32, 35];
     var _sources = [0, 2, 4, 5, 7, 9, 13, 14];
     for (var _i = 0; _i < array_length(_catalog); _i++) {
         if (_catalog[_i] == _id) return discoveries[_sources[_i]];
@@ -47,12 +63,17 @@ function lk_blueprint_available(_id) {
 
 function lk_keeper_arms(_id, _alternate) {
     if (_alternate && chosen_contract != LK_CONTRACT.Daily) {
-        if (_id == 0 && discoveries[12]) return [24, 1];
+        if (_id == 0 && discoveries[LK_UNTOUCHED_ROOTS]) return [LK_NAIL_DRIVER, 1];
         if (_id == 1 && discoveries[13]) return [27, 0];
         if (_id == 3 && discoveries[4]) return [29, 0];
         if (_id == 6 && discoveries[5]) return [35, 1];
     }
     return heroes[_id].arms;
+}
+
+function lk_keeper_has_alt_kit(_id) {
+    var _alternate = lk_keeper_arms(_id, true);
+    return _alternate[0] != heroes[_id].arms[0];
 }
 
 function lk_modifier_catalog() {
@@ -62,7 +83,7 @@ function lk_modifier_catalog() {
         ["RESTLESS", "ENEMIES RECOVER FASTER BETWEEN ATTACKS.", -1],
         ["FRUGAL FORGE", "FORGES SKIP EVEN-NUMBERED STAGES.", 6],
         ["UNSTABLE ARSENAL", "FITTINGS CHANGE AT SAFE STOPS.", 7],
-        ["BRITTLE WARD", "ARMOR REPAIRS AFTER COMBAT ONLY.", 12],
+        ["BRITTLE WARD", "ARMOR REPAIRS AFTER COMBAT ONLY.", LK_UNTOUCHED_ROOTS],
         ["DEEP OMEN", "MORE ELITES AND BETTER TRIAL LOOT.", 13]
     ];
 }

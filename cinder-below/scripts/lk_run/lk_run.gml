@@ -31,7 +31,7 @@ enum LK_FIGHT {
 #macro KEEP_BOTTOM 227
 #macro KEEP_MID_Y 143
 #macro LK_BOSS_INTRO 90
-#macro LK_VERSION "1.5.1+dev"
+#macro LK_VERSION "1.6.0+dev"
 
 function lk_input() {
     pad = -1;
@@ -85,6 +85,7 @@ function lk_save() {
     ini_write_real("settings", "tour", tour_next_run);
     ini_write_real("settings", "tour_skipped_seed", tour_skipped_seed);
     ini_write_real("runs", "started", runs_started);
+    ini_write_real("runs", "delves_started", delves_started);
     ini_write_real("runs", "archived_kills", total_kills);
     ini_write_real("daily", "date", daily_record_date);
     ini_write_real("daily", "depth", daily_record_depth);
@@ -180,6 +181,7 @@ function lk_begin_run() {
     lk_armory_restore();
     lk_contract_setup();
     runs_started += 1;
+    if (run_contract == LK_CONTRACT.Delve) delves_started += 1;
     weapon_found[_arms[0]] = true;
     weapon_found[_arms[1]] = true;
     choose_relic = false;
@@ -397,7 +399,8 @@ function lk_enter_room(_index, _entry) {
     wave = 0;
     wave_count = cell.kind == LK_ROOM.Boss || cell.kind == LK_ROOM.Duel ? 1 : (cell.kind == LK_ROOM.Gauntlet ? 3
         : ((depth_no > 0 || _index mod 3 != 1) ? 2 : 1));
-    if (cell.kind == LK_ROOM.Fight && (cell.encounter == LK_FIGHT.EliteHunt || cell.encounter == LK_FIGHT.Swarm
+    if (cell.kind == LK_ROOM.Fight && (lk_route_role(cell) == LK_ROUTE_ROOM.Low
+        || cell.encounter == LK_FIGHT.EliteHunt || cell.encounter == LK_FIGHT.Swarm
         || cell.encounter >= LK_FIGHT.ShieldLine)) wave_count = 1;
     lk_reset_room_objective();
     hazard_wait = lk_rupture_room() ? 108 + cell.seed mod 36 : 145 + cell.seed mod 68;

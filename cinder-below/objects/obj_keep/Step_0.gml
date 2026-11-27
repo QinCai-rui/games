@@ -15,7 +15,8 @@ switch (mode) {
         } else if (checkpoint_available && (accept_pressed || keyboard_check_pressed(ord("C"))
             || (pad >= 0 && gamepad_button_check_pressed(pad, gp_face4))
             || (pointer_click && pointer_y >= 181 && pointer_y <= 205 && pointer_x >= 32 && pointer_x <= 177))) {
-            if (!lk_load_checkpoint()) lk_sound(snd_click, .64);
+            if (lk_load_checkpoint()) use_alt_loadout = false;
+            else lk_sound(snd_click, .64);
         } else if (keyboard_check_pressed(ord("J")) || (pointer_click
             && pointer_y >= 209 && pointer_y <= 232 && pointer_x >= 337 && pointer_x <= 449)) {
             mode = LK_MODE.Journal;
@@ -29,11 +30,12 @@ switch (mode) {
         }
         break;
     case LK_MODE.Select:
-        if (keyboard_check_pressed(ord("R"))) {
+        if (keyboard_check_pressed(ord("R")) || (pad >= 0 && gamepad_button_check_pressed(pad, gp_face2))
+            || (pointer_click && pointer_x >= 33 && pointer_x <= 100 && pointer_y >= 250 && pointer_y < 265)) {
             lk_contract_open(LK_MODE.Select);
             break;
         }
-        if (back_pressed) {
+        if (back_pressed || (pointer_click && pointer_x >= 33 && pointer_x <= 100 && pointer_y >= 235 && pointer_y < 250)) {
             mode = LK_MODE.Title;
             break;
         }
@@ -41,10 +43,7 @@ switch (mode) {
             tour_next_run = !tour_next_run;
             lk_save();
         }
-        if (swap_pressed || (pointer_click && pointer_y >= 231 && pointer_y <= 254 && pointer_x >= 324)) {
-            use_alt_loadout = !use_alt_loadout;
-            lk_sound(snd_click);
-        }
+        var _previous_keeper = hero_id;
         if (menu_left || menu_right) {
             hero_id = (hero_id + (menu_left ? array_length(heroes) - 1 : 1)) mod array_length(heroes);
             lk_sound(snd_click);
@@ -60,7 +59,13 @@ switch (mode) {
                 hero_id = _row * 4 + _column;
                 lk_sound(snd_click);
             }
-            if (pointer_y >= 231 && pointer_y < 258 && abs(pointer_x - 240) < 88) accept_pressed = true;
+            if (pointer_y >= 232 && pointer_y <= 256 && pointer_x >= 167 && pointer_x <= 313) accept_pressed = true;
+        }
+        if (hero_id != _previous_keeper) use_alt_loadout = false;
+        if ((swap_pressed || (pointer_click && pointer_y >= 232 && pointer_y <= 256 && pointer_x >= 321 && pointer_x <= 445))
+            && lk_keeper_has_alt_kit(hero_id)) {
+            use_alt_loadout = !use_alt_loadout;
+            lk_sound(snd_click);
         }
         if (accept_pressed && lk_contract_available(chosen_contract)) lk_begin_run();
         break;

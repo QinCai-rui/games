@@ -102,6 +102,8 @@ for (var _i = 0; _i < array_length(contract_best); _i++) {
     contract_best[_i] = ini_read_real("contracts", string(_i), 0);
 }
 contract_best[LK_CONTRACT.Delve] = max(contract_best[LK_CONTRACT.Delve], best_floor);
+// Older saves already record stage 1 as soon as the first Main Delve starts.
+delves_started = ini_read_real("runs", "delves_started", contract_best[LK_CONTRACT.Delve] > 0 ? 1 : 0);
 for (var _i = 0; _i < array_length(weapon_found); _i++) {
     weapon_found[_i] = ini_read_real("armory", string(_i), 0) > 0;
 }

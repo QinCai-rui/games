@@ -153,9 +153,9 @@ Supply caches offer two weapons with different roles. Picking one removes the ot
 | Room or object | What it does |
 | --- | --- |
 | Landing | Safe entry room at the start of each stage. |
-| Ambush | Mixes a pursuer and a ranged enemy with foes drawn from the biome's pool. The first fight in Root Gates guarantees at least two Skulks. |
+| Ambush | Mixes a pursuer and a ranged enemy with foes drawn from the biome's pool. When Ambush opens Root Gates, at least two Skulks spawn. |
 | Crossfire | Sets up enemies along the left and right sides of the arena and adds one roaming enemy. If a spawn is blocked or too close to you, it falls back to a random position. |
-| Elite Hunt | One wave with two guaranteed elites plus regular enemies. Clearing it guarantees a weapon drop. |
+| Elite Hunt | One wave with two guaranteed elites plus regular enemies. On the sword route, one elite is a Bulwark beside a pillar. Its gold shield blocks even piercing shots from the front. Its aim line locks before it fires a blade-cuttable bolt for 2 damage. Flank it or shoot while the shield drops after firing. Clearing the room guarantees a weapon. |
 | Rupture | Alternates eruptions between two fixed vents. Has two clusters of pillars. |
 | Swarm | One wave of the biome's designated rusher type, with two extra enemies. |
 | Shield Line | A Bulwark screens two ranged enemies while two pursuers circle. Flank its shield, attack during its recovery, or use piercing shots, blasts, or melee. |
@@ -168,7 +168,7 @@ Supply caches offer two weapons with different roles. Picking one removes the ot
 | Flood Pulse | The inner lane and the two outer lanes flood in turn. Move out of the marked lanes as you fight the defenders. |
 | Supply Cache | The chest offers a weapon you are not carrying, 20 energy, and 3 gold. Its weapon pool excludes the Ember Pistol and Keeper Blade. |
 | Tinker's Shop | Sells a Tonic, an Energy Cell, and one weapon. Each purchase is available once per shop. |
-| Shrine of Ash | Offers one boon or a rank upgrade. Every stage has one. On stages 1 and 2 in standard contracts, it prioritizes Iron Bark or Bloodroot until both are maxed. Ties favor Bloodroot if you are wounded. |
+| Shrine of Ash | Choose one boon or rank upgrade. On stages 1 and 2 with combat armor repair enabled, the shrine offers Guardfall if you carry a blade and Afterstroke if you carry both a blade and a ranged weapon. Other options include Kindled Step, Warm Chamber for weapons that use energy, and Coal Heart. When wounded, you get a recovery option: Bloodroot, then Iron Bark or Medic's Vow if earlier options are capped. |
 | Shrine of Sparks | Available from stage 2. Offers one spark boon or a rank upgrade. It prioritizes Still Wick or Quicken. |
 | Reliquary | Available from stage 2. Offers one relic or a rank upgrade. |
 | Temper Forge | Upgrades the weapon in the active slot once for gold. Every stage has one. |
@@ -183,7 +183,11 @@ Supply caches offer two weapons with different roles. Picking one removes the ot
 
 Fight doors stay locked until you finish the objectives and defeat every enemy. The main route has 34 regular fights in Main Delve, Arsenal, and Daily, or 49 in Iron and Endless, before shortcuts. All routes lead to eight guardians. Stage 4, 6, and 8 shortcuts cost 7 gold each and bypass one fight. Starting at stage 2, optional trials loop back through a reliquary.
 
+The first Main Delve opens with Ambush. On consecutive return runs, the opening alternates between two pairs: Crossfire or Brood Nest, then Ambush or Shield Line. The side route can hold a one-wave Ambush instead of Swarm. The last regular fight draws a different encounter from the ones on your path.
+
 Three inscriptions in Root Gates and 9 gold open the Buried Archive after stage 2. Either fork has the middle inscription. Clearing Sluice Machinery in Veil Tunnels lets you take a spindle to the Hollow sanctum and open the Drowned Furnace. These stages have six encounter templates each and replace stages 3 and 7.
+
+A hitless Mossjaw win with any keeper unlocks the Warden's Nail Driver and Keeper Blade starting kit. On the first unlock, the Nail Driver also drops beside the portal. Switch to the slot you want to replace and interact to trade; the old weapon keeps its temper and fitting on the floor. Daily records the unlock but skips the drop and uses the original starting kit.
 
 ## Stages and floor hazards
 

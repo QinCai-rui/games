@@ -109,14 +109,26 @@ function lk_deal_encounters() {
     }
     var _bag = [];
     var _layouts = [];
+    var _return_to_roots = depth_no == 0 && run_contract == LK_CONTRACT.Delve && delves_started > 1;
+    var _opening = LK_FIGHT.Ambush;
+    var _low = LK_FIGHT.Swarm;
+    if (_return_to_roots) {
+        // Draw from alternating pairs so back-to-back Delves open differently.
+        _opening = delves_started mod 2 == 0 ? choose(LK_FIGHT.Crossfire, LK_FIGHT.BroodNest)
+            : choose(LK_FIGHT.Ambush, LK_FIGHT.ShieldLine);
+        if (_opening != LK_FIGHT.Ambush && run_seed mod 2 == 0) _low = LK_FIGHT.Ambush;
+    }
     var _first_depth = [0, 1, 1, 1, 1, 0, 0, 1, 2, 3, 4, 6, 6];
+    if (_return_to_roots) {
+        _first_depth[LK_FIGHT.Crossfire] = 0;
+        _first_depth[LK_FIGHT.Rupture] = 0;
+    }
     for (var _id = 0; _id < array_length(_first_depth); _id++) {
-        if (depth_no >= _first_depth[_id] && _id != LK_FIGHT.EliteHunt
-            && _id != LK_FIGHT.Swarm) array_push(_bag, _id);
+        if (depth_no >= _first_depth[_id] && _id != LK_FIGHT.EliteHunt && _id != _low) array_push(_bag, _id);
         if (_id < 10) array_push(_layouts, _id);
     }
     var _showcase = [
-        [LK_FIGHT.Ambush, LK_FIGHT.ShieldLine],
+        _return_to_roots ? [_opening] : [LK_FIGHT.Ambush, LK_FIGHT.ShieldLine],
         [LK_FIGHT.TwinSeals], [LK_FIGHT.RelayGuard], [LK_FIGHT.HeatWorks],
         [LK_FIGHT.ThreadedCrossing], [],
         [LK_FIGHT.ShatteredColonnade, LK_FIGHT.ThreadedCrossing, LK_FIGHT.FloodPulse],
@@ -132,7 +144,7 @@ function lk_deal_encounters() {
         if (_room.kind != LK_ROOM.Fight) continue;
         var _role = lk_route_role(_room);
         if (_role == LK_ROUTE_ROOM.High || _role == LK_ROUTE_ROOM.Low) {
-            _room.encounter = _role == LK_ROUTE_ROOM.High ? LK_FIGHT.EliteHunt : LK_FIGHT.Swarm;
+            _room.encounter = _role == LK_ROUTE_ROOM.High ? LK_FIGHT.EliteHunt : _low;
             continue;
         }
         var _deal = 0;
@@ -395,10 +407,41 @@ function lk_bulwark_guarding(_enemy) {
     return _enemy.dash == 0 && _enemy.cool <= 0;
 }
 
+function lk_spawn_hunt_bulwark() {
+    // Take the inside edge of a side pillar, leaving the central lane to the other elite.
+    var _x = player.px < 240 ? 143 : 337;
+    var _y = player.py <= KEEP_MID_Y ? 190 : 99;
+    if (point_distance(player.px, player.py, _x, _y) < 72) _x = 480 - _x;
+    var _guard = lk_spawn(LK_ENEMY.Bulwark, _x, _y, true);
+    _guard.hunt_facing = _guard.angle;
+}
+
+function lk_bulwark_facing(_enemy) {
+    return variable_struct_exists(_enemy, "hunt_facing") ? _enemy.hunt_facing : _enemy.angle;
+}
+
 function lk_bulwark_blocks(_enemy, _shot) {
-    return _enemy.kind == LK_ENEMY.Bulwark && lk_bulwark_guarding(_enemy)
-        && _shot.kind != LK_SHOT.Pierce && _shot.kind != LK_SHOT.Wraith
-        && abs(angle_difference(_enemy.angle, _shot.angle + 180)) <= 64;
+    if (_enemy.kind != LK_ENEMY.Bulwark || !lk_bulwark_guarding(_enemy) || _shot.kind == LK_SHOT.Wraith) return false;
+    if (_shot.kind == LK_SHOT.Pierce && !variable_struct_exists(_enemy, "hunt_facing")) return false;
+    return abs(angle_difference(lk_bulwark_facing(_enemy), _shot.angle + 180)) <= 64;
+}
+
+function lk_hunt_bulwark_step(_guard, _toward) {
+    if (_guard.tell > 0) {
+        _guard.tell -= 1;
+        if (_guard.tell == 0) {
+            var _aim = _guard.angle;
+            lk_shot(false, _guard.px + lengthdir_x(_guard.radius, _aim), _guard.py + lengthdir_y(_guard.radius, _aim),
+                _aim, lk_enemy_shot_speed(4.5), 2, C_PINK);
+            // The plate drops on recoil. Even head-on shots can hurt it while it reloads.
+            _guard.cool = 22;
+            lk_sound(snd_harpoon);
+        }
+    } else if (_guard.cool <= 0 && lk_line_clear(_guard.px, _guard.py, player.px, player.py, 1.5)) {
+        _guard.angle = _toward;
+        _guard.tell = 36;
+        lk_charge_sound(_guard);
+    }
 }
 
 function lk_bulwark_step(_enemy, _toward, _range) {

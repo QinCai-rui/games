@@ -26,7 +26,7 @@ Drag a window edge or use the desktop maximize button to change the window size.
 
 Armor recovers faster after you clear a room. With combat repair enabled, the first point repairs after five seconds without taking damage. Each additional point takes three seconds. The line in the armor bar shows progress.
 
-In those contracts, shrines on the first two stages offer Bloodroot or Iron Bark unless you have both at max rank. Each rank of Bloodroot adds two max HP. Each rank of Iron Bark adds two max armor.
+When combat repair is enabled, the first two Shrines of Ash offer boons that suit your weapons. At full health with a gun and a blade, choose Guardfall to reward cutting a shot or Afterstroke to reward landing a melee hit before firing. When wounded, look for Bloodroot to heal and raise your maximum HP.
 
 The keeper uses a backup pistol when the selected weapon runs out of energy. Visit gauntlets, shops, and shrines to equip a stronger build for the late stages.
 
@@ -42,9 +42,11 @@ Flank the Bulwark in Shield Line, destroy the nest before it summons more enemie
 
 Destroy the Crown of Cinders' Furnace Anchors to remove its damage resistance. Anchors left alive at the last phase overload before disappearing.
 
-Sword doors lead to elites and a weapon reward. Arrow doors mark the lower-danger route. Get close to a door for a short label. On stages 4, 6, and 8, spend 7 gold to skip the elite fight. Optional trials loop back into the main route and lead to a reliquary starting in Mossvault.
+Sword doors lead to elites and a weapon reward. In Elite Hunt, a Bulwark aims from beside a pillar. Flank its gold shield, cut the incoming bolt, or fire when the shield drops after the shot. Arrow doors mark the lower-danger route. Get close to a door for a short label. On stages 4, 6, and 8, spend 7 gold to skip the elite fight. Optional trials loop back into the main route and lead to a reliquary starting in Mossvault.
 
 New players start with a guided tour. Prompts appear as you learn the controls and reach rooms with new mechanics. Press **H** or **Y** to skip during a run. To replay the tour, turn it on from the keeper selection screen before descending.
+
+Root Gates opens with Ambush for a new player. Return to Main Delve and the first fight changes. Both paths through the fork still have the middle inscription.
 
 The minimap uses solid tiles for visited rooms and outlines for rooms you can see through known doors. A bright dot marks your room. On large floors, the map focuses on nearby rooms so the corridors stay visible.
 
@@ -55,6 +57,8 @@ Examine three inscriptions in Root Gates to open the Buried Archive for 9 gold a
 The main delve has eight stages across five biomes. Choose Iron Trial for faster enemies, less armor, and lasting wounds. Arsenal Run deals a fresh weapon pair after combat. Daily Contract uses a new dungeon seed each day. Beat the main delve or another finite contract to unlock Endless Keep, where each cycle adds pressure and elite enemies.
 
 Press **Tab** or **X** on the contract screen to cycle available modifiers. Daily Contract sets its own modifier. The Journal tracks secrets, fusions, and guardian feats. Discoveries can add alternate starting kits, shop blueprints, or new modifiers for future runs.
+
+Defeat Mossjaw without taking a hit to unlock the Warden's Nail Driver kit. On keeper select, choose the Warden and press **Tab** or **X** to equip it. Outside Daily, you can also pick up a Nail Driver where you earned it. Leave it on the floor to keep your current weapons.
 
 The game saves the run when you start a stage, clear a room, or collect rewards in a cleared room. After reloading, choose **Continue run**. If you reload during a fight, you return to the last safe room. Web saves stay in the browser and on the site where you started the run.
 
