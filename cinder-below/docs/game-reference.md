@@ -234,7 +234,7 @@ After stage, contract, cycle, elite, and summon adjustments, halve the base HP a
 
 ## Guardians and abilities
 
-In Main Delve, Arsenal Run, and Daily Contract, guardians have 198, 288, 305, 356, 389, 456, 473, and 540 HP on stages 1 through 8. Alternate guardians use the HP for their stage. In Iron Trial and Endless Keep, apply contract and cycle scaling before the same final HP calculation used for regular enemies.
+In Main Delve, Arsenal Run, and Daily Contract, guardians have 132, 192, 203, 237, 259, 304, 315, and 360 HP on stages 1 through 8. Alternate guardians use the HP for their stage. In Iron Trial and Endless Keep, apply contract and cycle scaling to the base HP below, then halve the result and round up. Guardians, the Matron's pods, and the Indexer's panels do not get the 1.5× HP increase. Enemies they summon still do.
 
 All twelve guardians brace under sustained fire. Gold marks beside the guardian show the guard closing. A burst deals more damage after you spend a few seconds dodging or attacking an escort. Guardians need at least 30 seconds of active combat to defeat. The intro, pauses, and hit-stop do not count. Quick Hand allows 60 seconds to clear a guardian room on stage 4 or later.
 

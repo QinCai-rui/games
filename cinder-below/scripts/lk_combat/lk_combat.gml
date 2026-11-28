@@ -97,10 +97,8 @@ function lk_later_fight() {
     return cell.kind == LK_ROOM.Fight && (depth_no > 0 || cell_index > 1);
 }
 
-function lk_enemy_max_hp(_health) {
-    // Scale the HP enemies actually had, including the old whole-point rounding.
-    var _base_hp = max(1, ceil(_health * .5));
-    return ceil(_base_hp * 1.5);
+function lk_enemy_base_hp(_health) {
+    return max(1, ceil(_health * .5));
 }
 
 function lk_spawn(_kind, _x = -1, _y = -1, _elite = false, _summoned = false, _health_scale = 1) {
@@ -140,7 +138,8 @@ function lk_spawn(_kind, _x = -1, _y = -1, _elite = false, _summoned = false, _h
     if (_summoned) _health = max(1, floor(_health * .65));
     var _scale = 1 + min(run_cycle, 7) * .12 + (run_contract == LK_CONTRACT.Iron ? .13 : 0);
     _health = ceil(_health * _scale * (_elite ? 2.25 : 1));
-    _health = lk_enemy_max_hp(ceil(_health * _health_scale));
+    _health = lk_enemy_base_hp(ceil(_health * _health_scale));
+    if (_kind != LK_ENEMY.Boss) _health = ceil(_health * 1.5);
     if (cell.kind == LK_ROOM.Duel && _elite) _health *= 2;
     var _tint = _elite ? C_GOLD : _colors[_kind];
     var _cool = irandom_range(18, 48);

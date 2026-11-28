@@ -94,7 +94,7 @@ function lk_guardian_part(_owner, _x, _y) {
     _part.guardian_owner = _owner;
     _part.color = _owner.guardian == LK_GUARDIAN.Indexer ? C_GOLD : C_MINT;
     _part.radius = 11;
-    _part.hp = lk_enemy_max_hp(9 + depth_no * 2);
+    _part.hp = lk_enemy_base_hp(9 + depth_no * 2);
     _part.max_hp = _part.hp;
     _part.cool = 130;
     _part.sprout = undefined;
