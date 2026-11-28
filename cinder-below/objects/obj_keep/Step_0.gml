@@ -88,9 +88,16 @@ switch (mode) {
         break;
     case LK_MODE.Boon:
         if ((menu_left || menu_right) && array_length(boon_options) > 1) selected = 1 - selected;
-        if (pointer_click && pointer_y >= 111 && pointer_y <= 178) {
-            if (pointer_x >= 61 && pointer_x <= 232) { selected = 0; accept_pressed = true; }
-            if (array_length(boon_options) > 1 && pointer_x >= 248 && pointer_x <= 419) { selected = 1; accept_pressed = true; }
+        if (pointer_click) {
+            var _layout = lk_reward_card_layout();
+            for (var _i = 0; _i < array_length(_layout.cards); _i++) {
+                var _x = _layout.cards[_i].x;
+                if (point_in_rectangle(pointer_x, pointer_y, _x, _layout.top, _x + LK_CARD_WIDTH, LK_CARD_BOTTOM)) {
+                    selected = _i;
+                    accept_pressed = true;
+                    break;
+                }
+            }
         }
         if (accept_pressed) {
             if (choose_relic) lk_take_relic(boon_options[selected]);

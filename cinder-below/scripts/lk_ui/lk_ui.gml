@@ -403,10 +403,10 @@ function lk_pause_inventory(_relic, _top) {
         if (_rank == 0) continue;
         var _item = _catalog[_i];
         var _x = 199 + (_count mod 4) * 56;
-        var _y = _top + floor(_count / 4) * 14;
+        var _y = _top + floor(_count / 4) * 12;
         var _active = pointer_inside && pointer_x >= _x && pointer_x <= _x + 53
-            && pointer_y >= _y && pointer_y <= _y + 13;
-        lk_panel(_x, _y, _x + 53, _y + 13, _active, _item.tint);
+            && pointer_y >= _y && pointer_y <= _y + 11;
+        lk_panel(_x, _y, _x + 53, _y + 11, _active, _item.tint);
         lk_text(_item.short, _x + 3, _y + 1, _item.tint);
         if (_item.max_rank > 1) lk_text_right(string(_rank), _x + 51, _y + 1, C_PAPER);
         if (_active) {
@@ -435,7 +435,7 @@ function lk_draw_pause() {
     lk_text(contracts[run_contract].name, 55, 127, contracts[run_contract].tint);
     lk_text("WEAPON UPGRADES", 55, 146, C_GOLD);
     var _hover = lk_pause_inventory(true, 84);
-    var _boon_hover = lk_pause_inventory(false, 141);
+    var _boon_hover = lk_pause_inventory(false, 137);
     if (!is_undefined(_boon_hover)) _hover = _boon_hover;
     for (var _i = 0; _i < 2; _i++) {
         var _id = player.arms[_i];
@@ -468,7 +468,7 @@ function lk_draw_pause() {
         lk_text_center("HOVER OVER AN ITEM FOR DETAILS", 313, 211, C_MUTED);
     } else {
         lk_text_center(_hover.label, 313, 202, _hover.tint);
-        lk_text_wrap(_hover.note, 313, 213, 36, C_PAPER);
+        lk_draw_text_lines(lk_text_lines(_hover.note, 36), 313, 213, C_PAPER);
     }
 }
 
@@ -481,21 +481,22 @@ function lk_draw_overlay() {
         return;
     }
     if (mode == LK_MODE.Boon) {
-        lk_panel(49, 61, 431, 210, true, C_LILAC);
+        var _layout = lk_reward_card_layout();
+        var _heading_y = min(77, _layout.top - 24);
+        lk_panel(49, _heading_y - 16, 431, 210, true, C_LILAC);
         var _heading = choose_relic ? "CLAIM A RELIC" : (cell.kind == LK_ROOM.SparkShrine ? "CHOOSE A SPARK BOON" : "CHOOSE A BOON");
-        lk_text_center(_heading, 240, 77, C_PAPER, true);
-        for (var _i = 0; _i < array_length(boon_options); _i++) {
-            var _option = boon_options[_i];
-            var _boon = choose_relic ? relic_catalog[_option] : boons[_option];
-            var _rank = lk_reward_rank(choose_relic, _option);
-            var _x = 61 + _i * 187;
-            lk_panel(_x, 111, _x + 171, 178, _i == selected, _boon.tint);
-            lk_text(_rank > 0 ? "RANK " + string(_rank + 1) : "NEW", _x + 7, 115, C_MUTED);
-            lk_glow(_x + 86, 127, 18, _boon.tint, .36);
-            lk_diamond(_x + 86, 127, 6, _boon.tint);
-            lk_diamond(_x + 86, 127, 2, C_PAPER);
-            lk_text_center(_boon.name, _x + 86, 137, _boon.tint);
-            lk_text_wrap(lk_reward_note(_boon, _rank + 1), _x + 86, 151, 26, C_PAPER);
+        lk_text_center(_heading, 240, _heading_y, C_PAPER, true);
+        for (var _i = 0; _i < array_length(_layout.cards); _i++) {
+            var _card = _layout.cards[_i];
+            var _center = _card.x + 86;
+            var _top = _layout.top;
+            lk_panel(_card.x, _top, _card.x + LK_CARD_WIDTH, LK_CARD_BOTTOM, _i == selected, _card.item.tint);
+            lk_text(_card.rank > 0 ? "RANK " + string(_card.rank + 1) : "NEW", _card.x + 7, _top + 4, C_MUTED);
+            lk_glow(_center, _top + 16, 15, _card.item.tint, .36);
+            lk_diamond(_center, _top + 16, 6, _card.item.tint);
+            lk_diamond(_center, _top + 16, 2, C_PAPER);
+            lk_text_center(_card.item.name, _center, _top + 26, _card.item.tint);
+            lk_draw_text_lines(_card.lines, _center, _top + 40, C_PAPER);
         }
         lk_text_center("A / D  SELECT     ENTER  TAKE", 240, 189, C_MUTED);
         return;
@@ -511,20 +512,46 @@ function lk_draw_overlay() {
     lk_text_center("ESC  TITLE", 240, 190, C_MUTED);
 }
 
-function lk_text_wrap(_note, _x, _y, _limit, _color) {
+function lk_text_lines(_note, _limit) {
     var _words = string_split(_note, " ");
+    var _lines = [];
     var _line = "";
     for (var _i = 0; _i < array_length(_words); _i++) {
         var _word = _words[_i];
-        if (string_length(_line) + string_length(_word) + 1 > _limit) {
-            lk_text_center(_line, _x, _y, _color);
+        if (_line != "" && string_length(_line) + string_length(_word) + 1 > _limit) {
+            array_push(_lines, _line);
             _line = _word;
-            _y += 10;
         } else {
             _line += (_line == "" ? "" : " ") + _word;
         }
     }
-    lk_text_center(_line, _x, _y, _color);
+    array_push(_lines, _line);
+    return _lines;
+}
+
+#macro LK_TEXT_LEADING 10
+#macro LK_CARD_WIDTH 171
+#macro LK_CARD_BOTTOM 178
+
+function lk_draw_text_lines(_lines, _x, _y, _color) {
+    for (var _i = 0; _i < array_length(_lines); _i++) {
+        lk_text_center(_lines[_i], _x, _y + _i * LK_TEXT_LEADING, _color);
+    }
+}
+
+function lk_reward_card_layout() {
+    var _cards = [];
+    var _rows = 2;
+    for (var _i = 0; _i < array_length(boon_options); _i++) {
+        var _id = boon_options[_i];
+        var _item = choose_relic ? relic_catalog[_id] : boons[_id];
+        var _rank = lk_reward_rank(choose_relic, _id);
+        var _lines = lk_text_lines(lk_reward_note(_item, _rank + 1), 26);
+        _rows = max(_rows, array_length(_lines));
+        array_push(_cards, {x: 61 + _i * 187, item: _item, rank: _rank, lines: _lines});
+    }
+    // Leave 40 pixels for the icon and name, and 7 below the last line.
+    return {cards: _cards, top: LK_CARD_BOTTOM - 47 - _rows * LK_TEXT_LEADING};
 }
 
 function lk_journal_count() {
@@ -653,8 +680,9 @@ function lk_draw_journal() {
             lk_panel(172, 167, 308, 188, false, C_EDGE);
             lk_text_center("<  PAGE " + string(_page + 1) + " / 2  >", 240, 172, C_GOLD);
         }
-        lk_text_center(_label, 240, 199, C_PAPER);
-        lk_text_center(_note, 240, 212, C_MUTED);
+        var _lines = lk_text_lines(_note, string_length(_note) > 64 ? 40 : 64);
+        lk_text_center(_label, 240, array_length(_lines) > 1 ? 194 : 199, C_PAPER);
+        lk_draw_text_lines(_lines, 240, array_length(_lines) > 1 ? 207 : 212, C_MUTED);
         lk_text_right(string(_count) + " / " + string(array_length(_flags)), 429, 232, C_GOLD);
     } else if (journal_tab == 2) lk_draw_journal_recipes();
     else if (journal_tab == 3) lk_draw_journal_discoveries();
