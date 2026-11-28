@@ -400,6 +400,12 @@
     },
     {
       "id": {
+        "name": "spr_tinker_stall",
+        "path": "sprites/spr_tinker_stall/spr_tinker_stall.yy"
+      }
+    },
+    {
+      "id": {
         "name": "spr_encounter_actors",
         "path": "sprites/spr_encounter_actors/spr_encounter_actors.yy"
       }

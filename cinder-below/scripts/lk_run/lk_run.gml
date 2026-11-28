@@ -31,7 +31,7 @@ enum LK_FIGHT {
 #macro KEEP_BOTTOM 227
 #macro KEEP_MID_Y 143
 #macro LK_BOSS_INTRO 90
-#macro LK_VERSION "1.9.0+dev"
+#macro LK_VERSION "1.9.1+dev"
 
 function lk_input() {
     pad = -1;
@@ -519,6 +519,11 @@ function lk_prop_at(_x, _y, _r) {
 }
 
 function lk_move(_body, _dx, _dy, _r, _player = false) {
+    // A keeper loaded inside the stall from an older save can still walk out.
+    if (cell.kind == LK_ROOM.Shop && !lk_shop_solid(_body.px, _body.py, _r)) {
+        if (lk_shop_solid(_body.px + _dx, _body.py, _r)) _dx = 0;
+        if (lk_shop_solid(_body.px + _dx, _body.py + _dy, _r)) _dy = 0;
+    }
     _player = _player && door_cooldown <= 0;
     var _x = _body.px + _dx;
     var _y = _body.py + _dy;
@@ -555,11 +560,21 @@ function lk_drop(_kind, _x, _y, _value, _temper = -1, _fit = LK_FIT.None) {
     return _loot;
 }
 
+#macro LK_STALL_X 109
+#macro LK_STALL_Y 72
+#macro LK_CASE_X 281
+#macro LK_CASE_Y 115
+
+function lk_shop_solid(_x, _y, _r) {
+    return point_in_rectangle(_x, _y, LK_STALL_X + 10 - _r, LK_STALL_Y + 43 - _r, LK_STALL_X + 160 + _r, LK_STALL_Y + 79 + _r)
+        || point_in_rectangle(_x, _y, LK_CASE_X + 4 - _r, LK_CASE_Y + 24 - _r, LK_CASE_X + (depth_no == 0 ? 51 : 99) + _r, LK_CASE_Y + 43 + _r);
+}
+
 function lk_shop_item(_i) {
     var _name = weapons[cell.stock].name + (cell.stock_temper > 0 ? " +" + string(cell.stock_temper) : "");
     var _names = ["TONIC", "ENERGY CELL", _name];
     var _prices = [5, 4, 10 + floor_no * 3 + cell.stock_temper * 2];
-    return {px: 173 + 67 * _i, py: 135, name: _names[_i], price: _prices[_i]};
+    return {px: LK_STALL_X + 30 + 52 * _i, py: LK_STALL_Y + 82, name: _names[_i], price: _prices[_i]};
 }
 
 function lk_shop_commission(_relic) {
@@ -567,7 +582,7 @@ function lk_shop_commission(_relic) {
     var _sales = variable_struct_exists(cell, "commissions") ? cell.commissions : 0;
     var _price = (_relic ? 70 : 45) + 20 * _sales;
     var _offer = {kind: "commission", relic: _relic, id: -1, price: _price, tint: C_MUTED,
-        px: _relic ? 297 : 183, py: 184, label: "ALL RANKS OWNED", detail: ""};
+        px: LK_CASE_X + (_relic ? 77 : 27), py: LK_CASE_Y + 46, label: "ALL RANKS OWNED", detail: ""};
     // Browsing or reloading never rerolls stock. Skip rewards capped elsewhere in the run.
     var _count = array_length(_catalog);
     for (var _i = 0; _i < _count; _i++) {

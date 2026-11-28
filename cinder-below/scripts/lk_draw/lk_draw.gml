@@ -263,32 +263,48 @@ function lk_room_setpiece(_xx, _yy) {
         lk_light(_x, _cy - 21, 28, _tone, cell.opened ? .09 : .41);
         if (!cell.opened) lk_item_sprite(LK_ITEM_ART.Reliquary, _x, _cy - 26 + dsin(world_tick * 5) * 2);
     }
-    if (cell.kind == LK_ROOM.Shop) {
-        lk_rect(146 + _xx, 104 + _yy, 335 + _xx, 110 + _yy, C_EDGE);
-        lk_rect(147 + _xx, 104 + _yy, 335 + _xx, 105 + _yy, $6F809A);
-        lk_actor(7, 0, _x, 105 + _yy);
-        for (var _i = 0; _i < 3; _i++) {
-            var _item = lk_shop_item(_i);
-            var _ix = _item.px + _xx;
-            var _iy = _item.py + _yy;
-            lk_rect(_ix - 23, _iy - 3, _ix + 23, _iy + 3, C_DEEP);
-            lk_rect(_ix - 22, _iy - 5, _ix + 22, _iy, C_EDGE);
-            if (!cell.bought[_i]) {
-                if (_i < 2) lk_loot_icon(_i == 0 ? LK_LOOT.Heart : LK_LOOT.Energy, _ix, _iy - 9, 0);
-                else lk_weapon_draw(cell.stock, _ix - 4, _iy - 10, 20);
-                lk_text_center(string(_item.price) + "G", _ix, _iy + 6, C_GOLD);
-            }
+}
+
+function lk_shop_tag(_x, _y, _text, _available) {
+    var _half = string_length(_text) * 3 + 3;
+    lk_rect(_x - _half, _y, _x + _half, _y + 9, C_INK);
+    lk_line(_x - _half + 1, _y, _x + _half - 1, _y, $527EA3);
+    lk_text_center(_text, _x, _y - 1, _available ? C_GOLD : C_MUTED);
+}
+
+function lk_draw_shop_stall(_xx, _yy) {
+    var _x = LK_STALL_X + _xx;
+    var _y = LK_STALL_Y + _yy;
+    lk_shadow(_x + 85, _y + 82, 82);
+    draw_sprite_part(spr_tinker_stall, 0, 0, 0, 176, 88, _x, _y);
+    lk_light(_x + 25, _y + 42, 18, C_GOLD, .38 + .05 * dsin(world_tick * 3));
+    for (var _i = 0; _i < 3; _i++) {
+        var _item = lk_shop_item(_i);
+        var _ix = _item.px + _xx;
+        var _available = !cell.bought[_i];
+        if (_available) {
+            if (_i == 2) lk_weapon_draw(cell.stock, _ix - 6, _y + 56, 15);
+            else draw_sprite_part(spr_tinker_stall, 0, 176 + _i * 16, 56, 16, 20, _ix - 7, _y + 45);
         }
-        for (var _i = 0; _i < (depth_no > 0 ? 2 : 1); _i++) {
-            var _offer = lk_shop_commission(_i == 1);
-            var _ix = _offer.px + _xx;
-            var _iy = _offer.py + _yy;
-            lk_rect(_ix - 26, _iy - 4, _ix + 26, _iy + 1, C_EDGE);
-            if (_offer.relic) lk_item_sprite(LK_ITEM_ART.Reliquary, _ix, _iy - 13, _offer.tint);
-            else lk_diamond(_ix, _iy - 12, 6, _offer.tint);
-            var _sign = _offer.id < 0 ? "MAXED" : (_offer.relic ? "RELIC " : "BOON ") + string(_offer.price) + "G";
-            lk_text_center(_sign, _ix, _iy + 5, _offer.tint);
+        lk_shop_tag(_ix, _y + 66, _available ? string(_item.price) + "G" : "SOLD", _available);
+    }
+}
+
+function lk_draw_commission_case(_xx, _yy) {
+    var _x = LK_CASE_X + _xx;
+    var _y = LK_CASE_Y + _yy;
+    var _width = depth_no == 0 ? 56 : 104;
+    lk_shadow(_x + _width / 2, _y + 45, _width / 2 - 1);
+    draw_sprite_part(spr_tinker_stall, 0, depth_no == 0 ? 226 : 178, depth_no == 0 ? 48 : 0, _width, 48, _x, _y);
+    for (var _i = 0; _i < (depth_no > 0 ? 2 : 1); _i++) {
+        var _offer = lk_shop_commission(_i == 1);
+        var _ix = _offer.px + _xx;
+        lk_text_center(_offer.relic ? "RELIC" : "BOON", _ix, _y + 7, C_PAPER);
+        if (_offer.id >= 0) {
+            if (_offer.relic) lk_item_sprite(LK_ITEM_ART.Reliquary, _ix, _y + 24);
+            else draw_sprite_part(spr_tinker_stall, 0, 208, 56, 16, 20, _ix - 7, _y + 17);
         }
+        lk_shop_tag(_ix, _y + 34, _offer.id < 0 ? "MAXED" : string(_offer.price) + "G", _offer.id >= 0);
     }
 }
 
@@ -825,6 +841,10 @@ function lk_draw_game() {
     for (var _i = 0; _i < array_length(fields); _i++) lk_field_draw(fields[_i], _xx, _yy);
     lk_draw_loot(_xx, _yy);
     var _depths = [{py: player.py, px: player.px, kind: 0, ref: player}];
+    if (cell.kind == LK_ROOM.Shop) {
+        array_push(_depths, {py: LK_STALL_Y + 79, px: LK_STALL_X, kind: 3},
+            {py: LK_CASE_Y + 43, px: LK_CASE_X, kind: 4});
+    }
     for (var _i = 0; _i < array_length(cell.props); _i++) {
         var _p = cell.props[_i];
         if (_p.alive) array_push(_depths, {py: _p.py, px: _p.px, kind: 1, ref: _p});
@@ -842,6 +862,8 @@ function lk_draw_game() {
             case 0: lk_draw_player(_sx, _sy); break;
             case 1: lk_prop_draw(_p.ref, _sx, _sy); break;
             case 2: lk_draw_enemy(_p.ref, _sx, _sy); break;
+            case 3: lk_draw_shop_stall(_xx, _yy); break;
+            case 4: lk_draw_commission_case(_xx, _yy); break;
         }
     }
     lk_draw_shots(_xx, _yy);
