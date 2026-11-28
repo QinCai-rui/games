@@ -560,10 +560,7 @@ function lk_fracture(_e, _angle) {
             var _x = _e.px + lengthdir_x(15, _a);
             var _y = _e.py + lengthdir_y(15, _a);
             if (!lk_keep_bounds(_x, _y, 7, false) || !is_undefined(lk_prop_at(_x, _y, 7))) continue;
-            lk_spawn(LK_ENEMY.Skulk, _x, _y, false, true);
-            var _shard = enemies[array_length(enemies) - 1];
-            _shard.hp = ceil(_shard.hp * .65);
-            _shard.max_hp = _shard.hp;
+            var _shard = lk_spawn(LK_ENEMY.Skulk, _x, _y, false, true, .65);
             _shard.emerge = 15;
             _shard.color = C_BLUE;
             _shard.angle = _a;

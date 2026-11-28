@@ -206,7 +206,7 @@ Gauntlet hazards are centered near your projected position. Rupture vents stay i
 
 ## Regular enemies
 
-Base HP is the value before stage, contract, cycle, and elite scaling. The names come from the game code.
+Base HP is the starting value for the calculation. After stage, contract, cycle, elite, and summon adjustments, enemies spawn with 75% of the result, rounded to the nearest whole HP (half points round up). In the opening fight, an ordinary Skulk has 7 HP and a Spitter has 14.
 
 | Art | Enemy | Base HP | Behavior |
 | --- | --- | --- | --- |
@@ -238,7 +238,7 @@ Base HP is the value before stage, contract, cycle, and elite scaling. The names
 
 ## Guardians and abilities
 
-In Main Delve, Arsenal Run, and Daily Contract, guardians have 263, 383, 405, 473, 518, 608, 630, and 720 HP on stages 1 through 8. Alternate guardians use the HP for their stage. Iron Trial and Endless Keep use the base HP below before contract and cycle scaling.
+In Main Delve, Arsenal Run, and Daily Contract, guardians have 197, 287, 304, 355, 389, 456, 473, and 540 HP on stages 1 through 8. Alternate guardians use the HP for their stage. In Iron Trial and Endless Keep, apply contract and cycle scaling to the base HP below, then apply the same 75% reduction as for regular enemies.
 
 All twelve guardians brace under sustained fire. Gold marks beside the guardian show the guard closing. A burst deals more damage after you spend a few seconds dodging or attacking an escort. Guardians need at least 30 seconds of active combat to defeat. The intro, pauses, and hit-stop do not count. Quick Hand allows 60 seconds to clear a guardian room on stage 4 or later.
 
