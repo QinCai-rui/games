@@ -1,13 +1,13 @@
-enum LK_RELIC { Breaker, Mirror, Ember, Knot, Siphon, LowLight, Crown, Vigor, Canteen, Gateward, Due }
+enum LK_RELIC { Breaker, Mirror, Ember, Knot, Siphon, LowLight, Crown, Vigor, Canteen, Mantle }
 enum LK_BOON {
-    Armor, Health, Damage, Haste, Energy, Speed, Warm, Edge, Volley, Focus, Medic, Smith, StillWick, Salvager,
-    Afterstroke, KindledStep, Crossdraft, LastEmber, ColdConductor, Stillhand, Guardfall, Pilgrim
+    Armor, Health, Damage, Haste, Energy, Speed, Warm, Edge, Volley, Focus, Medic, StillWick,
+    Afterstroke, KindledStep, Crossdraft, Guardfall, Pilgrim
 }
 
 function lk_relic_catalog() {
     return [
-        {name: "BREAKER SHELL", short: "SHELL", note: "ARMOR BREAK CLEARS NEARBY SHOTS.",
-            upgrade: "ARMOR BREAK CLEARS SHOTS IN A WIDER RADIUS.", max_rank: 2, tint: C_TEAL},
+        {name: "BREAKER SHELL", short: "SHELL", note: "CLEAR SHOTS ON ARMOR BREAK AND AGAIN WHEN PROTECTION ENDS.",
+            upgrade: "BOTH ARMOR BREAK PULSES CLEAR A WIDER RADIUS.", max_rank: 2, tint: C_TEAL},
         {name: "MIRROR IRON", short: "MIRROR", note: "MOST SHOTS BOUNCE ONCE.",
             upgrade: "MOST SHOTS BOUNCE TWICE.", max_rank: 2, tint: C_BLUE},
         {name: "EMBER MOTH", short: "MOTH", note: "EVERY FIFTH KILL BURSTS.",
@@ -15,18 +15,16 @@ function lk_relic_catalog() {
         {name: "SOUL KNOT", short: "KNOT", note: "REVIVE ONCE. 3 HP AND 4S OF PROTECTION.", max_rank: 1, tint: C_LILAC},
         {name: "HARVEST LAMP", short: "LAMP", note: "GAIN 10 ENERGY EVERY THIRD KILL.",
             upgrade: "GAIN 16 ENERGY EVERY THIRD KILL.", max_rank: 2, tint: C_GOLD},
-        {name: "LOW LIGHT", short: "LIGHT", note: "+40% WEAPON DAMAGE AT 2 HP OR LESS.",
-            upgrade: "+40% WEAPON DAMAGE AT 3 HP OR LESS.", max_rank: 2, tint: C_MINT},
+        {name: "LOW LIGHT", short: "LIGHT", note: "HALF HP: +40% WEAPON DMG. SURVIVE HP HIT: +1 ARMOR ONCE PER FIGHT.",
+            upgrade: "2/3 HP: +40% WEAPON DMG. SURVIVE HP HIT: +2 ARMOR ONCE PER FIGHT.", max_rank: 2, tint: C_MINT},
         {name: "KING'S RING", short: "RING", note: "+25% DAMAGE TO GUARDIANS.",
             upgrade: "+40% DAMAGE TO GUARDIANS.", max_rank: 2, tint: C_GOLD},
         {name: "QUICK HEART", short: "HEART", note: "KILLS CUT SKILL COOLDOWN BY 0.2S.",
             upgrade: "KILLS CUT SKILL COOLDOWN BY 0.4S.", max_rank: 2, tint: C_PINK},
         {name: "EMBER CANTEEN", short: "FLASK", note: "GAIN 6 EXTRA ENERGY PER COMBAT CLEAR.",
             upgrade: "GAIN 12 EXTRA ENERGY PER COMBAT CLEAR.", max_rank: 2, tint: C_BLUE},
-        {name: "GATEWARD SEAL", short: "SEAL", note: "RESTORE 1 ARMOR PER COMBAT CLEAR.",
-            upgrade: "RESTORE 2 ARMOR PER COMBAT CLEAR.", max_rank: 2, tint: C_TEAL},
-        {name: "GUARDIAN'S DUE", short: "DUE", note: "GUARDIANS DROP 6 EXTRA GOLD.",
-            upgrade: "GUARDIANS DROP 12 EXTRA GOLD.", max_rank: 2, tint: C_GOLD}
+        {name: "THRESHOLD MANTLE", short: "MANTLE", note: "COMBAT CLEARS GRANT 1 WARD. WARD TAKES DAMAGE BEFORE ARMOR.",
+            upgrade: "COMBAT CLEARS GRANT 2 WARD. WARD TAKES DAMAGE BEFORE ARMOR.", max_rank: 2, tint: C_GOLD}
     ];
 }
 
@@ -42,6 +40,10 @@ function lk_boon_rank(_boon) {
         if (player.boons[_i] == _boon) _rank += 1;
     }
     return _rank;
+}
+
+function lk_low_light_active(_rank) {
+    return _rank > 0 && player.hp <= ceil(player.max_hp * (_rank == 1 ? .5 : 2 / 3));
 }
 
 function lk_reward_rank(_relic, _id) {
@@ -78,8 +80,7 @@ function lk_first_shrine_boon(_preferred, _new, _upgrades, _skip = -1) {
 function lk_reward_choices(_relic, _sparks = false) {
     var _catalog = _relic ? relic_catalog : boons;
     var _spark_pool = [LK_BOON.Haste, LK_BOON.Warm, LK_BOON.Edge, LK_BOON.Volley, LK_BOON.Focus,
-        LK_BOON.Smith, LK_BOON.StillWick, LK_BOON.Salvager, LK_BOON.Afterstroke, LK_BOON.KindledStep,
-        LK_BOON.ColdConductor, LK_BOON.Stillhand, LK_BOON.Guardfall, LK_BOON.LastEmber];
+        LK_BOON.StillWick, LK_BOON.Afterstroke, LK_BOON.KindledStep, LK_BOON.Guardfall];
     var _new = [];
     var _upgrades = [];
     var _early_shrine = !_relic && !_sparks && depth_no < 2 && lk_combat_armor_enabled();
@@ -95,7 +96,7 @@ function lk_reward_choices(_relic, _sparks = false) {
     for (var _i = 0; _i < array_length(_catalog); _i++) {
         if (!_relic) {
             if (_sparks && !array_contains(_spark_pool, _i)) continue;
-            if (!_sparks && (_i == LK_BOON.StillWick || _i == LK_BOON.Salvager)) continue;
+            if (!_sparks && _i == LK_BOON.StillWick) continue;
             if (_early_shrine && (_i == LK_BOON.Guardfall || _i == LK_BOON.Edge) && _blades == 0) continue;
             if (_early_shrine && _i == LK_BOON.Afterstroke && _blades != 1) continue;
             if (_early_shrine && _i == LK_BOON.Warm && !_uses_energy) continue;
@@ -115,6 +116,9 @@ function lk_reward_choices(_relic, _sparks = false) {
         var _primary = -1;
         if (player.hp < player.max_hp) {
             _primary = lk_first_shrine_boon([LK_BOON.Health, LK_BOON.Armor, LK_BOON.Medic], _new, _upgrades);
+        } else if (irandom(3) == 0) {
+            var _defense = irandom(1) == 0 ? [LK_BOON.Health, LK_BOON.Armor] : [LK_BOON.Armor, LK_BOON.Health];
+            _primary = lk_first_shrine_boon(_defense, _new, _upgrades);
         }
         if (_primary == -1) _primary = lk_first_shrine_boon(_combat, _new, _upgrades);
         if (_primary != -1) {
@@ -136,7 +140,7 @@ function lk_reward_choices(_relic, _sparks = false) {
 }
 
 function lk_take_relic(_choice) {
-    cell.opened = true;
+    if (cell.kind == LK_ROOM.Relic) cell.opened = true;
     player.relics[_choice] = lk_relic_rank(_choice) + 1;
     relic_found[_choice] = true;
     mode = LK_MODE.Play;
@@ -162,10 +166,13 @@ function lk_relic_on_kill(_x, _y) {
     }
 }
 
-function lk_nova(_radius = 72) {
+#macro LK_FX_BREAKER 6
+
+function lk_nova(_radius = 72, _shell_color = -1) {
     var _x = player.px;
     var _y = player.py;
-    lk_ring(_x, _y, C_TEAL, _radius - 5, 23);
+    if (_shell_color == -1) lk_ring(_x, _y, C_TEAL, _radius - 5, 23);
+    else lk_ring(_x, _y, _shell_color, _radius, 22, LK_FX_BREAKER);
     lk_sound(snd_shield, .85);
     for (var _i = 0; _i < array_length(shots); _i++) {
         var _b = shots[_i];
@@ -174,10 +181,11 @@ function lk_nova(_radius = 72) {
 }
 
 function lk_temper_cost() {
-    return 9 + player.temper[player.slot] * 7 + depth_no - 3 * lk_boon_rank(LK_BOON.Smith);
+    return 9 + player.temper[player.slot] * 7 + depth_no + lk_forge_surcharge();
 }
 
 function lk_temper_changed() {
+    if (player.temper[player.slot] >= 3) return false;
     var _slot = player.slot;
     if (player.coins < lk_temper_cost()) {
         lk_floater(240, 120, "NEED " + string(lk_temper_cost()) + "G", C_PINK);
@@ -185,7 +193,7 @@ function lk_temper_changed() {
     }
     player.coins -= lk_temper_cost();
     player.temper[_slot] += 1;
-    cell.opened = true;
+    cell.forge_jobs = lk_forge_jobs() + 1;
     lk_sparks(240, 128, C_GOLD, 26, 2.4);
     lk_ring(240, 137, C_GOLD, 35, 26);
     return true;

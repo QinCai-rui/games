@@ -31,7 +31,7 @@ enum LK_FIGHT {
 #macro KEEP_BOTTOM 227
 #macro KEEP_MID_Y 143
 #macro LK_BOSS_INTRO 90
-#macro LK_VERSION "1.8.3+dev"
+#macro LK_VERSION "1.9.0+dev"
 
 function lk_input() {
     pad = -1;
@@ -168,7 +168,7 @@ function lk_begin_run() {
     player = {
         px: 240, py: 155, hp: _hero.hp, max_hp: _hero.hp,
         armor: _hero.armor, max_armor: _hero.armor, energy: 100, max_energy: 100,
-        regen: 0, hurt: 0, fire_wait: 0, kick: 0, facing: 1, aim: 0, moving: false,
+        regen: 0, hurt: 0, ward: 0, breaker_echo_radius: 0, fire_wait: 0, kick: 0, facing: 1, aim: 0, moving: false,
         skill_wait: 0, skill_time: 0, guard: 0, skill_anim: 0, target: undefined, dash_time: 0, dash_x: 0, dash_y: 0,
         arms: [_arms[0], _arms[1]], slot: 0, coins: 0,
         damage_scale: 1, haste: 1, move_pace: _hero.speed,
@@ -264,6 +264,12 @@ function lk_build_stage_route() {
         }
     }
     lk_assign_guardian(dungeon[_boss]);
+    // Only original reward rooms can lead to a second one. Trial relics stay behind their trial.
+    var _original_rooms = array_length(dungeon);
+    for (var _i = 0; _i < _original_rooms; _i++) {
+        var _kind = dungeon[_i].kind;
+        if ((lk_is_shrine(_kind) || _kind == LK_ROOM.Relic) && irandom(1) == 0) lk_link_room(_i, _kind);
+    }
 }
 
 function lk_build_stage_map() {
@@ -395,6 +401,7 @@ function lk_enter_room(_index, _entry) {
     enemies = [];
     shots = [];
     fields = [];
+    low_light_spent = false;
     lk_armory_restore();
     particles = [];
     floaters = [];
@@ -555,6 +562,28 @@ function lk_shop_item(_i) {
     return {px: 173 + 67 * _i, py: 135, name: _names[_i], price: _prices[_i]};
 }
 
+function lk_shop_commission(_relic) {
+    var _catalog = _relic ? relic_catalog : boons;
+    var _sales = variable_struct_exists(cell, "commissions") ? cell.commissions : 0;
+    var _price = (_relic ? 70 : 45) + 20 * _sales;
+    var _offer = {kind: "commission", relic: _relic, id: -1, price: _price, tint: C_MUTED,
+        px: _relic ? 297 : 183, py: 184, label: "ALL RANKS OWNED", detail: ""};
+    // Browsing or reloading never rerolls stock. Skip rewards capped elsewhere in the run.
+    var _count = array_length(_catalog);
+    for (var _i = 0; _i < _count; _i++) {
+        var _id = (cell.seed + 7 * _sales + _i) mod _count;
+        var _item = _catalog[_id];
+        var _rank = lk_reward_rank(_relic, _id);
+        if (_rank >= _item.max_rank) continue;
+        _offer.id = _id;
+        _offer.tint = _item.tint;
+        _offer.label = _item.name + (_rank > 0 ? " R" + string(_rank + 1) : "") + " / " + string(_price) + "G";
+        _offer.detail = lk_reward_note(_item, _rank + 1);
+        break;
+    }
+    return _offer;
+}
+
 function lk_interaction() {
     var _reach = 23;
     var _route = lk_route_nearby();
@@ -582,6 +611,10 @@ function lk_interaction() {
         return {kind: "chest", label: "OPEN CHEST"};
     }
     if (cell.kind == LK_ROOM.Shop) {
+        for (var _i = 0; _i < (depth_no > 0 ? 2 : 1); _i++) {
+            var _offer = lk_shop_commission(_i == 1);
+            if (point_distance(player.px, player.py, _offer.px, _offer.py) < _reach) return _offer;
+        }
         for (var _i = 0; _i < 3; _i++) {
             var _item = lk_shop_item(_i);
             if (!cell.bought[_i] && point_distance(player.px, player.py, _item.px, _item.py) < _distance) {
@@ -601,7 +634,7 @@ function lk_interaction() {
     if (cell.kind == LK_ROOM.Relic && !cell.opened && point_distance(player.px, player.py, 240, 137) < _reach) {
         return {kind: "relic", label: "CLAIM A RELIC"};
     }
-    if (cell.kind == LK_ROOM.Forge && !cell.opened) {
+    if (cell.kind == LK_ROOM.Forge) {
         for (var _i = 0; _i < 3; _i++) {
             var _offer = lk_forge_offer(_i);
             if (point_distance(player.px, player.py, _offer.px, _offer.py) < _reach) return _offer;
@@ -664,6 +697,19 @@ function lk_interact(_action) {
             lk_drop(LK_LOOT.Coin, 220, 149, 3);
             lk_sparks(240, 134, C_GOLD, 25, 2);
             break;
+        case "commission":
+            if (cell.kind != LK_ROOM.Shop || (_action.relic && depth_no == 0)) return;
+            var _offer = lk_shop_commission(_action.relic);
+            if (_offer.id < 0 || _offer.id != _action.id || _offer.price != _action.price) return;
+            if (player.coins < _offer.price) {
+                lk_floater(_offer.px, _offer.py - 14, "NEED " + string(_offer.price) + "G", C_PINK);
+                return;
+            }
+            player.coins -= _offer.price;
+            cell.commissions = variable_struct_exists(cell, "commissions") ? cell.commissions + 1 : 1;
+            if (_offer.relic) lk_take_relic(_offer.id);
+            else lk_take_boon(_offer.id);
+            return;
         case "shop":
             var _index = _action.index;
             var _item = lk_shop_item(_index);
@@ -758,7 +804,7 @@ function lk_portal_recover() {
 #macro LK_COAL_HEART_SCALE 1.20
 
 function lk_take_boon(_boon) {
-    cell.shrine_used = true;
+    if (lk_is_shrine(cell.kind)) cell.shrine_used = true;
     var _old_cooldown = lk_skill_cooldown();
     array_push(player.boons, _boon);
     switch (_boon) {

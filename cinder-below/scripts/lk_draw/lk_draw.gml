@@ -279,6 +279,16 @@ function lk_room_setpiece(_xx, _yy) {
                 lk_text_center(string(_item.price) + "G", _ix, _iy + 6, C_GOLD);
             }
         }
+        for (var _i = 0; _i < (depth_no > 0 ? 2 : 1); _i++) {
+            var _offer = lk_shop_commission(_i == 1);
+            var _ix = _offer.px + _xx;
+            var _iy = _offer.py + _yy;
+            lk_rect(_ix - 26, _iy - 4, _ix + 26, _iy + 1, C_EDGE);
+            if (_offer.relic) lk_item_sprite(LK_ITEM_ART.Reliquary, _ix, _iy - 13, _offer.tint);
+            else lk_diamond(_ix, _iy - 12, 6, _offer.tint);
+            var _sign = _offer.id < 0 ? "MAXED" : (_offer.relic ? "RELIC " : "BOON ") + string(_offer.price) + "G";
+            lk_text_center(_sign, _ix, _iy + 5, _offer.tint);
+        }
     }
 }
 
@@ -287,16 +297,16 @@ function lk_draw_forge(_xx, _yy) {
         var _offer = lk_forge_offer(_i);
         var _x = _offer.px + _xx;
         var _y = _offer.py + _yy;
-        var _tint = cell.opened || !_offer.usable ? C_MUTED : _offer.tint;
+        var _tint = _offer.usable ? _offer.tint : C_MUTED;
         lk_shadow(_x, _y, 17);
         lk_rect(_x - 15, _y - 13, _x + 15, _y, C_EDGE);
         lk_rect(_x - 18, _y - 16, _x + 18, _y - 13, _tint);
-        lk_glow(_x, _y - 21, 22, _tint, cell.opened ? .11 : .37);
+        lk_glow(_x, _y - 21, 22, _tint, _offer.usable ? .37 : .11);
         if (_i == 0 || _i == 2 && _offer.usable) {
             var _weapon = _i == 0 ? player.arms[player.slot] : LK_FUSION_FIRST + lk_fusion_index();
             lk_weapon_draw(_weapon, _x - 6, _y - 20, 17, .92);
         } else if (_i == 1) {
-            lk_item_sprite(LK_ITEM_ART.Fitting, _x, _y - 23, cell.opened ? C_MUTED : c_white);
+            lk_item_sprite(LK_ITEM_ART.Fitting, _x, _y - 23);
         } else lk_diamond(_x, _y - 23, 5, _tint);
         lk_text_center(_offer.sign, _x, _y + 4, _tint);
     }
@@ -703,7 +713,29 @@ function lk_draw_shots(_xx, _yy) {
     }
 }
 
+// Six broken plates leave gaps so the player can still see incoming shots.
+function lk_draw_shell_plates(_x, _y, _radius, _spin, _color) {
+    for (var _i = 0; _i < 6; _i++) {
+        var _a = _spin + _i * 60;
+        var _tip_x = round(_x + lengthdir_x(_radius, _a));
+        var _tip_y = round(_y + lengthdir_y(_radius, _a));
+        for (var _side = -1; _side <= 1; _side += 2) {
+            var _edge = _a + _side * 15;
+            lk_line(_tip_x, _tip_y, round(_x + lengthdir_x(_radius * .94, _edge)),
+                round(_y + lengthdir_y(_radius * .94, _edge)), _color);
+        }
+        lk_diamond(_tip_x, _tip_y, 2, _color);
+    }
+}
+
 function lk_draw_effects(_xx, _yy) {
+    if (player.breaker_echo_radius > 0) {
+        var _remaining = min(1, player.hurt / 75);
+        draw_set_alpha(.85);
+        lk_draw_shell_plates(player.px + _xx, player.py + _yy - 4, 12 + 8 * _remaining,
+            world_tick * 2, merge_color(C_MINT, C_TEAL, _remaining));
+        draw_set_alpha(1);
+    }
     for (var _i = 0; _i < array_length(particles); _i++) {
         var _p = particles[_i];
         var _x = _p.px + _xx;
@@ -711,6 +743,10 @@ function lk_draw_effects(_xx, _yy) {
         var _ratio = _p.life / _p.max_life;
         draw_set_alpha(_ratio);
         switch (_p.kind) {
+            case LK_FX_BREAKER:
+                var _radius = lerp(10, _p.size, 1 - sqr(_ratio));
+                lk_draw_shell_plates(_x, _y, _radius, 30 * (1 - _ratio), _p.color);
+                break;
             case 0:
                 var _size = floor(_p.size * _ratio);
                 lk_rect(_x, _y, _x + _size, _y + _size, _p.color);

@@ -110,9 +110,7 @@ function lk_armory_restore() {
     armory_siphon = 0;
     armory_afterstroke = 0;
     armory_keyed_distance = 0;
-    armory_still = 0;
     armory_guardfall = 0;
-    armory_discharge = 0;
     player.forged_charge = 0;
 }
 
@@ -170,7 +168,6 @@ function lk_armory_melee_range(_id, _radius) {
 function lk_armory_begin_attack(_id) {
     var _blade = lk_is_blade(weapons[_id].kind);
     var _keep = player.arms[player.slot] == _id;
-    var _cost = lk_weapon_cost(_id);
     var _scale = 1;
     if (!_blade && armory_afterstroke > world_tick) {
         armory_afterstroke = 0;
@@ -185,14 +182,11 @@ function lk_armory_begin_attack(_id) {
         armory_guardfall = 0;
         _scale += .28;
     }
-    if (!player.charged_shot && _cost > 0 && player.energy < _cost * 2 && lk_boon_rank(LK_BOON.LastEmber)) _scale += .38;
-    if ((_id == 24 || _id == 33) && armory_still >= 25 && lk_boon_rank(LK_BOON.Stillhand)) _scale += .24;
     armory_source = {id: _id, fit: lk_fitted_attachment(_id), slot: _keep ? player.slot : -1,
         generation: armory_generation[player.slot], hit: false, scale: _scale, melee: _blade};
 }
 
 function lk_armory_motion(_distance) {
-    armory_still = _distance < .1 ? min(60, armory_still + 1) : 0;
     if (!cell.clear && lk_boon_rank(LK_BOON.KindledStep)) {
         armory_keyed_distance = min(110, armory_keyed_distance + _distance);
     }
@@ -248,19 +242,6 @@ function lk_armory_hit(_enemy, _damage, _angle) {
         && abs(angle_difference(point_direction(_enemy.px, _enemy.py, player.px, player.py), _angle + 180)) > 80) {
         lk_move(_enemy, lengthdir_x(8, _angle), lengthdir_y(8, _angle), _enemy.radius);
     }
-    if ((_source.id == 11 || _source.id == 26 || _source.id == 39)
-        && _enemy.slow > 0 && world_tick >= armory_discharge && lk_boon_rank(LK_BOON.ColdConductor)) {
-        armory_discharge = world_tick + 34;
-        armory_source = undefined;
-        for (var _i = 0; _i < array_length(enemies); _i++) {
-            var _near = enemies[_i];
-            if (_near == _enemy || !_near.alive || _near.emerge > 9 || point_distance(_near.px, _near.py, _enemy.px, _enemy.py) > 56) continue;
-            lk_ring(_near.px, _near.py, C_BLUE, 17, 14);
-            lk_enemy_damage(_near, max(1, floor(_damage * .45)), _angle, true);
-            break;
-        }
-        armory_source = _source;
-    }
 }
 
 function lk_armory_kill() {
@@ -294,18 +275,31 @@ function lk_forge_offer(_index) {
             return {kind: "fitting", px: _x, py: 137, label: _item.name + " / " + string(lk_fit_price()) + "G",
                 detail: _item.note, fit: _fit, tint: _item.tint, usable: true, sign: "ATTACH"};
     }
-    var _name = _fuse < 0 ? "NO MATCHING RECIPE" : weapons[LK_FUSION_FIRST + _fuse].name + " / 9G";
+    var _name = _fuse < 0 ? "NO MATCHING RECIPE" : weapons[LK_FUSION_FIRST + _fuse].name + " / " + string(lk_fusion_price()) + "G";
     return {kind: "fusion", px: _x, py: 137, label: _name,
         detail: _fuse < 0 ? "RECIPES IN JOURNAL" : "USES BOTH WEAPONS", tint: C_LILAC,
         usable: _fuse >= 0, sign: "FUSE"};
 }
 
+function lk_forge_jobs() {
+    // A used forge in an older checkpoint has completed one job.
+    return variable_struct_exists(cell, "forge_jobs") ? cell.forge_jobs : real(cell.opened);
+}
+
+function lk_forge_surcharge() {
+    return 15 * lk_forge_jobs();
+}
+
 function lk_fit_price() {
-    return 7 + floor(depth_no / 2);
+    return 7 + floor(depth_no / 2) + lk_forge_surcharge();
+}
+
+function lk_fusion_price() {
+    return 9 + lk_forge_surcharge();
 }
 
 function lk_claim_fit(_fit) {
-    if (cell.opened || !lk_attachment_works(player.arms[player.slot], _fit)) return false;
+    if (_fit == player.attachments[player.slot] || !lk_attachment_works(player.arms[player.slot], _fit)) return false;
     var _price = lk_fit_price();
     if (player.coins < _price) {
         lk_floater(player.px, player.py - 14, "NEED " + string(_price) + "G", C_PINK);
@@ -313,23 +307,24 @@ function lk_claim_fit(_fit) {
     }
     player.coins -= _price;
     lk_equip_weapon(player.slot, player.arms[player.slot], player.temper[player.slot], _fit);
-    cell.opened = true;
+    cell.forge_jobs = lk_forge_jobs() + 1;
     lk_ring(player.px, player.py, fittings[_fit].tint, 32, 26);
     return true;
 }
 
 function lk_claim_fusion() {
     var _recipe = lk_fusion_index();
-    if (_recipe < 0 || cell.opened) return false;
-    if (player.coins < 9) {
-        lk_floater(player.px, player.py - 14, "NEED 9G", C_PINK);
+    if (_recipe < 0) return false;
+    var _price = lk_fusion_price();
+    if (player.coins < _price) {
+        lk_floater(player.px, player.py - 14, "NEED " + string(_price) + "G", C_PINK);
         return false;
     }
-    player.coins -= 9;
+    player.coins -= _price;
     var _rank = floor((player.temper[0] + player.temper[1]) / 2);
     lk_equip_weapon(player.slot, LK_FUSION_FIRST + _recipe, _rank);
     lk_equip_weapon(1 - player.slot, 0, 0);
-    cell.opened = true;
+    cell.forge_jobs = lk_forge_jobs() + 1;
     lk_discover(6 + _recipe);
     lk_ring(player.px, player.py, C_LILAC, 48, 30);
     lk_sparks(player.px, player.py, C_GOLD, 24, 2);

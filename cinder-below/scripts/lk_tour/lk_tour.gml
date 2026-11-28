@@ -28,7 +28,7 @@ function lk_tour_enter() {
     tour_room_started = world_tick;
     switch (cell.kind) {
         case LK_ROOM.Cache: if (!cell.opened) lk_tour_show(LK_TOUR.Cache); break;
-        case LK_ROOM.Forge: if (!cell.opened) lk_tour_show(LK_TOUR.Forge); break;
+        case LK_ROOM.Forge: if (lk_forge_jobs() == 0) lk_tour_show(LK_TOUR.Forge); break;
         case LK_ROOM.Shop: lk_tour_show(LK_TOUR.Shop); break;
         case LK_ROOM.Shrine:
         case LK_ROOM.SparkShrine: if (!cell.shrine_used) lk_tour_show(LK_TOUR.Shrine); break;
@@ -83,9 +83,9 @@ function lk_tour_prompt() {
         case LK_TOUR.Fork: return _second ? "ARROW DOORS LEAD TO THE LOWER-DANGER ROUTE." : "SWORD DOORS LEAD TO ELITES AND A WEAPON REWARD.";
         case LK_TOUR.Inscription: return "READ THE INSCRIPTIONS TO FIND A SECRET ROUTE.";
         case LK_TOUR.Cache: return "CHOOSE ONE FOR YOUR ACTIVE SLOT.";
-        case LK_TOUR.Forge: return "ONE UPGRADE PER FORGE.";
+        case LK_TOUR.Forge: return "EACH EXTRA JOB HERE ADDS 15G TO THE PRICE.";
         case LK_TOUR.Shrine: return "PICK A BOON. IT STAYS WITH YOU FOR THIS RUN.";
-        case LK_TOUR.Shop: return "SPEND GOLD ON HEALTH, ENERGY, OR A WEAPON.";
+        case LK_TOUR.Shop: return "BUY SUPPLIES OR SPEND GOLD ON EXTRA UPGRADES.";
         case LK_TOUR.Stop: return "CHOOSE ONE OFFER BEFORE YOU LEAVE.";
         case LK_TOUR.Guardian:
             return _second ? "THE JOURNAL RECORDS DISCOVERIES BETWEEN RUNS." : "TAKE THE HEART, THEN USE THE PORTAL TO DESCEND.";

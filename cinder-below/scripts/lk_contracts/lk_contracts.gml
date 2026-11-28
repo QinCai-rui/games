@@ -136,7 +136,7 @@ function lk_save_checkpoint() {
     var _target = player.target;
     player.target = undefined;
     var _record = {
-        version: 1, keeper: hero_id, contract: run_contract, cycle: run_cycle,
+        version: 2, keeper: hero_id, contract: run_contract, cycle: run_cycle,
         seed: run_seed, stage_index: depth_no, grid: dungeon, current: cell_index,
         body: player, timer: world_tick, clears: rooms_cleared, defeated: kills
     };
@@ -188,7 +188,7 @@ function lk_load_checkpoint() {
     var _stage = undefined;
     try {
         _saved = json_parse(_json);
-        if (!is_struct(_saved) || _saved.version != 1 || !is_array(_saved.grid) || !is_struct(_saved.body)) return false;
+        if (!is_struct(_saved) || (_saved.version != 1 && _saved.version != 2) || !is_array(_saved.grid) || !is_struct(_saved.body)) return false;
         // Older desktop checkpoints used the built-in name "depth".
         _stage = variable_struct_exists(_saved, "stage_index") ? _saved.stage_index : variable_struct_get(_saved, "depth");
         if (!is_real(_stage) || _stage != floor(_stage) || _stage < 0 || _stage >= array_length(stage_names)) return false;
@@ -207,10 +207,25 @@ function lk_load_checkpoint() {
     floor_no = lk_stage_biome(depth_no);
     dungeon = _saved.grid;
     player = _saved.body;
+    if (!variable_struct_exists(player, "ward")) player.ward = 0;
+    if (!variable_struct_exists(player, "breaker_echo_radius")) player.breaker_echo_radius = 0;
+    if (_saved.version == 1) {
+        // IDs 0 through 10 stayed in order. Map the old tail without losing repeated ranks.
+        var _tail = [-1, LK_BOON.StillWick, -1, LK_BOON.Afterstroke, LK_BOON.KindledStep, LK_BOON.Crossdraft,
+            -1, -1, -1, LK_BOON.Guardfall, LK_BOON.Pilgrim];
+        for (var _i = array_length(player.boons) - 1; _i >= 0; _i--) {
+            var _old = player.boons[_i];
+            if (_old < 11) continue;
+            var _id = _tail[_old - 11];
+            if (_id < 0) array_delete(player.boons, _i, 1);
+            else player.boons[_i] = _id;
+        }
+        if (array_length(player.relics) > 10) array_resize(player.relics, 10);
+    }
     if (!variable_struct_exists(player, "move_pace")) player.move_pace = variable_struct_get(player, "speed");
     // Coal Heart ranks are the source of damage_scale, including in older checkpoints.
     player.damage_scale = power(LK_COAL_HEART_SCALE, lk_boon_rank(LK_BOON.Damage));
-    // Rank values and the three new relic slots share the existing checkpoint format.
+    // Early checkpoints don't have every relic slot.
     while (array_length(player.relics) < array_length(relic_catalog)) array_push(player.relics, 0);
     player.target = undefined;
     // A checkpoint taken at a door should load just inside the cleared room.

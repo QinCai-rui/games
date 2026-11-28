@@ -1,6 +1,6 @@
 # Cinder Below game reference
 
-This reference lists 42 weapons, 8 keepers, 22 boons, 11 relics, 16 regular enemies, 12 guardians, and 5 contracts.
+This reference lists 42 weapons, 8 keepers, 17 boons, 10 relics, 16 regular enemies, 12 guardians, and 5 contracts.
 
 Times assume 60 game steps per second. Combat pauses and hit stop can make elapsed time longer. Thumbnails come from the game atlases or reproduce its drawn icons. Relics and boons share the game's colored-diamond design.
 
@@ -70,7 +70,7 @@ All keepers are selectable at the start. Each starts with 100 energy and two wea
 
 ## Boons
 
-Shrines offer up to two choices. Picking a boon you own adds one rank, up to its cap. A shrine pays 8 gold when its entire pool is maxed.
+Shrines offer up to two choices. Picking a boon you own adds one rank, up to its cap. A shrine pays 8 gold when its entire pool is maxed. Each original shrine has a 50% chance to lead to another shrine of the same kind if there is space. The Tinker also sells boons from both shrine pools.
 
 | Art | Boon | Max rank | Shrine | Effect |
 | --- | --- | --- | --- | --- |
@@ -85,35 +85,29 @@ Shrines offer up to two choices. Picking a boon you own adds one rank, up to its
 | ![volley rhythm](reference-art/volley-rhythm.png) | Volley Rhythm | 1 | Ash and Sparks | Every sixth qualifying ranged attack fires two extra side shots at 61% damage, rounded up with a minimum of 2. |
 | ![cinder focus](reference-art/cinder-focus.png) | Cinder Focus | 2 | Ash and Sparks | Rank 1 lowers paid weapon attacks by 1 energy. Rank 2 lowers them by 2. Paid attacks cost at least 1. |
 | ![medics vow](reference-art/medics-vow.png) | Medic's Vow | 2 | Ash | Heal 1 HP every fourth combat clear at rank 1, or every third at rank 2. The counter includes earlier clears. |
-| ![smiths favor](reference-art/smiths-favor.png) | Smith's Favor | 2 | Ash and Sparks | Tempering costs 3 less gold at rank 1 and 6 less at rank 2. |
 | ![still wick](reference-art/still-wick.png) | Still Wick | 2 | Sparks | Reduce skill cooldown by 12% at rank 1 and 24% at rank 2. This stacks with Quicken. |
-| ![salvager](reference-art/salvager.png) | Salvager | 2 | Sparks | Gain 2 gold per combat clear at rank 1 and 4 gold at rank 2. |
 | | Afterstroke | 1 | Ash and Sparks | A melee hit within the last 100 steps boosts the next ranged attack by 24%. |
 | | Kindled Step | 1 | Ash and Sparks | Moving 110 pixels during combat boosts the next attack by 24%. |
 | | Crossdraft | 1 | Ash | Side and rear hits push mobile enemies farther. |
-| | Last Ember | 1 | Ash and Sparks | A paid attack deals 38% more damage when you have less than enough energy to buy two. |
-| | Cold Conductor | 1 | Ash and Sparks | Lightning hitting a slowed target can arc 45% of that damage to a nearby enemy. |
-| | Stillhand | 1 | Ash and Sparks | Stand still for 25 steps to boost Nail Driver or White Ember by 24%. |
 | | Guardfall | 1 | Ash and Sparks | Cutting a hostile projectile boosts the next attack by 28% within 110 steps. |
 | | Pilgrim's Wick | 1 | Ash | The first unvisited regular fight entered each stage restores 12 energy. |
 
 ## Relics
 
-A reliquary offers up to two choices from stage 2 onward. Each choice grants a new relic or increases its rank. A reliquary pays 8 gold if all relics are maxed.
+A reliquary offers up to two choices from stage 2 onward. Each choice grants a new relic or increases its rank. A reliquary pays 8 gold if all relics are maxed. The trial's reliquary has a 50% chance to lead to a second one if there is space.
 
 | Art | Relic | Max rank | Effect |
 | --- | --- | --- | --- |
-| ![breaker shell](reference-art/breaker-shell.png) | Breaker Shell | 2 | When armor drops to zero from a hit, clear hostile shots within 72 pixels at rank 1 or 104 at rank 2. |
+| ![breaker shell](reference-art/breaker-shell.png) | Breaker Shell | 2 | When a hit breaks armor, clear hostile shots within 72 pixels. When hit protection ends, clear shots within 112 pixels of your current position. Rank 2 widens those pulses to 104 and 152 pixels. |
 | ![mirror iron](reference-art/mirror-iron.png) | Mirror Iron | 2 | Ordinary pellets, piercing bolts, Starshard, and Echo Rifle shots gain one bounce at rank 1 or two at rank 2. They bounce off walls and pillars. |
 | ![ember moth](reference-art/ember-moth.png) | Ember Moth | 2 | Every fifth kill at rank 1, or fourth at rank 2, makes a delayed blast at the enemy's position. The blast starts at 9 damage and scales with your damage stat. |
 | ![soul knot](reference-art/soul-knot.png) | Soul Knot | 1 | Revive once per run at 3 HP with 4 seconds of invulnerability. Clears nearby hostile shots and shows REVIVED. |
 | ![harvest lamp](reference-art/harvest-lamp.png) | Harvest Lamp | 2 | Every third kill restores 10 energy at rank 1 or 16 at rank 2. |
-| ![low light](reference-art/low-light.png) | Low Light | 2 | +40% weapon damage at 2 HP or below at rank 1, or 3 HP or below at rank 2. |
+| ![low light](reference-art/low-light.png) | Low Light | 2 | Gain +40% weapon damage at or below half max HP, or two-thirds at rank 2. Round the threshold up. Once per fight, surviving a hit that damages HP and leaves you in that range also restores 1 armor, or 2 at rank 2. |
 | ![kings ring](reference-art/kings-ring.png) | King's Ring | 2 | Deal +25% damage to guardians at rank 1 or +40% at rank 2. |
 | ![quick heart](reference-art/quick-heart.png) | Quick Heart | 2 | Each kill cuts the remaining skill cooldown by 0.20 seconds at rank 1 or 0.40 at rank 2. |
 | ![ember canteen](reference-art/ember-canteen.png) | Ember Canteen | 2 | Gain 6 extra energy per combat clear at rank 1 or 12 at rank 2. |
-| ![gateward seal](reference-art/gateward-seal.png) | Gateward Seal | 2 | Restore 1 armor on each combat clear at rank 1 or 2 at rank 2, including in Iron Trial and Endless Keep. |
-| ![guardians due](reference-art/guardians-due.png) | Guardian's Due | 2 | Each guardian drops 6 extra gold at rank 1 or 12 at rank 2. |
+| ![threshold mantle](reference-art/threshold-mantle.png) | Threshold Mantle | 2 | Each combat clear sets your ward to 1 point, or 2 at rank 2, even at full armor. Incoming damage spends ward before armor or HP. Unspent points carry into the next fight. Healing, armor repair, and entering rooms do not restore spent points. |
 
 ## Pickups, shop stock, and weapon tempering
 
@@ -121,7 +115,7 @@ Gold, energy, and hearts are proximity pickups. Weapons require interaction and 
 
 | Art | Item or upgrade | Effect | Source |
 | --- | --- | --- | --- |
-| ![gold](reference-art/gold.png) | Gold | Pays for shop items and tempering. | Regular enemy 1–2 gold, elite 5, guardian 14 before Guardian's Due. Cache chest 3. Breakable props have a 1-in-3 chance to drop 1. |
+| ![gold](reference-art/gold.png) | Gold | Pays for shop goods, forge jobs, and tolls. | Regular enemy 1–2 gold, elite 5, guardian 14. Cache chest 3. Breakable props have a 1-in-3 chance to drop 1. |
 | ![energy](reference-art/energy.png) | Energy pickup | Replenishes weapon energy by the amount on the pickup. | Enemy kill has a 1-in-4 chance to drop 9. Chest 20, gauntlet 25, guardian clear 35. |
 | ![heart](reference-art/heart.png) | Heart | Heals 2 HP, up to max HP. | Guaranteed from gauntlets and guardian clears. Ordinary room clears have a 1-in-6 chance, rising to 7-in-12 at 2 HP or less. |
 | ![heart](reference-art/heart.png) | Tonic | Heals 3 HP for 5 gold. | Tinker's Shop. Once per shop, only while below max HP. |
@@ -131,7 +125,9 @@ Gold, energy, and hearts are proximity pickups. Weapons require interaction and 
 |  | Temper +2 | +40% base weapon damage. | Forge, later loot and shops, or Arsenal Run at stages 7–8. |
 |  | Temper +3 | +60% base weapon damage. This is the cap. | Forge or eligible late gear. |
 
-Each forge lets you temper, fit, or fuse once. Tempering costs 9 gold + 7 × current temper + (stage − 1) − 3 × Smith's Favor rank. A fitting costs 7 gold + half the number of completed stages, rounded down. Fusing costs 9 gold. It consumes both ingredients and gives the result their average temper rounded down, plus an Ember Pistol in the spare slot.
+The Tinker sells a named boon for 45 gold, and a named relic for 70 gold from stage 2 onward. Buying either restocks both counters and adds 20 gold to both prices at that shop. Each purchase grants one rank. Maxed rewards leave the stock. Tonics, energy cells, and weapons keep their regular prices.
+
+You can temper, fit, and fuse repeatedly at the same forge. Each previous job there adds 15 gold to the price. Before that surcharge, tempering costs 9 gold + 7 × current temper + (stage − 1). A fitting costs 7 gold + half the number of completed stages, rounded down. Fusing costs 9 gold. It consumes both ingredients and gives the result their average temper rounded down, plus an Ember Pistol in the spare slot.
 
 Supply caches offer two weapons with different roles. Picking one removes the other. Trial rewards favor rarer weapons and arrive pre-tempered.
 
@@ -167,11 +163,11 @@ Supply caches offer two weapons with different roles. Picking one removes the ot
 | Shattered Colonnade | Two rows of pillars frame a central firing lane. Harpoons control the flanks, a Prism fires bouncing shots, and two Fracturelings split if killed. |
 | Flood Pulse | The inner lane and the two outer lanes flood in turn. Move out of the marked lanes as you fight the defenders. |
 | Supply Cache | The chest offers a weapon you are not carrying, 20 energy, and 3 gold. Its weapon pool excludes the Ember Pistol and Keeper Blade. |
-| Tinker's Shop | Sells a Tonic, an Energy Cell, and one weapon. Each purchase is available once per shop. |
-| Shrine of Ash | Choose one boon or rank upgrade. On stages 1 and 2 with combat armor repair enabled, the shrine offers Guardfall if you carry a blade and Afterstroke if you carry both a blade and a ranged weapon. Other options include Kindled Step, Warm Chamber for weapons that use energy, and Coal Heart. When wounded, you get a recovery option: Bloodroot, then Iron Bark or Medic's Vow if earlier options are capped. |
+| Tinker's Shop | Sells one Tonic, one Energy Cell, and one weapon. Separate counters sell boons and, from stage 2, relics. These counters restock after each purchase. |
+| Shrine of Ash | Choose one boon or rank upgrade. On stages 1 and 2 with combat armor repair enabled, offers favor your weapons. At full HP, there is a 1-in-4 roll to offer Bloodroot or Iron Bark alongside a combat boon. Both are equally likely when eligible. When wounded, the shrine prioritizes Bloodroot, then Iron Bark or Medic's Vow if earlier options are capped. Later Ash shrines can offer either defensive boon at any HP. |
 | Shrine of Sparks | Available from stage 2. Offers one spark boon or a rank upgrade. It prioritizes Still Wick or Quicken. |
 | Reliquary | Available from stage 2. Offers one relic or a rank upgrade. |
-| Temper Forge | Upgrades the weapon in the active slot once for gold. Every stage has one. |
+| Temper Forge | Spend gold to temper, fit, or fuse weapons. Every job after the first costs extra. Frugal Forge removes the forge on even-numbered stages. |
 | Salvage Rack | Pick one of two weapons. The selected weapon replaces your active weapon, which drops on the floor. |
 | Keeper's Stores | Pick either 35 energy or 10 gold. |
 | Temper Relay | Move one temper rank from the inactive weapon to the active weapon, or take 10 gold. |
@@ -282,7 +278,7 @@ The Keeper's Journal lists six recipes and tracks 16 discoveries across routes, 
 | Hit damage | Most shots and contact hits deal 1. Dashes, guardians, Bruisers, and floor blasts can deal 2. In standard contracts, a hit that breaks armor does no HP damage. In Iron and Endless the leftover damage reaches HP. |
 | Hit protection | After a hit, protection lasts 75 steps (1.25 seconds) in standard contracts or 32 steps in Iron and Endless. Room entry grants at least 22 steps. Soul Knot grants 240 steps on revive. |
 | Armor repair in combat | When enabled, repair 1 point after 300 hit-free steps (5 seconds), then 1 per 180 steps (3 seconds). Taking damage or entering a fight with missing armor restarts the initial timer. |
-| Armor repair out of combat | All contracts shorten the timer to at most 86 steps after a clear, then recover 1 point every 53 steps until full. Gateward Seal can grant immediate armor on clear. |
+| Armor repair out of combat | All contracts shorten the timer to at most 86 steps after a clear, then recover 1 point every 53 steps until full. Threshold Mantle tracks ward separately from armor. |
 | Between-room and portal recovery | Main Delve clears grant 6 energy above half capacity or 11 at or below half. Other contracts grant 11. Empty Stores grants 7. Portals restore 30 energy and refill armor. They heal 1 HP in Main Delve, 2 in Arsenal, Daily, and Endless, and none in Iron. |
 | Health and loot safety | At 2 HP or less, ordinary room clears increase the heart-drop chance to 7 in 12. The free Ember Pistol fires when the selected weapon would cost more energy than you have. |
 | Periodic hazard cadence | Rupture first marks a vent after 108–143 steps, then alternates vents every 160 steps. Gauntlets first mark blasts after 145–212 steps, then trigger every 190 steps minus 11 per biome index (capped at three) and 6 per Endless cycle (capped at four). |

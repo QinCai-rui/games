@@ -265,11 +265,10 @@ function lk_finish_wave() {
     cell.clear = true;
     lk_tour_clear();
     rooms_cleared += 1;
-    player.coins += 2 * lk_boon_rank(LK_BOON.Salvager);
     var _energy = lk_has_modifier(LK_OMEN.EmptyStores) ? 7 : 11;
     if (_energy == 11 && run_contract == LK_CONTRACT.Delve && player.energy > player.max_energy * .5) _energy = 6;
     player.energy = min(player.max_energy, player.energy + _energy + lk_relic_rank(LK_RELIC.Canteen) * 6);
-    player.armor = min(player.max_armor, player.armor + lk_relic_rank(LK_RELIC.Gateward));
+    player.ward = lk_relic_rank(LK_RELIC.Mantle);
     var _medic = lk_boon_rank(LK_BOON.Medic);
     if (_medic > 0 && rooms_cleared mod (5 - _medic) == 0) player.hp = min(player.max_hp, player.hp + 1);
     player.regen = min(player.regen, 86);
@@ -469,7 +468,7 @@ function lk_enemy_damage(_enemy, _power, _angle, _quiet = false) {
     shaking = max(shaking, _enemy.kind == LK_ENEMY.Boss ? 12 : 3);
     lk_sparks(_enemy.px, _enemy.py - 5, _enemy.color, _enemy.kind == LK_ENEMY.Boss ? 58 : 14, 2.7);
     if (_enemy.summoned) return;
-    var _gold = _enemy.kind == LK_ENEMY.Boss ? 14 + lk_relic_rank(LK_RELIC.Due) * 6 : (_enemy.elite ? 5 : irandom_range(1, 2));
+    var _gold = _enemy.kind == LK_ENEMY.Boss ? 14 : (_enemy.elite ? 5 : irandom_range(1, 2));
     lk_drop(LK_LOOT.Coin, _enemy.px, _enemy.py, _gold);
     if (irandom(3) == 0) lk_drop(LK_LOOT.Energy, _enemy.px + 8, _enemy.py - 4, 9);
 }
@@ -512,7 +511,7 @@ function lk_fire_weapon(_id) {
     var _direction = player.aim;
     var _tier = _id == player.arms[player.slot] ? player.temper[player.slot] : 0;
     var _light = lk_relic_rank(LK_RELIC.LowLight);
-    var _desperate = _light > 0 && player.hp <= 1 + _light;
+    var _desperate = lk_low_light_active(_light);
     var _power = ceil(_w.damage * player.damage_scale * (1 + _tier * .2)
         * (_desperate ? 1.40 : 1) * (player.fury > 0 ? 1.35 : 1));
     var _xx = player.px + lengthdir_x(10, _direction);
@@ -742,7 +741,13 @@ function lk_armor_step() {
 function lk_player_hurt(_power) {
     if (player.hurt > 0 || player.dash_time > 0 || mode != LK_MODE.Play) return false;
     if (cell.kind == LK_ROOM.Boss && !cell.clear) guardian_hits += 1;
-    var _shielded = player.armor > 0;
+    var _ward_hit = min(player.ward, _power);
+    if (_ward_hit > 0) {
+        player.ward -= _ward_hit;
+        _power -= _ward_hit;
+        lk_ring(player.px, player.py - 4, C_GOLD, 19, 18);
+    }
+    var _shielded = _power > 0 && player.armor > 0;
     if (_shielded) {
         var _absorbed = min(player.armor, _power);
         player.armor -= _absorbed;
@@ -751,16 +756,27 @@ function lk_player_hurt(_power) {
         lk_ring(player.px, player.py - 4, C_TEAL, 16, 18);
         if (player.armor == 0) {
             var _shell = lk_relic_rank(LK_RELIC.Breaker);
-            if (_shell > 0) lk_nova(_shell == 1 ? 72 : 104);
+            if (_shell > 0) {
+                lk_nova(_shell == 1 ? 72 : 104, C_TEAL);
+                player.breaker_echo_radius = _shell == 1 ? 112 : 152;
+            }
         }
     }
     player.hp = max(0, player.hp - _power);
+    if (_power > 0 && player.hp > 0 && !cell.clear && !low_light_spent) {
+        var _light = lk_relic_rank(LK_RELIC.LowLight);
+        if (lk_low_light_active(_light)) {
+            low_light_spent = true;
+            player.armor = min(player.max_armor, player.armor + _light);
+            lk_floater(player.px, player.py - 16, "LOW LIGHT / +" + string(_light) + " ARMOR", C_MINT);
+        }
+    }
     lk_armor_timer(lk_combat_armor_enabled() ? LK_ARMOR_FIRST_REPAIR : 150);
     player.hurt = lk_standard_contract() ? 75 : 32;
     flash_screen = 9;
     shaking = 7;
     lk_sparks(player.px, player.py - 8, C_PINK, 12, 2.0);
-    lk_sound(_shielded ? snd_shield : snd_hurt, _shielded && player.armor == 0 ? .83 : 1);
+    lk_sound(_shielded || _ward_hit > 0 ? snd_shield : snd_hurt, _shielded && player.armor == 0 ? .83 : 1);
     if (player.hp == 0) {
         if (lk_relic_rank(LK_RELIC.Knot) > 0 && !player.knot_spent) {
             player.knot_spent = true;
@@ -1349,6 +1365,10 @@ function lk_play_step() {
         return;
     }
     player.hurt = max(0, player.hurt - 1);
+    if (player.breaker_echo_radius > 0 && player.hurt == 0) {
+        lk_nova(player.breaker_echo_radius, C_MINT);
+        player.breaker_echo_radius = 0;
+    }
     player.fire_wait = max(0, player.fire_wait - 1);
     player.kick = max(0, player.kick - 1);
     player.skill_time = max(0, player.skill_time - 1);

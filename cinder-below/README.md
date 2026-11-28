@@ -26,13 +26,15 @@ Drag a window edge or use the desktop maximize button to change the window size.
 
 In Main Delve, Arsenal, and Daily, even one point of armor can absorb a whole hit. With combat repair enabled, the first point repairs after five seconds without taking damage. Each additional point takes three seconds. The line in the armor bar shows progress. Armor recovers faster after you clear a room.
 
-When combat repair is enabled, the first two Shrines of Ash offer boons that suit your weapons. At full health with a gun and a blade, choose Guardfall to reward cutting a shot or Afterstroke to reward landing a melee hit before firing. When wounded, look for Bloodroot to heal and raise your maximum HP.
+When combat repair is enabled, Shrines of Ash on the first two stages offer boons that suit your weapons. At full health they can also offer Bloodroot or Iron Bark. When wounded, look for Bloodroot to heal and raise your maximum HP.
 
 The keeper uses a backup pistol when the selected weapon runs out of energy. Visit gauntlets, shops, and shrines to equip a stronger build for the late stages.
 
 Open a supply cache and choose one of two weapons. At a forge, spend gold to temper your active weapon, fit an attachment, or combine a compatible pair into one weapon. Attachments and temper stay with a weapon when you drop it. Open the Journal from the title screen to see the six fusion recipes. Hold fire to charge Nail Driver or White Ember, then release to fire.
 
-Shrines and reliquaries offer new rewards and upgrades. Some boons reward switching between melee and ranged attacks, moving during fights, or cutting shots with a blade. Pause and hover over gear, relics, and boons for their effects.
+Shrines and reliquaries offer new rewards and upgrades. Look for a second shrine or reliquary through a side door in the first. Some boons reward switching between melee and ranged attacks, moving during fights, or cutting shots with a blade. Pause and hover over gear, relics, and boons for their effects.
+
+If you have gold to spare, the Tinker sells boons for 45 gold and, from stage 2, relics for 70. Each of these purchases adds 20 gold to both prices at that shop. You can also commission several jobs at one forge. Each previous job there adds 15 gold to the next price.
 
 Guardian intros end on their own. Press E or A to skip once the guardian appears. During the fight, the name of an incoming ability appears beneath the guardian's health bar.
 

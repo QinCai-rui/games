@@ -54,18 +54,11 @@ boons = [
         upgrade: "WEAPONS COST 2 LESS ENERGY. MINIMUM 1.", max_rank: 2, tint: C_BLUE},
     {name: "MEDIC'S VOW", short: "MEDIC", note: "HEAL 1 HP EVERY FOUR COMBAT CLEARS.",
         upgrade: "HEAL 1 HP EVERY THREE COMBAT CLEARS.", max_rank: 2, tint: C_MINT},
-    {name: "SMITH'S FAVOR", short: "SMITH", note: "WEAPON TEMPERING COSTS 3 LESS GOLD.",
-        upgrade: "WEAPON TEMPERING COSTS 6 LESS GOLD.", max_rank: 2, tint: C_GOLD},
     {name: "STILL WICK", short: "WICK", note: "KEEPER SKILL COOLDOWN IS 12% SHORTER.",
         upgrade: "KEEPER SKILL COOLDOWN IS 24% SHORTER.", max_rank: 2, tint: C_TEAL},
-    {name: "SALVAGER", short: "SALV", note: "GAIN 2 GOLD PER COMBAT CLEAR.",
-        upgrade: "GAIN 4 GOLD PER COMBAT CLEAR.", max_rank: 2, tint: C_GOLD},
     {name: "AFTERSTROKE", short: "AFTER", note: "A MELEE HIT BOOSTS YOUR NEXT RANGED ATTACK.", max_rank: 1, tint: C_PINK},
     {name: "KINDLED STEP", short: "STEP", note: "MOVEMENT IN COMBAT CHARGES YOUR NEXT ATTACK.", max_rank: 1, tint: C_GOLD},
     {name: "CROSSDRAFT", short: "DRAFT", note: "SHOTS FROM THE SIDE OR REAR PUSH ENEMIES FARTHER.", max_rank: 1, tint: C_TEAL},
-    {name: "LAST EMBER", short: "LAST", note: "YOUR LAST AFFORDABLE PAID ATTACK HITS HARDER.", max_rank: 1, tint: C_PINK},
-    {name: "COLD CONDUCTOR", short: "COLD", note: "LIGHTNING ON A SLOWED ENEMY CAN ARC TO ANOTHER.", max_rank: 1, tint: C_BLUE},
-    {name: "STILLHAND", short: "STILL", note: "STAND STILL TO BOOST NAIL DRIVER AND WHITE EMBER.", max_rank: 1, tint: C_LILAC},
     {name: "GUARDFALL", short: "GUARD", note: "CUT PROJECTILES TO BOOST YOUR NEXT ATTACK.", max_rank: 1, tint: C_MINT},
     {name: "PILGRIM'S WICK", short: "WICK", note: "THE FIRST NEW FIGHT EACH STAGE RESTORES 12 ENERGY.", max_rank: 1, tint: C_BLUE}
 ];

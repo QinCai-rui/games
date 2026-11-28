@@ -260,6 +260,11 @@ function lk_draw_hud() {
     var _armor_refill = !cell.clear && lk_combat_armor_enabled()
         ? clamp(1 - player.regen / armor_repair_span, 0, 1) : 0;
     lk_meter("ARM", 12, 15, 53, player.armor, player.max_armor, C_TEAL, true, _armor_refill);
+    var _mantle = lk_relic_rank(LK_RELIC.Mantle);
+    if (_mantle > 0) {
+        lk_text("WARD", 12, 20, C_GOLD);
+        for (var _i = 0; _i < _mantle; _i++) lk_diamond(40 + _i * 8, 25, 3, _i < player.ward ? C_GOLD : C_EDGE);
+    }
     lk_meter("EN", 102, 5, 41, player.energy, player.max_energy, C_BLUE, false);
     lk_loot_icon(LK_LOOT.Coin, 106, 18, 0);
     lk_text(string(player.coins), 115, 13, C_GOLD);
