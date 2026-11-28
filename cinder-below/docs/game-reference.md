@@ -206,7 +206,7 @@ Gauntlet hazards are centered near your projected position. Rupture vents stay i
 
 ## Regular enemies
 
-Base HP is the starting value for the calculation. After stage, contract, cycle, elite, and summon adjustments, enemies spawn with 75% of the result, rounded to the nearest whole HP (half points round up). In the opening fight, an ordinary Skulk has 7 HP and a Spitter has 14.
+Base HP is the starting value for the calculation. After stage, contract, cycle, elite, and summon adjustments, halve the result and round up. In the opening fight, an ordinary Skulk has 5 HP and a Spitter has 9.
 
 | Art | Enemy | Base HP | Behavior |
 | --- | --- | --- | --- |
@@ -238,7 +238,7 @@ Base HP is the starting value for the calculation. After stage, contract, cycle,
 
 ## Guardians and abilities
 
-In Main Delve, Arsenal Run, and Daily Contract, guardians have 197, 287, 304, 355, 389, 456, 473, and 540 HP on stages 1 through 8. Alternate guardians use the HP for their stage. In Iron Trial and Endless Keep, apply contract and cycle scaling to the base HP below, then apply the same 75% reduction as for regular enemies.
+In Main Delve, Arsenal Run, and Daily Contract, guardians have 132, 192, 203, 237, 259, 304, 315, and 360 HP on stages 1 through 8. Alternate guardians use the HP for their stage. In Iron Trial and Endless Keep, apply contract and cycle scaling to the base HP below, then halve the result and round up.
 
 All twelve guardians brace under sustained fire. Gold marks beside the guardian show the guard closing. A burst deals more damage after you spend a few seconds dodging or attacking an escort. Guardians need at least 30 seconds of active combat to defeat. The intro, pauses, and hit-stop do not count. Quick Hand allows 60 seconds to clear a guardian room on stage 4 or later.
 
@@ -286,7 +286,7 @@ The Keeper's Journal lists six recipes and tracks 16 discoveries across routes, 
 | Between-room and portal recovery | Main Delve clears grant 6 energy above half capacity or 11 at or below half. Other contracts grant 11. Empty Stores grants 7. Portals restore 30 energy and refill armor. They heal 1 HP in Main Delve, 2 in Arsenal, Daily, and Endless, and none in Iron. |
 | Health and loot safety | At 2 HP or less, ordinary room clears increase the heart-drop chance to 7 in 12. The free Ember Pistol fires when the selected weapon would cost more energy than you have. |
 | Periodic hazard cadence | Rupture first marks a vent after 108–143 steps, then alternates vents every 160 steps. Gauntlets first mark blasts after 145–212 steps, then trigger every 190 steps minus 11 per biome index (capped at three) and 6 per Endless cycle (capped at four). |
-| Guardian timing | Intros last up to 90 steps and can be skipped once the guardian appears. Guardian cooldowns tick down by 0.625 per step in standard contracts or 1.25 in Iron and Endless, before contract modifiers. Windups and dash durations use normal steps. |
+| Guardian timing | Intros last up to 90 steps and can be skipped once the guardian appears. Guardian cooldowns tick down by 0.5 per step in standard contracts or 1.25 in Iron and Endless, before contract modifiers. Windups and dash durations use normal steps. |
 | Regular-room pursuit | After the opening fight, ordinary attackers in standard contracts take 10–16% less recovery time than in the opening fight. Pursuers walk 16% faster and other foes 10% faster. In Iron and Endless, foes start with 12 fewer cooldown steps, recover 30–36% sooner, and walk 40% or 24% faster. Duel rivals tick down cooldowns 55% faster. |
 | Attack and movement penalties | A weapon's attack delay is its base delay divided by haste, rounded with a floor of 4 steps. Swapping slots imposes at least 6 steps before firing. Slowed enemies move at 53% pace. Elites and guardians halve the slow's duration, or shorten it to one fifth for guardians at half HP or below. They resist new slows until 30 steps after the effect ends. |
 | Cover and room size | Combat takes place inside a 384 × 168 pixel rectangle. Cover layout is randomized from ten layouts for ordinary fights, with fixed pillar patterns for Elite Hunt, Rupture, and guardian rooms. |

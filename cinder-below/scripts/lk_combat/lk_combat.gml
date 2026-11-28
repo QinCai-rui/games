@@ -99,14 +99,14 @@ function lk_later_fight() {
 
 // Apply the reduction after all enemy-specific HP adjustments, rounding half points up.
 function lk_enemy_max_hp(_health) {
-    return max(1, floor(_health * .75 + .5));
+    return max(1, ceil(_health * .5));
 }
 
 function lk_spawn(_kind, _x = -1, _y = -1, _elite = false, _summoned = false, _health_scale = 1) {
     var _standard = lk_standard_contract();
     var _boss_hp = [350, 510, 540, 630, 690, 810, 840, 960][depth_no];
     if (_standard) _boss_hp = ceil(_boss_hp * .75);
-    // A rail round drops a Skulk. A shotgunner survives it; a heavy survives a full close-range volley.
+    // Base HP before stage, contract and final health scaling.
     var _hp = [9, 18, 30, 18, _boss_hp, 22, 12, 38, 22, 24, 34,
         32, 36, 19, 26, 28, 22, 23];
     var _r = [7, 8, 9, 7, 16, 8, 7, 10, 8, 8, 9, 10, 13, 9, 10, 9, 9, 11];
@@ -920,7 +920,7 @@ function lk_enemy_step(_e) {
     _e.facing = player.px >= _e.px ? 1 : -1;
     // Standard contracts leave more time to counterattack between boss moves.
     var _cool_rate = 1;
-    if (_e.kind == LK_ENEMY.Boss) _cool_rate = lk_standard_contract() ? .625 : 1.25;
+    if (_e.kind == LK_ENEMY.Boss) _cool_rate = lk_standard_contract() ? .5 : 1.25;
     // A solo rival takes less downtime without shortening the tell or dash.
     if (cell.kind == LK_ROOM.Duel) _cool_rate = 1.55;
     _e.cool -= _cool_rate * (run_contract == LK_CONTRACT.Iron ? 1.17 : 1)
