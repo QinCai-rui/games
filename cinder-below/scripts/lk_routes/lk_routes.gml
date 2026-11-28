@@ -60,7 +60,9 @@ function lk_build_route_choices(_forward, _side) {
     }
 
     // The trial loops back to the main path through its reward room.
-    var _trial_kind = lk_stage_waystation() == LK_ROOM.SupplyPost && depth_no != 4 ? LK_ROOM.Duel : LK_ROOM.Gauntlet;
+    var _station = lk_stage_waystation();
+    var _duel = depth_no != 4 && (_station == LK_ROOM.SupplyPost || _station == LK_ROOM.Armory);
+    var _trial_kind = _duel ? LK_ROOM.Duel : LK_ROOM.Gauntlet;
     var _outer = (_side + 2) mod 4;
     var _trial = lk_link_room(3, _trial_kind, _outer, true);
     var _reward = lk_link_room(_trial, LK_ROOM.Relic, _forward, true);

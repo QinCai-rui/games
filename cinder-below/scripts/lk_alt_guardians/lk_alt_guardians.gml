@@ -114,6 +114,7 @@ function lk_guardian_part_step(_part) {
     if (_part.cool > 0) return;
     // A living pod hatches one sprout at a time.
     _part.sprout = lk_spawn(_part.px < 240 ? LK_ENEMY.Sentry : LK_ENEMY.Charger, _part.px, _part.py + 15, false, true);
+    _owner.needs_escort = false;
     _part.cool = 170;
     _part.hatching = false;
     lk_sparks(_part.px, _part.py - 4, C_MINT, 12, 1.55);

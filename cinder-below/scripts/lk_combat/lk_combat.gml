@@ -158,6 +158,8 @@ function lk_spawn(_kind, _x = -1, _y = -1, _elite = false, _summoned = false, _h
     lk_ring(_x, _y, _tint, _elite ? 27 : 18, 24);
     if (_kind == LK_ENEMY.Boss) {
         _e.guardian = lk_guardian_id(cell);
+        // The other originals already call enemies during their phase changes.
+        _e.needs_escort = _e.guardian != LK_GUARDIAN.Original || (depth_no < 6 && depth_no mod 2 == 0);
         _e.shell_hits = 0;
         _e.open_health = _health * LK_GUARDIAN_OPENING;
         _e.last_impact = world_tick;
@@ -395,7 +397,7 @@ function lk_guardian_impact(_e, _power) {
     var _open = lk_guardian_open_health(_e);
     var _capacity = _e.max_hp * LK_GUARDIAN_OPENING;
     // Pellets landing together close as much of the opening as one hit of their combined power.
-    _e.open_health = _open * exp(-_power / _capacity);
+    _e.open_health = _open * exp(-(_power * 1.25) / _capacity);
     _e.last_impact = world_tick;
     _e.chip_damage += _open - _e.open_health;
     var _whole = floor(_e.chip_damage);
@@ -869,6 +871,12 @@ function lk_charge_sound(_enemy) {
 }
 
 function lk_boss_step(_e, _toward, _range) {
+    if (_e.needs_escort && _e.hp <= _e.max_hp * .5) {
+        _e.needs_escort = false;
+        var _escort = [LK_ENEMY.Skulk, LK_ENEMY.Spitter, LK_ENEMY.Wisp, LK_ENEMY.Prism, LK_ENEMY.Monk][floor_no];
+        lk_spawn(_escort, -1, -1, false, true);
+        lk_sound(snd_gate, .78);
+    }
     if (_e.guardian != LK_GUARDIAN.Original) {
         lk_guardian_step(_e, _toward, _range);
         return;
@@ -940,9 +948,9 @@ function lk_enemy_step(_e) {
     var _toward = point_direction(_e.px, _e.py, player.px, player.py);
     var _later = lk_later_fight();
     _e.facing = player.px >= _e.px ? 1 : -1;
-    // Standard contracts leave more time to counterattack between boss moves.
+    // Slow guardian recovery without changing attack warnings, dashes or hazard timers.
     var _cool_rate = 1;
-    if (_e.kind == LK_ENEMY.Boss) _cool_rate = lk_standard_contract() ? .5 : 1.25;
+    if (_e.kind == LK_ENEMY.Boss) _cool_rate = lk_standard_contract() ? .35 : .9;
     // A solo rival takes less downtime without shortening the tell or dash.
     if (cell.kind == LK_ROOM.Duel) _cool_rate = 1.55;
     _e.cool -= _cool_rate * (run_contract == LK_CONTRACT.Iron ? 1.17 : 1)

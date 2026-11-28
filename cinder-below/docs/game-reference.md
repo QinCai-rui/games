@@ -172,7 +172,7 @@ Supply caches offer two weapons with different roles. Picking one removes the ot
 | Keeper's Stores | Pick either 35 energy or 10 gold. |
 | Temper Relay | Move one temper rank from the inactive weapon to the active weapon, or take 10 gold. |
 | Gauntlet | Optional three-wave fight with floor hazards. Rewards one weapon from Bramble Scythe onward in the weapon table, a 2-HP heart, and 25 energy. |
-| Elite Duel | A single elite rival gets double its final HP and deals 1 extra damage per hit. Winning earns a trial weapon, two 2-HP hearts, 45 energy, and 25 gold (5 from the rival and 20 for the clear). Appears in place of the gauntlet on stages with Keeper's Stores. |
+| Elite Duel | A single elite rival gets double its final HP and deals 1 extra damage per hit. Winning earns a trial weapon, two 2-HP hearts, 45 energy, and 25 gold (5 from the rival and 20 for the clear). Armory and Keeper's Stores stages have a duel, except stage 5, which always has the Sluice Machinery gauntlet. |
 | Guardian room and portal | One guardian, two pillars, and a portal after all enemies are defeated. The portal advances the stage. The last portal ends a finite run or loops Endless Keep. |
 | Pillar | Permanent cover. Blocks ordinary shots and movement. Compatible ricochet shots bounce off it. |
 | Crate and small breakable prop | Blocks movement and shots until broken. Two points of durability. Each damaging hit removes at least one point, or one per four damage rounded down if greater. |
@@ -238,6 +238,8 @@ In Main Delve, Arsenal Run, and Daily Contract, guardians have 132, 192, 203, 23
 
 All twelve guardians brace under sustained fire. Gold marks beside the guardian show the guard closing. A burst deals more damage after you spend a few seconds dodging or attacking an escort. Guardians need at least 30 seconds of active combat to defeat. The intro, pauses, and hit-stop do not count. Quick Hand allows 60 seconds to clear a guardian room on stage 4 or later.
 
+Attacks against guardians get 25% more power before bracing reduces the damage. Mossjaw, the Tin Ram, Veil Harrow, the Indexer, the Split Regent, and Sluice Sovereign each summon one escort at half HP. The Matron does the same if neither pod has hatched by then. The other guardians call reinforcements during the phases listed below.
+
 | Art | Guardian | Stage | Base HP | Named moves and changes during the fight |
 | --- | --- | --- | --- | --- |
 | ![Mossjaw](reference-art/mossjaw.png) | Mossjaw | 1 | 350 | **Moss Charge** ends in a bullet ring on open ground. A collision with cover or a wall cancels the ring and staggers Mossjaw for 0.9 seconds. **Thorn Fan** fires a spread while roots mark your path. **Root Trap** marks three floor blasts. At 51% HP, **Root Ring** adds six eruptions around Mossjaw. |
@@ -282,7 +284,7 @@ The Keeper's Journal lists six recipes and tracks 16 discoveries across routes, 
 | Between-room and portal recovery | Main Delve clears grant 6 energy above half capacity or 11 at or below half. Other contracts grant 11. Empty Stores grants 7. Portals restore 30 energy and refill armor. They heal 1 HP in Main Delve, 2 in Arsenal, Daily, and Endless, and none in Iron. |
 | Health and loot safety | At 2 HP or less, ordinary room clears increase the heart-drop chance to 7 in 12. The free Ember Pistol fires when the selected weapon would cost more energy than you have. |
 | Periodic hazard cadence | Rupture first marks a vent after 108–143 steps, then alternates vents every 160 steps. Gauntlets first mark blasts after 145–212 steps, then trigger every 190 steps minus 11 per biome index (capped at three) and 6 per Endless cycle (capped at four). |
-| Guardian timing | Intros last up to 90 steps and can be skipped once the guardian appears. Guardian cooldowns tick down by 0.5 per step in standard contracts or 1.25 in Iron and Endless, before contract modifiers. Windups and dash durations use normal steps. |
+| Guardian timing | Intros last up to 90 steps and can be skipped once the guardian appears. Guardian cooldowns tick down by 0.35 per step in standard contracts or 0.9 in Iron and Endless, before contract modifiers. Windups and dash durations use normal steps. |
 | Regular-room pursuit | After the opening fight, ordinary attackers in standard contracts take 10–16% less recovery time than in the opening fight. Pursuers walk 16% faster and other foes 10% faster. In Iron and Endless, foes start with 12 fewer cooldown steps, recover 30–36% sooner, and walk 40% or 24% faster. Duel rivals tick down cooldowns 55% faster. |
 | Attack and movement penalties | A weapon's attack delay is its base delay divided by haste, rounded with a floor of 4 steps. Swapping slots imposes at least 6 steps before firing. Slowed enemies move at 53% pace. Elites and guardians halve the slow's duration, or shorten it to one fifth for guardians at half HP or below. They resist new slows until 30 steps after the effect ends. |
 | Cover and room size | Combat takes place inside a 384 × 168 pixel rectangle. Cover layout is randomized from ten layouts for ordinary fights, with fixed pillar patterns for Elite Hunt, Rupture, and guardian rooms. |
