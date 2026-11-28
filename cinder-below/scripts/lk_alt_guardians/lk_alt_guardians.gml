@@ -186,11 +186,15 @@ function lk_guardian_step(_e, _toward, _range) {
             if (!_even) lk_guardian_aimed_lane(_e, 7, 42);
             break;
         case LK_GUARDIAN.Sluice:
+            // The slowest keeper can cross out of a standard channel during its warning.
+            var _standard = lk_standard_contract();
+            var _duration = _standard ? 60 : 94;
             if (_even) {
-                lk_lane(126, KEEP_TOP, 126, KEEP_BOTTOM, 78, 43, 94, 2, C_BLUE, _e);
-                lk_lane(354, KEEP_TOP, 354, KEEP_BOTTOM, 78, 43, 94, 2, C_BLUE, _e);
+                var _width = _standard ? 52 : 78;
+                lk_lane(126, KEEP_TOP, 126, KEEP_BOTTOM, _width, 43, _duration, 2, C_BLUE, _e);
+                lk_lane(354, KEEP_TOP, 354, KEEP_BOTTOM, _width, 43, _duration, 2, C_BLUE, _e);
             } else {
-                lk_lane(240, KEEP_TOP, 240, KEEP_BOTTOM, 59, 43, 94, 2, C_BLUE, _e);
+                lk_lane(240, KEEP_TOP, 240, KEEP_BOTTOM, _standard ? 44 : 59, 43, _duration, 2, C_BLUE, _e);
             }
             break;
         case LK_GUARDIAN.Matron:

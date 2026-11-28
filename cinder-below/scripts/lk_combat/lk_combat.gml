@@ -98,7 +98,9 @@ function lk_later_fight() {
 }
 
 function lk_spawn(_kind, _x = -1, _y = -1, _elite = false, _summoned = false) {
+    var _standard = lk_standard_contract();
     var _boss_hp = [350, 510, 540, 630, 690, 810, 840, 960][depth_no];
+    if (_standard) _boss_hp = ceil(_boss_hp * .75);
     // A rail round drops a Skulk. A shotgunner survives it; a heavy survives a full close-range volley.
     var _hp = [9, 18, 30, 18, _boss_hp, 22, 12, 38, 22, 24, 34,
         32, 36, 19, 26, 28, 22, 23];
@@ -117,7 +119,8 @@ function lk_spawn(_kind, _x = -1, _y = -1, _elite = false, _summoned = false) {
             if (_free) break;
         }
     }
-    var _health = _hp[_kind] + (_kind == LK_ENEMY.Boss ? 0 : depth_no * 3);
+    var _health = _hp[_kind];
+    if (_kind != LK_ENEMY.Boss) _health += depth_no * (_standard ? 2 : 3);
     if (lk_later_fight() && !_summoned) {
         // Frontline enemies buy the ranged enemies time without making the whole room tougher to kill.
         switch (_kind) {
@@ -134,7 +137,7 @@ function lk_spawn(_kind, _x = -1, _y = -1, _elite = false, _summoned = false) {
     var _tint = _elite ? C_GOLD : _colors[_kind];
     var _cool = irandom_range(18, 48);
     if (cell.kind == LK_ROOM.Duel) _cool = ceil(_cool / 4);
-    else if (lk_later_fight()) _cool -= 12;
+    else if (lk_later_fight() && !_standard) _cool -= 12;
     if (_kind == LK_ENEMY.Bulwark) _cool = 0;
     if (_kind == LK_ENEMY.BroodHusk) _cool = 108;
     if (_kind == LK_ENEMY.FurnaceAnchor) _cool = _x < 240 ? 57 : 118;
@@ -244,7 +247,7 @@ function lk_spawn_wave() {
 
 function lk_finish_wave() {
     if (cell.clear || wave_wait >= 0 || seals_left > 0) return;
-    if (wave == 1 && lk_moss_reinforcements() && array_length(enemies) <= 1) {
+    if (wave == 1 && !lk_standard_contract() && lk_moss_reinforcements() && array_length(enemies) <= 1) {
         wave_wait = 18;
         return;
     }
@@ -737,7 +740,8 @@ function lk_player_hurt(_power) {
     if (_shielded) {
         var _absorbed = min(player.armor, _power);
         player.armor -= _absorbed;
-        _power -= _absorbed;
+        // On standard contracts even the last point of armor can catch one whole hit.
+        _power = lk_standard_contract() ? 0 : _power - _absorbed;
         lk_ring(player.px, player.py - 4, C_TEAL, 16, 18);
         if (player.armor == 0) {
             var _shell = lk_relic_rank(LK_RELIC.Breaker);
@@ -746,7 +750,7 @@ function lk_player_hurt(_power) {
     }
     player.hp = max(0, player.hp - _power);
     lk_armor_timer(lk_combat_armor_enabled() ? LK_ARMOR_FIRST_REPAIR : 150);
-    player.hurt = 32;
+    player.hurt = lk_standard_contract() ? 75 : 32;
     flash_screen = 9;
     shaking = 7;
     lk_sparks(player.px, player.py - 8, C_PINK, 12, 2.0);
@@ -795,7 +799,8 @@ function lk_enemy_walk(_e, _distance, _angle) {
     if (_e.dash == 0 && lk_later_fight()) {
         var _pursuit = _e.kind == LK_ENEMY.Skulk || _e.kind == LK_ENEMY.Charger
             || _e.kind == LK_ENEMY.Leech || _e.kind == LK_ENEMY.Bruiser;
-        _distance *= _pursuit ? 1.40 : 1.24;
+        if (lk_standard_contract()) _distance *= _pursuit ? 1.16 : 1.10;
+        else _distance *= _pursuit ? 1.40 : 1.24;
     }
     // Try a short diagonal when the direct line runs into a pillar.
     var _x = _e.px;
@@ -908,7 +913,8 @@ function lk_enemy_step(_e) {
     var _later = lk_later_fight();
     _e.facing = player.px >= _e.px ? 1 : -1;
     // Standard contracts leave more time to counterattack between boss moves.
-    var _cool_rate = _e.kind == LK_ENEMY.Boss && !lk_standard_contract() ? 1.25 : 1;
+    var _cool_rate = 1;
+    if (_e.kind == LK_ENEMY.Boss) _cool_rate = lk_standard_contract() ? .625 : 1.25;
     // A solo rival takes less downtime without shortening the tell or dash.
     if (cell.kind == LK_ROOM.Duel) _cool_rate = 1.55;
     _e.cool -= _cool_rate * (run_contract == LK_CONTRACT.Iron ? 1.17 : 1)
@@ -1000,7 +1006,7 @@ function lk_enemy_step(_e) {
                     break;
             }
             // Shorten the idle time after an attack, not its warning or release.
-            if (_later) _e.cool = ceil(_e.cool * (.70 - min(depth_no, 3) * .02));
+            if (_later) _e.cool = ceil(_e.cool * ((lk_standard_contract() ? .90 : .70) - min(depth_no, 3) * .02));
         }
     } else {
         switch (_e.kind) {

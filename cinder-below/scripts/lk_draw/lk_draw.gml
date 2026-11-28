@@ -682,8 +682,8 @@ function lk_draw_shots(_xx, _yy) {
         }
         if (_b.kind == LK_SHOT.WispStar) {
             var _r = 4 + floor(_b.age / 9);
-            for (var _i = -1; _i <= 1; _i++) {
-                var _a = _b.angle + _i * 27;
+            for (var _ray = -1; _ray <= 1; _ray++) {
+                var _a = _b.angle + _ray * 27;
                 lk_line(_x, _y, _x + lengthdir_x(_r, _a), _y + lengthdir_y(_r, _a), _b.color);
             }
         } else if (_b.kind == LK_SHOT.ThornSeed && _b.age < 60) {

@@ -24,7 +24,7 @@ Cinder Below is a single-player pixel-art dungeon shooter for Linux. Clear each 
 
 Drag a window edge or use the desktop maximize button to change the window size. Fit mode keeps the game at 16:9 and fills the available space. Whole-pixel scaling uses the largest integer zoom that fits and falls back to fit in smaller windows. The game remembers your scaling mode.
 
-Armor recovers faster after you clear a room. With combat repair enabled, the first point repairs after five seconds without taking damage. Each additional point takes three seconds. The line in the armor bar shows progress.
+In Main Delve, Arsenal, and Daily, even one point of armor can absorb a whole hit. With combat repair enabled, the first point repairs after five seconds without taking damage. Each additional point takes three seconds. The line in the armor bar shows progress. Armor recovers faster after you clear a room.
 
 When combat repair is enabled, the first two Shrines of Ash offer boons that suit your weapons. At full health with a gun and a blade, choose Guardfall to reward cutting a shot or Afterstroke to reward landing a melee hit before firing. When wounded, look for Bloodroot to heal and raise your maximum HP.
 
@@ -46,7 +46,7 @@ Sword doors lead to elites and a weapon reward. In Elite Hunt, a Bulwark aims fr
 
 New players start with a guided tour. Prompts appear as you learn the controls and reach rooms with new mechanics. Press **H** or **Y** to skip during a run. To replay the tour, turn it on from the keeper selection screen before descending.
 
-In Root Gates and Mossvault, the second group enters when the first is down to one enemy and any seals are closed. The arrow route stays at one wave. A Sentry's dotted line shows where its burst will go. Change direction once it locks, or get behind a pillar. Crates only stop a couple of shots.
+In Root Gates and Mossvault, clear the first group and close any seals. You have a short break to reposition before the second group appears. In Iron and Endless, reinforcements can arrive with one enemy still alive. The arrow route stays at one wave. A Sentry's dotted line shows where its burst will go. Change direction once it locks, or get behind a pillar. Crates only stop a couple of shots.
 
 The minimap uses solid tiles for visited rooms and outlines for rooms you can see through known doors. A bright dot marks your room. On large floors, the map focuses on nearby rooms so the corridors stay visible.
 

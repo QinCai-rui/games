@@ -238,11 +238,11 @@ Base HP is the value before stage, contract, cycle, and elite scaling. The names
 
 ## Guardians and abilities
 
-HP below is for the first circuit of Main Delve, Arsenal Run, or Daily Contract. Iron Trial and Endless Keep apply the rules in the difficulty table.
+In Main Delve, Arsenal Run, and Daily Contract, guardians have 263, 383, 405, 473, 518, 608, 630, and 720 HP on stages 1 through 8. Alternate guardians use the HP for their stage. Iron Trial and Endless Keep use the base HP below before contract and cycle scaling.
 
 All twelve guardians brace under sustained fire. Gold marks beside the guardian show the guard closing. A burst deals more damage after you spend a few seconds dodging or attacking an escort. Guardians need at least 30 seconds of active combat to defeat. The intro, pauses, and hit-stop do not count. Quick Hand allows 60 seconds to clear a guardian room on stage 4 or later.
 
-| Art | Guardian | Stage | HP | Named moves and changes during the fight |
+| Art | Guardian | Stage | Base HP | Named moves and changes during the fight |
 | --- | --- | --- | --- | --- |
 | ![Mossjaw](reference-art/mossjaw.png) | Mossjaw | 1 | 350 | **Moss Charge** ends in a bullet ring on open ground. A collision with cover or a wall cancels the ring and staggers Mossjaw for 0.9 seconds. **Thorn Fan** fires a spread while roots mark your path. **Root Trap** marks three floor blasts. At 51% HP, **Root Ring** adds six eruptions around Mossjaw. |
 | ![The Rootbound](reference-art/the-rootbound.png) | The Rootbound | 2 | 510 | **Seed Halo** leaves a gap off to one side. **Thorn Salvo** sends a seed across the room that sheds thorns on both sides. Pillars and blades stop the seed. **Root Eruption** marks three blasts. Below 53% HP, a Sentry and a Charger join the fight. |
@@ -261,7 +261,7 @@ All twelve guardians brace under sustained fire. Gold marks beside the guardian 
 
 | Contract | Rules |
 | --- | --- |
-| The Main Delve | Eight stages with standard armor repair and control over your weapon pair. Guardians drop a 2 HP heart. Portal transit restores armor and energy. |
+| The Main Delve | Eight stages with standard armor repair and control over your weapon pair. Guardians drop a 2 HP heart. Portal transit restores armor, energy, and 1 HP. |
 | Iron Trial | Starts at half the keeper's armor rounded up. Enemies have 13% more HP before rounding, move 13% faster, and tick down their attack cooldowns 17% faster. Armor repairs in cleared rooms only. No portal HP heal. |
 | Arsenal Run | Uses standard recovery. Every combat clear, including guardians and gauntlets, gives two distinct random weapons and 17 extra energy. Both weapons are untempered on stages 1–3, +1 on 4–6, and +2 on 7–8. |
 | Daily Contract | Uses standard recovery and a date-derived seed. Each stage reseeds with the date seed plus 8,731 per completed stage. Stores your best reached depth for the date. |
@@ -273,21 +273,21 @@ The Keeper's Journal lists six recipes and tracks 16 discoveries across routes, 
 
 | What changes difficulty | Current value |
 | --- | --- |
-| Enemy HP by stage | Regular enemies gain 3 HP per completed stage before contract, cycle, and elite multipliers. After the opening fight, ordinary Chargers, Bruisers, and Bulwarks gain another 2 HP plus 2 per stage after stage 2. |
+| Enemy HP by stage | Regular enemies gain 2 HP per completed stage in standard contracts or 3 in Iron and Endless, before other multipliers. After the opening fight, ordinary Chargers, Bruisers, and Bulwarks gain another 2 HP plus 2 per stage after stage 2. |
 | Iron and Endless HP scaling | Multiply by `1 + 0.12 × min(cycle, 7)`. Add 0.13 to the multiplier in Iron Trial. The first circuit is cycle 0. Endless HP scaling caps at +84%. |
 | Count per ordinary wave | Base count = 4 + biome index (0–4, capped at 3) + 1 from wave 2 onward + a random 0 or 1 + up to 2 from the Endless cycle. Swarm adds 2. Elite Hunt instead starts with 2 elites and adds 2–4 more enemies depending on biome. |
 | Endless elites | From cycle 1, the first eligible regular spawn in each wave is elite. From cycle 2, the first two are elite. Elite Hunt still spawns its two guaranteed elites. |
-| Waves and time between fights | Main-path fights in Root Gates and Mossvault have 2 waves. Reinforcements start emerging 18 steps after at most one foe remains and any seals are closed. The low route has 1 wave. Later Ambush, Crossfire, and Rupture rooms can have 2 waves, with 50 steps between groups. Gauntlets have 3 waves. Enemies emerge over 24 steps. |
+| Waves and time between fights | Main-path fights in Root Gates and Mossvault have 2 waves. In standard contracts, reinforcements appear 50 steps after the first wave dies and any seals close. In Iron and Endless they appear after 18 steps and can overlap the last foe. The low route has 1 wave. Later Ambush, Crossfire, and Rupture rooms can have 2 waves, with 50 steps between groups. Gauntlets have 3 waves. Enemies emerge over 24 steps. |
 | Reinforcements | Summoned enemies have 65% of their usual base-plus-stage HP, rounded down before contract and cycle scaling. They do not drop loot or trigger kill rewards. |
-| Hit damage | Most enemy shots and contact hits deal 1. Dashing enemies, guardians, and Bruisers can deal 2 on contact. Most floor blasts deal 2. Armor absorbs as much damage as it can and leftover damage reaches HP. |
-| Hit protection | 32 steps after taking damage, about 0.53 seconds. Room entry grants at least 22 steps. Soul Knot grants 240 steps on revive. |
+| Hit damage | Most shots and contact hits deal 1. Dashes, guardians, Bruisers, and floor blasts can deal 2. In standard contracts, a hit that breaks armor does no HP damage. In Iron and Endless the leftover damage reaches HP. |
+| Hit protection | After a hit, protection lasts 75 steps (1.25 seconds) in standard contracts or 32 steps in Iron and Endless. Room entry grants at least 22 steps. Soul Knot grants 240 steps on revive. |
 | Armor repair in combat | When enabled, repair 1 point after 300 hit-free steps (5 seconds), then 1 per 180 steps (3 seconds). Taking damage or entering a fight with missing armor restarts the initial timer. |
 | Armor repair out of combat | All contracts shorten the timer to at most 86 steps after a clear, then recover 1 point every 53 steps until full. Gateward Seal can grant immediate armor on clear. |
-| Between-room and portal recovery | Main Delve clears grant 6 energy above half capacity or 11 at or below half. Other contracts grant 11. Empty Stores grants 7. Portals restore 30 energy and refill armor, and heal 2 HP in Arsenal, Daily, and Endless. |
+| Between-room and portal recovery | Main Delve clears grant 6 energy above half capacity or 11 at or below half. Other contracts grant 11. Empty Stores grants 7. Portals restore 30 energy and refill armor. They heal 1 HP in Main Delve, 2 in Arsenal, Daily, and Endless, and none in Iron. |
 | Health and loot safety | At 2 HP or less, ordinary room clears increase the heart-drop chance to 7 in 12. The free Ember Pistol fires when the selected weapon would cost more energy than you have. |
 | Periodic hazard cadence | Rupture first marks a vent after 108–143 steps, then alternates vents every 160 steps. Gauntlets first mark blasts after 145–212 steps, then trigger every 190 steps minus 11 per biome index (capped at three) and 6 per Endless cycle (capped at four). |
-| Guardian timing | Intros last up to 90 steps and can be skipped once the guardian appears. In Iron and Endless, guardian cooldowns tick down 25% faster. Iron adds its own multiplier. The Rootbound's recovery is 39 steps before enrage and 29 afterward. Its enraged windup is 25 steps. |
-| Regular-room pursuit | After the opening fight, regular-room foes begin with 12 fewer cooldown steps and take 30–36% less recovery time after attacking. Outside of dashes, pursuers move 40% faster and other foes 24% faster in those rooms. Duel rivals tick down cooldowns 55% faster. |
+| Guardian timing | Intros last up to 90 steps and can be skipped once the guardian appears. Guardian cooldowns tick down by 0.625 per step in standard contracts or 1.25 in Iron and Endless, before contract modifiers. Windups and dash durations use normal steps. |
+| Regular-room pursuit | After the opening fight, ordinary attackers in standard contracts take 10–16% less recovery time than in the opening fight. Pursuers walk 16% faster and other foes 10% faster. In Iron and Endless, foes start with 12 fewer cooldown steps, recover 30–36% sooner, and walk 40% or 24% faster. Duel rivals tick down cooldowns 55% faster. |
 | Attack and movement penalties | A weapon's attack delay is its base delay divided by haste, rounded with a floor of 4 steps. Swapping slots imposes at least 6 steps before firing. Slowed enemies move at 53% pace. Elites and guardians halve the slow's duration, or shorten it to one fifth for guardians at half HP or below. They resist new slows until 30 steps after the effect ends. |
 | Cover and room size | Combat takes place inside a 384 × 168 pixel rectangle. Cover layout is randomized from ten layouts for ordinary fights, with fixed pillar patterns for Elite Hunt, Rupture, and guardian rooms. |
 

@@ -31,7 +31,7 @@ enum LK_FIGHT {
 #macro KEEP_BOTTOM 227
 #macro KEEP_MID_Y 143
 #macro LK_BOSS_INTRO 90
-#macro LK_VERSION "1.8.0+dev"
+#macro LK_VERSION "1.8.1+dev"
 
 function lk_input() {
     pad = -1;
@@ -749,8 +749,8 @@ function lk_interact(_action) {
 
 function lk_portal_recover() {
     player.energy = min(player.max_energy, player.energy + 30);
-    if (run_contract != LK_CONTRACT.Iron && run_contract != LK_CONTRACT.Delve) {
-        player.hp = min(player.max_hp, player.hp + 2);
+    if (run_contract != LK_CONTRACT.Iron) {
+        player.hp = min(player.max_hp, player.hp + (run_contract == LK_CONTRACT.Delve ? 1 : 2));
     }
     player.armor = player.max_armor;
 }

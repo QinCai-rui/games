@@ -737,7 +737,9 @@ function lk_sanctum_pattern(_e, _phase_two) {
                 lk_enemy_burst(_e, 8, _e.angle, 45, 2.11, C_LILAC, LK_SHOT.Ricochet);
                 lk_field(_px, _py, 1, 31, 2, 34, C_LILAC, true);
             }
-            if (_phase_two) lk_enemy_burst(_e, 5, _e.angle, 16, 3.7, C_PINK, LK_SHOT.Blast);
+            if (_phase_two && (_attack == 1 || !lk_standard_contract())) {
+                lk_enemy_burst(_e, 5, _e.angle, 16, 3.7, C_PINK, LK_SHOT.Blast);
+            }
             break;
     }
 }
