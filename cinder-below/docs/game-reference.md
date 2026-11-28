@@ -115,9 +115,9 @@ Gold, energy, and hearts are proximity pickups. Weapons require interaction and 
 
 | Art | Item or upgrade | Effect | Source |
 | --- | --- | --- | --- |
-| ![gold](reference-art/gold.png) | Gold | Pays for shop goods, forge jobs, and tolls. | Regular enemy 1–2 gold, elite 5, guardian 14. Cache chest 3. Breakable props have a 1-in-3 chance to drop 1. |
-| ![energy](reference-art/energy.png) | Energy pickup | Replenishes weapon energy by the amount on the pickup. | Enemy kill has a 1-in-4 chance to drop 9. Chest 20, gauntlet 25, guardian clear 35. |
-| ![heart](reference-art/heart.png) | Heart | Heals 2 HP, up to max HP. | Guaranteed from gauntlets and guardian clears. Ordinary room clears have a 1-in-6 chance, rising to 7-in-12 at 2 HP or less. |
+| ![gold](reference-art/gold.png) | Gold | Pays for shop goods, forge jobs, and tolls. | Regular enemy 1–2 gold, elite 5, guardian 14. A duel clear adds 20 gold. Cache chest 3. Breakable props have a 1-in-3 chance to drop 1. |
+| ![energy](reference-art/energy.png) | Energy pickup | Replenishes weapon energy by the amount on the pickup. | Enemy kill has a 1-in-4 chance to drop 9. Chest 20, gauntlet 25, guardian clear 35, duel clear 45. |
+| ![heart](reference-art/heart.png) | Heart | Heals 2 HP, up to max HP. | Duels drop two hearts. Gauntlets and guardians drop one. Ordinary room clears have a 1-in-6 chance, rising to 7-in-12 at 2 HP or less. |
 | ![heart](reference-art/heart.png) | Tonic | Heals 3 HP for 5 gold. | Tinker's Shop. Once per shop, only while below max HP. |
 | ![energy](reference-art/energy.png) | Energy Cell | Restores 40 energy for 4 gold. | Tinker's Shop. Once per shop, only while below max energy. |
 | ![Tinker](reference-art/tinker.png) | Shop weapon | Buys one stocked weapon and equips it in the active slot. Price = 10 + 3 × zero-based biome index + 2 × temper rank. | Tinker's Shop. Blueprints make specific weapons appear more often. The pool excludes Ember Pistol, Keeper Blade, and fusion results. |
@@ -172,7 +172,7 @@ Supply caches offer two weapons with different roles. Picking one removes the ot
 | Keeper's Stores | Pick either 35 energy or 10 gold. |
 | Temper Relay | Move one temper rank from the inactive weapon to the active weapon, or take 10 gold. |
 | Gauntlet | Optional three-wave fight with floor hazards. Rewards one weapon from Bramble Scythe onward in the weapon table, a 2-HP heart, and 25 energy. |
-| Elite Duel | A single elite rival attacks with less downtime. Winning earns a weapon from the gauntlet pool. Appears in place of the gauntlet on stages with Keeper's Stores. |
+| Elite Duel | A single elite rival gets double its final HP and deals 1 extra damage per hit. Winning earns a trial weapon, two 2-HP hearts, 45 energy, and 25 gold (5 from the rival and 20 for the clear). Appears in place of the gauntlet on stages with Keeper's Stores. |
 | Guardian room and portal | One guardian, two pillars, and a portal after all enemies are defeated. The portal advances the stage. The last portal ends a finite run or loops Endless Keep. |
 | Pillar | Permanent cover. Blocks ordinary shots and movement. Compatible ricochet shots bounce off it. |
 | Crate and small breakable prop | Blocks movement and shots until broken. Two points of durability. Each damaging hit removes at least one point, or one per four damage rounded down if greater. |
@@ -202,7 +202,7 @@ Gauntlet hazards are centered near your projected position. Rupture vents stay i
 
 ## Regular enemies
 
-Base HP is the starting value for the calculation. After stage, contract, cycle, elite, and summon adjustments, halve the result and round up. In the opening fight, an ordinary Skulk has 5 HP and a Spitter has 9.
+After stage, contract, cycle, elite, and summon adjustments, halve the base HP and round up. Multiply by 1.5 and round up again. In the opening fight, an ordinary Skulk has 8 HP and a Spitter has 14.
 
 | Art | Enemy | Base HP | Behavior |
 | --- | --- | --- | --- |
@@ -234,7 +234,7 @@ Base HP is the starting value for the calculation. After stage, contract, cycle,
 
 ## Guardians and abilities
 
-In Main Delve, Arsenal Run, and Daily Contract, guardians have 132, 192, 203, 237, 259, 304, 315, and 360 HP on stages 1 through 8. Alternate guardians use the HP for their stage. In Iron Trial and Endless Keep, apply contract and cycle scaling to the base HP below, then halve the result and round up.
+In Main Delve, Arsenal Run, and Daily Contract, guardians have 198, 288, 305, 356, 389, 456, 473, and 540 HP on stages 1 through 8. Alternate guardians use the HP for their stage. In Iron Trial and Endless Keep, apply contract and cycle scaling before the same final HP calculation used for regular enemies.
 
 All twelve guardians brace under sustained fire. Gold marks beside the guardian show the guard closing. A burst deals more damage after you spend a few seconds dodging or attacking an escort. Guardians need at least 30 seconds of active combat to defeat. The intro, pauses, and hit-stop do not count. Quick Hand allows 60 seconds to clear a guardian room on stage 4 or later.
 

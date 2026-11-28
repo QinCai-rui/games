@@ -97,9 +97,10 @@ function lk_later_fight() {
     return cell.kind == LK_ROOM.Fight && (depth_no > 0 || cell_index > 1);
 }
 
-// Apply the reduction after all enemy-specific HP adjustments, rounding half points up.
 function lk_enemy_max_hp(_health) {
-    return max(1, ceil(_health * .5));
+    // Scale the HP enemies actually had, including the old whole-point rounding.
+    var _base_hp = max(1, ceil(_health * .5));
+    return ceil(_base_hp * 1.5);
 }
 
 function lk_spawn(_kind, _x = -1, _y = -1, _elite = false, _summoned = false, _health_scale = 1) {
@@ -140,6 +141,7 @@ function lk_spawn(_kind, _x = -1, _y = -1, _elite = false, _summoned = false, _h
     var _scale = 1 + min(run_cycle, 7) * .12 + (run_contract == LK_CONTRACT.Iron ? .13 : 0);
     _health = ceil(_health * _scale * (_elite ? 2.25 : 1));
     _health = lk_enemy_max_hp(ceil(_health * _health_scale));
+    if (cell.kind == LK_ROOM.Duel && _elite) _health *= 2;
     var _tint = _elite ? C_GOLD : _colors[_kind];
     var _cool = irandom_range(18, 48);
     if (cell.kind == LK_ROOM.Duel) _cool = ceil(_cool / 4);
@@ -291,6 +293,10 @@ function lk_finish_wave() {
     } else if (cell.kind == LK_ROOM.Duel) {
         banner = "DUEL WON";
         lk_trial_weapon();
+        lk_drop(LK_LOOT.Heart, 208, 145, 2);
+        lk_drop(LK_LOOT.Heart, 222, 152, 2);
+        lk_drop(LK_LOOT.Energy, 260, 147, 45);
+        lk_drop(LK_LOOT.Coin, 240, 132, 20);
     } else if (cell.kind == LK_ROOM.Gauntlet) {
         banner = "GAUNTLET CLEARED";
         lk_trial_weapon();
@@ -740,6 +746,7 @@ function lk_armor_step() {
 
 function lk_player_hurt(_power) {
     if (player.hurt > 0 || player.dash_time > 0 || mode != LK_MODE.Play) return false;
+    if (cell.kind == LK_ROOM.Duel && !cell.clear) _power += 1;
     if (cell.kind == LK_ROOM.Boss && !cell.clear) guardian_hits += 1;
     var _ward_hit = min(player.ward, _power);
     if (_ward_hit > 0) {
